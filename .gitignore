@@ -10,3 +10,11 @@ env/
 .idea/
 .vscode/
 *.log
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.webp
+*.svg
+*.ico
