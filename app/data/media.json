@@ -1,0 +1,3026 @@
+[
+  {
+    "media_code": "MED-WWZ-0001-01",
+    "media_type": "image",
+    "file_path": "/static/assets/wang_weizhi/WWZ-0001.jpg",
+    "original_name": "WWZ-0001.jpg",
+    "source": "王味之公众号",
+    "rights_status": "authorized",
+    "category": "artwork",
+    "asset_code": "WWZ-0001",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "25db40148021b0ed3c42a06a3eb91e27cf4d3993d2904f43d6197a4fc119903e"
+  },
+  {
+    "media_code": "MED-WWZ-0002-01",
+    "media_type": "image",
+    "file_path": "/static/assets/wang_weizhi/WWZ-0002.jpg",
+    "original_name": "WWZ-0002.jpg",
+    "source": "王味之公众号",
+    "rights_status": "authorized",
+    "category": "artwork",
+    "asset_code": "WWZ-0002",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "a1493a426104298c5ba6ac99913d695dca885d74d7d0c0eeaf1e92637f6fced4"
+  },
+  {
+    "media_code": "MED-WWZ-0003-01",
+    "media_type": "image",
+    "file_path": "/static/assets/wang_weizhi/WWZ-0003.jpg",
+    "original_name": "WWZ-0003.jpg",
+    "source": "王味之公众号",
+    "rights_status": "authorized",
+    "category": "artwork",
+    "asset_code": "WWZ-0003",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "f54455ba73b82b8c605b40e44f409930e0aec24cba4211480ed85ab5c76b0b6d"
+  },
+  {
+    "media_code": "MED-WWZ-0004-01",
+    "media_type": "image",
+    "file_path": "/static/assets/wang_weizhi/WWZ-0004.jpg",
+    "original_name": "WWZ-0004.jpg",
+    "source": "王味之公众号",
+    "rights_status": "authorized",
+    "category": "artwork",
+    "asset_code": "WWZ-0004",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "953d28739e5718bef13f025f27efa4c19fe922f15c5d43d6865f2f48c83c039a"
+  },
+  {
+    "media_code": "MED-WWZ-0005-01",
+    "media_type": "image",
+    "file_path": "/static/assets/wang_weizhi/WWZ-0005.jpg",
+    "original_name": "WWZ-0005.jpg",
+    "source": "王味之公众号",
+    "rights_status": "authorized",
+    "category": "artwork",
+    "asset_code": "WWZ-0005",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "5cca3bb2902cdc98ebb866d0add14ed2bb1145a8cecc6f3153e580286500a3e1"
+  },
+  {
+    "media_code": "MED-WWZ-0006-01",
+    "media_type": "image",
+    "file_path": "/static/assets/wang_weizhi/WWZ-0006.jpg",
+    "original_name": "WWZ-0006.jpg",
+    "source": "王味之公众号",
+    "rights_status": "authorized",
+    "category": "artwork",
+    "asset_code": "WWZ-0006",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "e1cbd16065ad06253a9d624c63b8e50d6c341aa18de3886a6496e15aec0b3e78"
+  },
+  {
+    "media_code": "MED-WWZ-0007-01",
+    "media_type": "image",
+    "file_path": "/static/assets/wang_weizhi/WWZ-0007.jpg",
+    "original_name": "WWZ-0007.jpg",
+    "source": "王味之公众号",
+    "rights_status": "authorized",
+    "category": "artwork",
+    "asset_code": "WWZ-0007",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "4c3329a87bc3f1bfa6b2f5717aa21a392eaca3c67d854a1a5ded99dbb7ec4c4f"
+  },
+  {
+    "media_code": "MED-WWZ-0008-01",
+    "media_type": "image",
+    "file_path": "/static/assets/wang_weizhi/WWZ-0008.jpg",
+    "original_name": "WWZ-0008.jpg",
+    "source": "王味之公众号",
+    "rights_status": "authorized",
+    "category": "artwork",
+    "asset_code": "WWZ-0008",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "723c4add5e3e0bb6ce1c0bf80d9649d93fd2e72bf355c66bbfc5a02bb653d6c8"
+  },
+  {
+    "media_code": "MED-WWZ-0009-01",
+    "media_type": "image",
+    "file_path": "/static/assets/wang_weizhi/WWZ-0009.jpg",
+    "original_name": "WWZ-0009.jpg",
+    "source": "王味之公众号",
+    "rights_status": "authorized",
+    "category": "artwork",
+    "asset_code": "WWZ-0009",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "56d70bdbaf95580fca5578e2338bfbfdb749e98790ce21c4e0142c26fe561306"
+  },
+  {
+    "media_code": "MED-WWZ-0010-01",
+    "media_type": "image",
+    "file_path": "/static/assets/wang_weizhi/WWZ-0010.jpg",
+    "original_name": "WWZ-0010.jpg",
+    "source": "王味之公众号",
+    "rights_status": "authorized",
+    "category": "artwork",
+    "asset_code": "WWZ-0010",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "07dbeebf1495d99fe0081949639835b77e1544b3aa06ebf98ffa5c30bc969889"
+  },
+  {
+    "media_code": "MED-ZHB-0001-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0001.jpg",
+    "original_name": "ZHB-0001.jpg",
+    "source": "辽宁省博物馆",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0001",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "05a0a4200446572f7f362507e4cf413520b0c95d946ee56ca13b44d1eda039e3"
+  },
+  {
+    "media_code": "MED-ZHB-0002-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0002.jpg",
+    "original_name": "ZHB-0002.jpg",
+    "source": "纳尔逊‑阿特金斯艺术博物馆",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0002",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "2a3616c1a039287d75bb7bcb734f118185bf14ce54a28f9d21f6cc69ee2337aa"
+  },
+  {
+    "media_code": "MED-ZHB-0003-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0003.jpg",
+    "original_name": "ZHB-0003.jpg",
+    "source": "台北故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0003",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "7762f541b10a96da33fcc770119b8ef4e5acaef99e5739728f879dec2d916eba"
+  },
+  {
+    "media_code": "MED-ZHB-0004-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0004.jpg",
+    "original_name": "ZHB-0004.jpg",
+    "source": "台北故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0004",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "5e89f02bb8658d7ad39b0fa95af3433babfb70a64f65a187acbf02beb3e880c5"
+  },
+  {
+    "media_code": "MED-ZHB-0005-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0005.jpg",
+    "original_name": "ZHB-0005.jpg",
+    "source": "故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0005",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "1db041b5da4dbae1596b7ec4103fe132025b9ef1906d71ddd73aa06775644521"
+  },
+  {
+    "media_code": "MED-ZHB-0006-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0006.jpg",
+    "original_name": "ZHB-0006.jpg",
+    "source": "台北故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0006",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "42c205e6775e1998fd6730000f127b427299dae2e458d19992f142361bb14a1c"
+  },
+  {
+    "media_code": "MED-ZHB-0007-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0007.jpg",
+    "original_name": "ZHB-0007.jpg",
+    "source": "故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0007",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "7e1b5f9432fd295d1e1813201fa1d7805a3e57120eb8caddafdaeff0be6a653f"
+  },
+  {
+    "media_code": "MED-ZHB-0008-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0008.jpg",
+    "original_name": "ZHB-0008.jpg",
+    "source": "台北故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0008",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "f6bba944d5e17c7caafb31882b48c8fdac017f8b471b7a5104621510e2aa8aa2"
+  },
+  {
+    "media_code": "MED-ZHB-0009-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0009.jpg",
+    "original_name": "ZHB-0009.jpg",
+    "source": "故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0009",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "88a47376557de7a9b8bc99aff10ca6c8b8d07861838d7f2205578e45a8fca0b0"
+  },
+  {
+    "media_code": "MED-ZHB-0010-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0010.jpg",
+    "original_name": "ZHB-0010.jpg",
+    "source": "纳尔逊‑阿特金斯艺术博物馆",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0010",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "3ffb72f7adb909a3379e7fd65ad137beb249fdc22064ac15c07ddba3baefc92c"
+  },
+  {
+    "media_code": "MED-ZHB-0011-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0011.jpg",
+    "original_name": "ZHB-0011.jpg",
+    "source": "台北故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0011",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "241f8165d2aafc0c74f063f295ee81c57de22e326aeb73618ea202ae898d879a"
+  },
+  {
+    "media_code": "MED-ZHB-0012-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0012.jpg",
+    "original_name": "ZHB-0012.jpg",
+    "source": "大都会艺术博物馆",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0012",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "fef91b79ef2ca9e5fe239c2a5020306f34308a2a485ed3c0d0d615ca4b1dbe83"
+  },
+  {
+    "media_code": "MED-ZHB-0013-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0013.jpg",
+    "original_name": "ZHB-0013.jpg",
+    "source": "纳尔逊‑阿特金斯艺术博物馆",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0013",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "7067ecfea2a83ba61daea58416003baab7518e1ea6c86bb3d0a881e772ed97e2"
+  },
+  {
+    "media_code": "MED-ZHB-0014-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0014.jpg",
+    "original_name": "ZHB-0014.jpg",
+    "source": "故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0014",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "a32fd1951b79c09030f7d90a7239a51f449e51e0710c31bac39900ef4eaa6697"
+  },
+  {
+    "media_code": "MED-ZHB-0015-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0015.jpg",
+    "original_name": "ZHB-0015.jpg",
+    "source": "业务数据库",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0015",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "5b7e3e884a8eb7e8830b18632f62cd1014d03425c0283c3103eb7ef312bdbddb"
+  },
+  {
+    "media_code": "MED-ZHB-0016-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0016.jpg",
+    "original_name": "ZHB-0016.jpg",
+    "source": "业务数据库",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0016",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "728e35e67c9ef4342eb820d5f6c41e7418bd00b6453077903f857c052abc0d6b"
+  },
+  {
+    "media_code": "MED-ZHB-0017-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0017.jpg",
+    "original_name": "ZHB-0017.jpg",
+    "source": "上海龙美术馆",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0017",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "191d4555a457f2f9d835b35dc510bd2accc53cd62cc12a8b6b1d0017c41d4e2b"
+  },
+  {
+    "media_code": "MED-ZHB-0018-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0018.jpg",
+    "original_name": "ZHB-0018.jpg",
+    "source": "故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0018",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "c412faff66912195fa8e9f3e01266246799d22936983d5d56594c8d0a83fb896"
+  },
+  {
+    "media_code": "MED-ZHB-0019-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0019.jpg",
+    "original_name": "ZHB-0019.jpg",
+    "source": "台北故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0019",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "8000a9bbd1cfb0f37365d9dca9b103c44e4a7ae45f8b0c48c8f13cdbc6044710"
+  },
+  {
+    "media_code": "MED-ZHB-0020-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0020.jpg",
+    "original_name": "ZHB-0020.jpg",
+    "source": "台北故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0020",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "1832a41d6b224fb39203461e85e1d16b1a1d2d3ad9da3ae836eb1e3e33f2fa48"
+  },
+  {
+    "media_code": "MED-ZHB-0021-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0021.jpg",
+    "original_name": "ZHB-0021.jpg",
+    "source": "纳尔逊‑阿特金斯艺术博物馆",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0021",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "e8a4ca2566f7303122875bf268ee2b4b5de381947d5441f00b9ae6a15d1961b0"
+  },
+  {
+    "media_code": "MED-ZHB-0022-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0022.jpg",
+    "original_name": "ZHB-0022.jpg",
+    "source": "故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0022",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "903a16dffa24a6f3e5bab0783b7caa05f5a3a123dc1a6a7dc8363fdcfe39245a"
+  },
+  {
+    "media_code": "MED-ZHB-0023-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0023.jpg",
+    "original_name": "ZHB-0023.jpg",
+    "source": "智恩院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0023",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "e8e908d6bd43251800646cfcabfaf3edbf0ef2f5b169ef67f7204fe2317b2b7d"
+  },
+  {
+    "media_code": "MED-ZHB-0024-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0024.jpg",
+    "original_name": "ZHB-0024.jpg",
+    "source": "业务数据库",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0024",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "66b5fdef8b080807be88e6c801fb3dd85dd3da99230f90b6820b4345a9e0f698"
+  },
+  {
+    "media_code": "MED-ZHB-0025-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0025.jpg",
+    "original_name": "ZHB-0025.jpg",
+    "source": "业务数据库",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0025",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "c34933097d2c2b55beeb47727c6f08ddfbdc6a1753cb1c67a9623d9c4e96facd"
+  },
+  {
+    "media_code": "MED-ZHB-0026-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0026.jpg",
+    "original_name": "ZHB-0026.jpg",
+    "source": "业务数据库",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0026",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "c4c6170dcc292863d04d5d9905e46b5f0b66610416a6333c7f6b7168bc49fa3b"
+  },
+  {
+    "media_code": "MED-ZHB-0027-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0027.jpg",
+    "original_name": "ZHB-0027.jpg",
+    "source": "台北故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0027",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "550ac9c86d2e2df3f06638a307040780571e4599842e424ac3451c8d03a4ff34"
+  },
+  {
+    "media_code": "MED-ZHB-0028-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0028.jpg",
+    "original_name": "ZHB-0028.jpg",
+    "source": "台北故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0028",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "54eaec4d4aa47f2cf06c1032a5632d755ce4d43d6c3c1f041224eda4aeb97177"
+  },
+  {
+    "media_code": "MED-ZHB-0029-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0029.jpg",
+    "original_name": "ZHB-0029.jpg",
+    "source": "业务数据库",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0029",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "7621d332d11fa5c42948436f0392918968db0063e929d62b7d7dabe3505a2d26"
+  },
+  {
+    "media_code": "MED-ZHB-0030-01",
+    "media_type": "image",
+    "file_path": "/static/assets/treasure/ZHB-0030.jpg",
+    "original_name": "ZHB-0030.jpg",
+    "source": "台北故宫博物院",
+    "rights_status": "pending",
+    "category": "artwork",
+    "asset_code": "ZHB-0030",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "32efa9201da705972fc1dc761409a7104459bf8d75fcf5aabf10d6b73d5fbf29"
+  },
+  {
+    "media_code": "MED-A001-01",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_artifacts/A001.jpg",
+    "original_name": "A001.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "hotel_artifact",
+    "asset_code": "A001",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "020c3745822852162be1915216e5b31a2d0fe788948deb743df52fbf3b186250"
+  },
+  {
+    "media_code": "MED-A002-01",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_artifacts/A002.jpg",
+    "original_name": "A002.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "hotel_artifact",
+    "asset_code": "A002",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "d605028042f3b22b181d5ac55d4be1fb4e3e876a3ba442b619df186274c29166"
+  },
+  {
+    "media_code": "MED-A003-01",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_artifacts/A003.jpg",
+    "original_name": "A003.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "hotel_artifact",
+    "asset_code": "A003",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "1cffb3886438e0a6a4a86561d0e9201ac6c523b4ff1bc0e60498a5b090d1237d"
+  },
+  {
+    "media_code": "MED-A004-01",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_artifacts/A004.jpg",
+    "original_name": "A004.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "hotel_artifact",
+    "asset_code": "A004",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "a8e64256ffa4c58c34885259092c0a2ad6854c901f57572ec17b897d56ee9c8a"
+  },
+  {
+    "media_code": "MED-A005-01",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_artifacts/A005.jpg",
+    "original_name": "A005.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "hotel_artifact",
+    "asset_code": "A005",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "3460e8bb0ccded56bcad5eef6c296d29b6d24e9713a80fa0cc7f3c494d3f233d"
+  },
+  {
+    "media_code": "MED-A006-01",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_artifacts/A006.jpg",
+    "original_name": "A006.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "hotel_artifact",
+    "asset_code": "A006",
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "96f153def43537f14c159170792ad754cd089dacfcb4f155dda20e6300aade58"
+  },
+  {
+    "media_code": "MED-S001-01",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S001_01.jpg",
+    "original_name": "S001_01.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S001",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "b7a84cdf0495a5ab47f56de7e4a4a4bb9f5a58494c84e7dc30d12c8c2e068309"
+  },
+  {
+    "media_code": "MED-S001-02",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S001_02.jpg",
+    "original_name": "S001_02.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S001",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "86f8dd567198a6b1cfda63fbe837811d2a7c4b994c316a3887cc7ec1ffbe839b"
+  },
+  {
+    "media_code": "MED-S002-01",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S002_01.jpg",
+    "original_name": "S002_01.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S002",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "f3f05db22032d1436979ad75b7592e53f47db62f243e7aa1f6a6a570c7fe1da3"
+  },
+  {
+    "media_code": "MED-S002-02",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S002_02.jpg",
+    "original_name": "S002_02.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S002",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "715ca194c45668c63a7c5da6219b48c187045c03e07eebdf4d87205bce157d08"
+  },
+  {
+    "media_code": "MED-S003-01",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S003_01.jpg",
+    "original_name": "S003_01.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S003",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "8f1122f32baa7a1b75b40734c2d36fe06fb3a28acee949dd7b5c500327904d4c"
+  },
+  {
+    "media_code": "MED-S003-02",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S003_02.jpg",
+    "original_name": "S003_02.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S003",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "2a1bcd7b58470082a4a3159b24f3efe1efe76640a4fce83c21f6f0004c494abc"
+  },
+  {
+    "media_code": "MED-S003-03",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S003_03.jpg",
+    "original_name": "S003_03.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S003",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "e8f14c1492c9b014f442e1b09bc396a283770d2a316ad614e9009539cfa4413c"
+  },
+  {
+    "media_code": "MED-S003-04",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S003_04.jpg",
+    "original_name": "S003_04.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S003",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "6aaad20dcd4653ead667f6bc368f73525825de5ca20ba6f4fd14a21f3a017c4c"
+  },
+  {
+    "media_code": "MED-S004-01",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S004_01.jpg",
+    "original_name": "S004_01.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S004",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "f20273641fa80edae6557400c9bb70d165f54082c41e0ea370d3100c07c5ba2b"
+  },
+  {
+    "media_code": "MED-S005-01",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S005_01.jpg",
+    "original_name": "S005_01.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S005",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "dbd273e21c5bc46cef9effc828a98cb87d0253f6fb3992ae9e27c1eba40ab5c6"
+  },
+  {
+    "media_code": "MED-S006-01",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S006_01.jpg",
+    "original_name": "S006_01.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S006",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "65093dbb844efa59f14a81459710d8654a83e7ab20d9f2f2ea3b32c4e21c2d3a"
+  },
+  {
+    "media_code": "MED-S007-01",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S007_01.jpg",
+    "original_name": "S007_01.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S007",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "940e73f9afef105acbcc660270b5fa2487f1e579bbf67206c9f289dccfc6e678"
+  },
+  {
+    "media_code": "MED-S008-01",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S008_01.jpg",
+    "original_name": "S008_01.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S008",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "20b7e5ebd3c8e2f65d700d5e5c9bd64d1851c8ff04f9096fd4bd680e76e3f01a"
+  },
+  {
+    "media_code": "MED-S009-01",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S009_01.jpg",
+    "original_name": "S009_01.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S009",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "e96ec08f6087a6f30e4743bcfd3409d37c35bdb5a7746badd660b14ceaa582e9"
+  },
+  {
+    "media_code": "MED-S010-01",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S010_01.jpg",
+    "original_name": "S010_01.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S010",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "e1e7748286763ca3ee15fe36c2e40499b0205eb9c217bfdd0f83dec282980866"
+  },
+  {
+    "media_code": "MED-S011-01",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S011_01.jpg",
+    "original_name": "S011_01.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S011",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "eeb6c4cc5c4d10ac7834851c30dff6074b743c2ae7b2b9fcaa432328be3aed0b"
+  },
+  {
+    "media_code": "MED-S012-01",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S012_01.jpg",
+    "original_name": "S012_01.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S012",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "51289a236ced1e6cebe96a9bc1e7b6812c67a31a1a68a3ad39f4cc98ce9fbc08"
+  },
+  {
+    "media_code": "MED-S013-01",
+    "media_type": "image",
+    "file_path": "/static/assets/spaces/S013_01.jpg",
+    "original_name": "S013_01.jpg",
+    "source": "上海锦江饭店空间数据库",
+    "rights_status": "internal",
+    "category": "space",
+    "asset_code": null,
+    "space_code": "S013",
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "b5d6c782f7b7e01ca4ce8456cbcf4d25e621abd364639e0a38a850aa9f0e4b27"
+  },
+  {
+    "media_code": "JJPHOTO-0001",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0001.jpg",
+    "original_name": "客房房间_001.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "0a445b065293090cd30dee05facd8f4e26c49822aa64085d127b3f1c646c0b6d",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0002",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0002.jpg",
+    "original_name": "客房房间_002.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "a501174bef560926cd8d7c23b5d9a4119b8db7c2a7ae2e4fb3f1832b64ff3d35",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0003",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0003.jpg",
+    "original_name": "客房房间_003.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "c39e72f7edfdc80949c2229b2dbe0806f0a77cf21a0cf6878c682d89a34ca79f",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0004",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0004.jpg",
+    "original_name": "客房房间_004.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "ea7d75d3e8ab5cd7ace347d8e164efa2a3490116b43ebc6b3a7d9adf2013f654",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0005",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0005.jpg",
+    "original_name": "客房房间_005.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "601ca6cbc7e91961610e14d71e71e1659d584168c2e0ad6e3597cb9ef09b124f",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0006",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0006.jpg",
+    "original_name": "客房房间_006.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "115a5d8cd623fb73e72f3580fcf226960402abfa48976304831f85d07389817b",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0007",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0007.jpg",
+    "original_name": "客房房间_007.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "7810f572c0e37262cd4b68a661d953f14336ced9b2af7b5a9b1f0f9424d9aa18",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0008",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0008.jpg",
+    "original_name": "客房房间_008.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "cc74f00d08ebd2275d1fda908da8311158781f3604d6cc754c5f23e2277037dd",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0009",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0009.jpg",
+    "original_name": "客房房间_009.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "ca5f1eb3d0ce441dd45042b359934b87220e09c6c82b536eabc86d0f00081c85",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0010",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0010.jpg",
+    "original_name": "客房房间_010.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "4a069af352f73c9e5875efc47e86a63e2a3c92345af326c4abfc4d7061c5f4b8",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0011",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0011.jpg",
+    "original_name": "客房房间_011.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "995dbb70c60bf59699358254de0f9026294ab4f408c0ddca1e985fa1fb020063",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0012",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0012.jpg",
+    "original_name": "客房房间_012.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "d172f9fbc6d354af2dca254b044334175a578cda7f50ea847838bec7f3eb6c15",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0013",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0013.jpg",
+    "original_name": "客房房间_013.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "480cfce057317836edfbf134c65460b2779486f35ae27eafe9eaa0cea098f796",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0014",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0014.jpg",
+    "original_name": "客房房间_014.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "c6d35473cd0c8d6091a5eb0467ee0e6008e8017fdfef83bedd0d1e4051c8619e",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0015",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0015.jpg",
+    "original_name": "客房房间_015.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "bf20f43bc111c0954515be2908fd801a4c1502ce6225e1b0375dd9ff5eff39a5",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0016",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0016.jpg",
+    "original_name": "客房房间_016.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "027357fb9b46f20e38c776bc1b2a835f28757305b65a6037dd9425e52e67d128",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0017",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0017.jpg",
+    "original_name": "客房房间_017.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "fb5b54925a702a91eafe67894eaf0c0fb4a0f3f6e59d23db865c6eb4b6913061",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0018",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0018.jpg",
+    "original_name": "客房房间_018.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "b587729e212a7b1197693d22f789b0b0212c6a4e0f7c90651241a24ad56f921c",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0019",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0019.jpg",
+    "original_name": "客房房间_019.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "ee96e5616281a75a5cbd69100be84f4846638eeb4cc3f06532c461e4d8003c96",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0020",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0020.jpg",
+    "original_name": "客房房间_020.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "c2e4de62d7567e6bf9ad5d41846ea944900585cc259e9589a4960e9ef59a2a83",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0021",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0021.jpg",
+    "original_name": "客房房间_021.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "94e3bde02878ac7325558ca5fc5794d97e0fafa4f30fa64a943c8bb860e90f0a",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0022",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0022.jpg",
+    "original_name": "客房房间_022.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "7126cb372ffb58e5d44996cfceda3c233cb6dfd15c5a5b841fe7d9e2e739cea2",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0023",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0023.jpg",
+    "original_name": "客房房间_023.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "bb03dd6ab6e03bafe91e5600639c1309a7b474eb257e40d12e6f55fc3aafbf5a",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0024",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0024.jpg",
+    "original_name": "客房房间_024.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "35273cbb3b104ce8e34b4c0a22f6308acfe30150b2175cee19260469a340a0c1",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0025",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0025.jpg",
+    "original_name": "客房房间_025.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "863ece975b89826d5e043cdb49acc24513806a863168c3fb091635bba5e0b20c",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0026",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0026.jpg",
+    "original_name": "客房房间_026.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "0cbc5fcf33de58ffedf85bc1b39faa2d6cdad2422b906a959b9feb87d484bc81",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0027",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0027.jpg",
+    "original_name": "客房房间_027.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "5237c98dc6df184954ffb2fe7a7fa5acab322d2a49f7e6dad7721e527d85a95f",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0028",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0028.jpg",
+    "original_name": "客房房间_028.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "3c154b6a9074e6f72dc2d5b620ba267a0ec49e2d497c9b4c89e583e4a7ac21ad",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0029",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0029.jpg",
+    "original_name": "客房房间_029.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "0e33b03ea5b9ae76c4ff29c5b4455cf15f63050b6ac276a55136aaf5b864f868",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0030",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0030.jpg",
+    "original_name": "客房房间_030.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "7d47338fc0e8a25ba0ca4e2794156dd736e74bcadc8686fc8830451f3b2c31c3",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0031",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0031.jpg",
+    "original_name": "客房房间_031.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "13575e6a96ba043dfcdcabb81648c48d92e5ca2ccdf7efcc2186af3d0151fb29",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0032",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0032.jpg",
+    "original_name": "客房房间_032.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "ac0fe41d61cc6338389235daa54fc5249eb8730f740d282a47b29015e7933d01",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0033",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0033.jpg",
+    "original_name": "客房房间_033.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "4d3a66dcdee2d7cb855d9f903f8d44f25e37490ce8a0eb65979920238c047e48",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0034",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0034.jpg",
+    "original_name": "客房房间_034.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "03566098fd24b59c2682cae5e218265e533d931512eb27cd3d073d0957f9f993",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0035",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0035.jpg",
+    "original_name": "客房房间_035.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "8d66fc0ca13ea1cd5b8e968848e63f2e456bb7f6c9c7cf15c6d3d34786f9ccc1",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0036",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0036.jpg",
+    "original_name": "客房房间_036.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "1a0d3c6ae846e7e7343c1f11ac87a1b0d25253cc641bb3f064987a4a08556837",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0037",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0037.jpg",
+    "original_name": "客房房间_037.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "d810c7ec3f1e597693be320a233cb22906b1e2325b9e79315976b3c80ebd6f53",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0038",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0038.jpg",
+    "original_name": "客房房间_038.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "8de3145e2469b61289514ec7a20cdabc382e2d4d8bef105139d3b6f27bb61c7f",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0039",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0039.jpg",
+    "original_name": "客房房间_039.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "2c9ad1ecc15e56d93d1ec58b999e6dcafefd2c2670deab36728d3fa11a4b6468",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0040",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0040.jpg",
+    "original_name": "客房房间_040.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "c5c519d8a29f3b94ba92605ada232d7df28e4a9a201d2e01423c8dd93efba673",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0041",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0041.jpg",
+    "original_name": "客房房间_041.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "d776940b548280edce52fe8b923552ae51d3f3dba6c28abb5292504348e7a70e",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0042",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0042.jpg",
+    "original_name": "客房房间_042.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "cfd2afdf901f7bd46048e9fb9c828dc8c73ceda236841eca239d4eade82e66be",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0043",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0043.jpg",
+    "original_name": "客房房间_043.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "9b4709731d5e2a10edce741bba6ecbd63d36c9e3f606019d153feb03ba4499d1",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0044",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0044.jpg",
+    "original_name": "客房房间_044.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "5bf2b526a45ef8faaffcaaef681fef5b1e1afe24eefe52b451335dc7f4b9dd59",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0045",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0045.jpg",
+    "original_name": "客房房间_045.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "568cb9b88d1518e86fce82e033da7016b464f8179f35875a2553b5c96f3dc23f",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0046",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0046.jpg",
+    "original_name": "客房房间_046.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "861e64087807968b5d5db6c276a935b469cb6f65595ff22942de91e13b285928",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0047",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0047.jpg",
+    "original_name": "客房房间_047.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "b3839432cbf32f7d38b94b16e25ff902f516a80273f998329e607eb05017d102",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0048",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0048.jpg",
+    "original_name": "客房房间_048.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "a52194298ec346c72613056019f3906dee1ce1867a600d542e6146e91b15396d",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0049",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0049.jpg",
+    "original_name": "客房房间_049.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "d0aadfb7a55a47df4cb7158d5bd409bc4b21fd32d077716ead115e5d58f35152",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0050",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0050.jpg",
+    "original_name": "客房房间_050.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "69f751e5555b5568db06fd21175c11e90206f416a997927aca2bd34175ec73d2",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0051",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0051.jpg",
+    "original_name": "客房房间_051.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "a0046a72ac4868587d8c0ba2b88db25ca2a2b66725f65011f7ba3ce257a393c0",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0052",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0052.jpg",
+    "original_name": "客房房间_052.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "022e6de4652ef0914dd9228d2cac589cc96a21f0c502f991f1f0c58523572b38",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0053",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0053.jpg",
+    "original_name": "客房房间_053.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "292ea58b08b06b25bbbb25a93e0bdcf2e51301fb82afb4fa2e97272ec0bdd0da",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0054",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0054.jpg",
+    "original_name": "客房房间_054.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "344817b39366273996b4fa98b7cf762db0b44f6e8c1a7aed66e5329b0680cf16",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0055",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0055.jpg",
+    "original_name": "客房房间_055.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "867194e772172c6d13585f4163d001aad149101e1aa8323b8c7fa4ab104cfd97",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0056",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0056.jpg",
+    "original_name": "客房房间_056.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "93312bc22099faf3357335927b462212111e8d4e63b3dd5865694966ab8b9bbd",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0057",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0057.jpg",
+    "original_name": "客房房间_057.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "2ea5a993de94c6f071cca9018a49b6ea252fcfe95f699ebdb49c6a4bea87876d",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0058",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0058.jpg",
+    "original_name": "客房房间_058.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "f21241a1456c88b1d249c8d9417c6c6d6e51b43bbf6a17739b274017c1924786",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0059",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0059.jpg",
+    "original_name": "客房房间_059.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "9ad961e8f9b31dbbcc8afa0c7c624d46c2ec6983850a11e443bdc37911c13454",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0060",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0060.jpg",
+    "original_name": "客房房间_060.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "82943cb7b7b045ab04817bee6057cd441bb3668b352976aededd8d9350388153",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0061",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0061.jpg",
+    "original_name": "客房房间_061.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "34a97acbed841c155eba94769c88ca854502dccaca7716a921b33cff5338bab2",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0062",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0062.jpg",
+    "original_name": "客房房间_062.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "cf0b291bd0cf158d63949fa7cdb42af393452aedf5d7c31f092f4d0e7dedf1c6",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0063",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0063.jpg",
+    "original_name": "客房房间_063.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "faf7f2361a045ec5c48236c0a8224456e9b703842538bb14fd2b84c376449c90",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0064",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0064.jpg",
+    "original_name": "客房房间_064.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "0422a2a6a30f01df81c9f63fc93bb33b967fd12491ef110bcef4eddc1df7c4f3",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0065",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0065.jpg",
+    "original_name": "客房房间_065.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "5ca95e6eb2dd043fef4492d407cd034a1b964ecf5d5bc8448f519674bb93e3ff",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0066",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0066.jpg",
+    "original_name": "客房房间_066.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "89f7f752e5d9f9fe069fd25b2572adfc4ce3c9767d28cfdf2a8c789fc8a8f972",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0067",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0067.jpg",
+    "original_name": "客房房间_067.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "ecab2d69e45a057543cf48bce458609322919d36c1608b3236ec184de8613165",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0068",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0068.jpg",
+    "original_name": "客房房间_068.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "5e4a6380cbf290d4ed6c0c5e1d09b6f7f136199a3e75e86b1b29b1aa231957fb",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0069",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0069.jpg",
+    "original_name": "客房房间_069.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "26bd0e9ab57d4b26971abace7f2a70d60cfa49e60b8c5bc3a288902d5581db4d",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0070",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0070.jpg",
+    "original_name": "客房房间_070.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "129722dc0433b7c526540671e9b637b4a8177c547846d2e54e93e12b9389fa65",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0071",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0071.jpg",
+    "original_name": "客房房间_071.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "e864d770d5343ec0c0b44bc388e904f16fa58ceea5c87ed819a2a0e16485054a",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0072",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0072.jpg",
+    "original_name": "客房房间_072.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "38df29e1cf8ce64895b39a5a4360c05e7967704b7eef5ec19cdc3af3f625fe7e",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0073",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0073.jpg",
+    "original_name": "客房房间_073.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "ee2abc07ba9d6c81b7502bffd90b4daad76d2a0840cda078845cb4e9eaff62fb",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0074",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0074.jpg",
+    "original_name": "客房房间_074.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "348e5bd643c1f8b5e078a3dd9833458edf4d02b0f0c3168ce6c42b0bdf0b27eb",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0075",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0075.jpg",
+    "original_name": "客房房间_075.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "c48b6742508ab5534cdcd1c94ad0021db75c928cf7c872808d66ec7150ba4124",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0076",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0076.jpg",
+    "original_name": "客房房间_076.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "69051c2c963e77574fc6e329b1204a8c1f61aabebbfaea797551231d655ebb6b",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0077",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0077.jpg",
+    "original_name": "客房房间_077.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "98811287825842f2a5486e0c8a5d802499bc4ec798090e065b2194a0f088bb20",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0078",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0078.jpg",
+    "original_name": "客房房间_078.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "af42c5ef69d683979624ced7d43c1f134130039eb8ec6036fa93795b8348ae33",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0079",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0079.jpg",
+    "original_name": "客房房间_079.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "ba1b5e9137ec5ac40d5511fbf47b860f162ae009ab513a135a50ce9871383ff9",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0080",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0080.jpg",
+    "original_name": "客房房间_080.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "deced07dae8b73386ce69e571329d5d120c4d178f2d31951ea828ebdf853722b",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0081",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0081.jpg",
+    "original_name": "客房房间_081.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "03f1734430fffbbbcf5b68bb5ba3364afb2da9c51edf9602bc8b034c02083301",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0082",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0082.jpg",
+    "original_name": "客房房间_082.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "06c4a83a3c89087e13569fc0f9e5541857f37b02eda376209a846003c6ca978d",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0083",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0083.jpg",
+    "original_name": "客房房间_083.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "b446b0b39d7efb493cde5da5a250a3d76b68a2a1a3fa0e4ee39c91bb22138bdb",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0084",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0084.jpg",
+    "original_name": "客房房间_084.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "8f4815046d67b071a052e61cfb8fe63914dc434df4a6a5c8f63b4df312062fac",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0085",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0085.jpg",
+    "original_name": "客房房间_085.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "85422c3c987617c4bf591c5df747fa2d97f574149eab75add437c117233d61d3",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0086",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0086.jpg",
+    "original_name": "客房房间_086.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "af7d528f04db3f8faa2c9ebaa6eecfa80a52acade07b4759fccd3c4d3d4b4291",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0087",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0087.jpg",
+    "original_name": "客房房间_087.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "202d795ba0df0c98af527c5a6d924473ae10392ea178eab888ecd9fe8a5454cf",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0088",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0088.jpg",
+    "original_name": "客房房间_088.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "0769bb0694538406e7779934b1e3a5940d85e639ec18b112ade3086f679cbec1",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0089",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0089.jpg",
+    "original_name": "客房房间_089.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "6b91d9709c75c3447524dbccb4002a5820f0c7114159acb8a634400000fa3195",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0090",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0090.jpg",
+    "original_name": "客房房间_090.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "1c35ef8c25ec85f3b255fbbc7e449ac3dd9767c7131ac7d531d50694d39ce0e2",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0091",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0091.jpg",
+    "original_name": "客房房间_091.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "23eedffbfe452be42d85af998d6f695d9706af750a39a903b41e92955038c0a6",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0092",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0092.jpg",
+    "original_name": "客房房间_092.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "ed191231290207355983187a727103977b16d2ef0e0e6cb27299f49fb153da93",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0093",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0093.jpg",
+    "original_name": "客房房间_093.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "053fd742f13720b06dd72ef5d7d438d7ac385a5955ddb2ab4fab3e5db95f8c7d",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0094",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0094.jpg",
+    "original_name": "客房房间_094.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "7d5e6b5129a486fc984f544df8e377c5991a395e551d03bdba6a02e93d79aba0",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0095",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0095.jpg",
+    "original_name": "客房房间_095.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "02dfe2ad1410a362adf0b1525c5b88ec81956eea9f8044318a9f077cf4321757",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0096",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0096.jpg",
+    "original_name": "客房房间_096.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "d3a557f3986e95c40044b1731d0208b25b78d9dd87f03622843815b273932b1f",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0097",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0097.jpg",
+    "original_name": "客房房间_097.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "21912a65ba5bb5b094888343828fd8595f3755f9861306a6ffdc196a0ff6cd2f",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0098",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0098.jpg",
+    "original_name": "客房房间_098.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "2c53e242649856595e1596e51d7c943bcd66224f0446289e5d7b263b71b807be",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0099",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0099.jpg",
+    "original_name": "客房房间_099.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "a86afe3e5b9f8cd33b9fd084597478f9713e8708a708576e215f00a92e648526",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0100",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0100.jpg",
+    "original_name": "客房房间_100.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "b101bee69fb1fb3b76c20ee4e3b03f7bc4fb0be9001b4f2cfb4fed3a067703d5",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0101",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0101.jpg",
+    "original_name": "客房房间_101.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "39c39af17bf74171012afb9f39e50a4f5a7dbf6075ab4c68657d76546ac59145",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0102",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0102.jpg",
+    "original_name": "客房房间_102.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "f847fb75168b1af0e2c2e7283bfedd96f47386980a8f39658cd8ab422c30d55c",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0103",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0103.jpg",
+    "original_name": "客房房间_103.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "03c53885d0e4b68e63be379d5c3a34def1c2608ab76b634fc38bd972c82e0ab5",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0104",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0104.jpg",
+    "original_name": "客房房间_104.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "f84547ecc3180d8dcf5283965f3d25640219dbac2fcc9d35978b98a794b0c83b",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0105",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0105.jpg",
+    "original_name": "客房房间_105.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "客房",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "5fc9ff52c854329a23f41e25fc7fbf846a04312fe45b4694050372ccd1b33bd6",
+    "metadata": {
+      "source_folder": "01_客房房间"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0106",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0106.jpg",
+    "original_name": "大堂公共区域_001.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "大堂公共区域",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "0f7bd1027db372edf4f6e7ef733be2d2ae4aedfdb8ec9a2e50079ec551c5fc17",
+    "metadata": {
+      "source_folder": "02_大堂公共区域"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0107",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0107.jpg",
+    "original_name": "大堂公共区域_002.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "大堂公共区域",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "6ba0cbff31fe73ff93eea463f0eb86e706fb0c8047738b15beeeb8671a578628",
+    "metadata": {
+      "source_folder": "02_大堂公共区域"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0108",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0108.jpg",
+    "original_name": "大堂公共区域_003.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "大堂公共区域",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "591e47a74429c3aeeab4fbd8318c86005b3b99891f162bddfe4dfccde7c79d7b",
+    "metadata": {
+      "source_folder": "02_大堂公共区域"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0109",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0109.jpg",
+    "original_name": "大堂公共区域_004.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "大堂公共区域",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "c46d65b11638792504bef3594e200b245648de5cf47672899088515035a2e0ab",
+    "metadata": {
+      "source_folder": "02_大堂公共区域"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0110",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0110.jpg",
+    "original_name": "大堂公共区域_005.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "大堂公共区域",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "3fc90bd8dfc03345f74aae3415973967b09645bdeee5dfd77e04c5c1150186fc",
+    "metadata": {
+      "source_folder": "02_大堂公共区域"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0111",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0111.jpg",
+    "original_name": "大堂公共区域_006.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "大堂公共区域",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "41e902e96184a5efb45c1cc2188c5e65ce5973e40f225723bacb1f4642f1a515",
+    "metadata": {
+      "source_folder": "02_大堂公共区域"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0112",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0112.jpg",
+    "original_name": "大堂公共区域_007.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "大堂公共区域",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "a20952f3011786a5572cd76873626b22d6ed661ab09a73e448f82e7eb9b4ff91",
+    "metadata": {
+      "source_folder": "02_大堂公共区域"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0113",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0113.jpg",
+    "original_name": "大堂公共区域_008.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "大堂公共区域",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "c76046b5e74f9293a770658482442587218237eadeb50dc03e7ff92481d1dda4",
+    "metadata": {
+      "source_folder": "02_大堂公共区域"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0114",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0114.jpg",
+    "original_name": "大堂公共区域_009.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "大堂公共区域",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "0d71cd589006d87d8a6cc5df42a5f24dc0e9c165ac5d57f51d7a37f8eff7c37f",
+    "metadata": {
+      "source_folder": "02_大堂公共区域"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0115",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0115.jpg",
+    "original_name": "会议商务_001.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "会议商务",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "03614775e577dbf92d41981d95ecb4bc39c8e19bdf69b5d9c45c2ea178cc9aae",
+    "metadata": {
+      "source_folder": "03_会议商务"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0116",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0116.jpg",
+    "original_name": "会议商务_002.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "会议商务",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "49d5c383584e9031ac69b04ea79d57b8fbfb499724e300466bb295af1ea12c75",
+    "metadata": {
+      "source_folder": "03_会议商务"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0117",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0117.jpg",
+    "original_name": "会议商务_003.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "会议商务",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "84ac4e24d22d303f2d5dfb7da31cebedfa4c77fa4ec56ec0005a2c590adf7ebb",
+    "metadata": {
+      "source_folder": "03_会议商务"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0118",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0118.jpg",
+    "original_name": "会议商务_004.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "会议商务",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "b275b3ff9e196361dea20ee877e41dba42a6142c1d35fe9f5c467a3ef65a4399",
+    "metadata": {
+      "source_folder": "03_会议商务"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0119",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0119.jpg",
+    "original_name": "会议商务_005.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "会议商务",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "e975e6a345d9811322b2c82f0e8584681674909182d74819ce665fd3830802e3",
+    "metadata": {
+      "source_folder": "03_会议商务"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0120",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0120.jpg",
+    "original_name": "会议商务_006.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "会议商务",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "bfc8c5b761d68c73a261fc00e56e80a40ba7a409ee9de78d6da65726c51de675",
+    "metadata": {
+      "source_folder": "03_会议商务"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0121",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0121.jpg",
+    "original_name": "餐厅餐饮_001.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "餐厅餐饮",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "20c9ea19eefb8033468150f4fcacd27d174b859b171ebf4f6a73f09b9f5b4fd7",
+    "metadata": {
+      "source_folder": "04_餐厅餐饮"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0122",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0122.jpg",
+    "original_name": "餐厅餐饮_002.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "餐厅餐饮",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "c2f47226de99738f497059ea9b21686995572492e21bf8fcd41268531ae5e2c6",
+    "metadata": {
+      "source_folder": "04_餐厅餐饮"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0123",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0123.jpg",
+    "original_name": "餐厅餐饮_003.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "餐厅餐饮",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "6249f11b22b86b0e261d4578752b7c3deb2ca7fc3114ee37d525c04177ae38d7",
+    "metadata": {
+      "source_folder": "04_餐厅餐饮"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0124",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0124.jpg",
+    "original_name": "餐厅餐饮_004.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "餐厅餐饮",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "204e25a32491d7d6cbb3bb1d324b43ed326136278d529835f9ea6d02c78ba57f",
+    "metadata": {
+      "source_folder": "04_餐厅餐饮"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0125",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0125.jpg",
+    "original_name": "餐厅餐饮_005.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "餐厅餐饮",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "fb1bff61e6e8b9104627ffdf833dc8013cba2952f29b4f90eab9fa8d3a478cc9",
+    "metadata": {
+      "source_folder": "04_餐厅餐饮"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0126",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0126.jpg",
+    "original_name": "餐厅餐饮_006.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "餐厅餐饮",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "f91156c1bbfd8f9580767183e213afb09b5d194ae6217959727fc0617951eee5",
+    "metadata": {
+      "source_folder": "04_餐厅餐饮"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0127",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0127.jpg",
+    "original_name": "餐厅餐饮_007.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "餐厅餐饮",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "1571c17a2d43204cce25fa7803efa1e3adbf97ed385c7a9e7fcbe55fef3d5834",
+    "metadata": {
+      "source_folder": "04_餐厅餐饮"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0128",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0128.jpg",
+    "original_name": "餐厅餐饮_008.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "餐厅餐饮",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "203b5cf47f58c3864b3e07c36d69a33bb3f3c0b6425624dd7e4797f6166ee7be",
+    "metadata": {
+      "source_folder": "04_餐厅餐饮"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0129",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0129.jpg",
+    "original_name": "餐厅餐饮_009.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "餐厅餐饮",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "0895bb16cb55722a0a36c730e7dac4d7b93e16a8289accc0b5809b2e7e696f8c",
+    "metadata": {
+      "source_folder": "04_餐厅餐饮"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0130",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0130.jpg",
+    "original_name": "餐厅餐饮_010.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "餐厅餐饮",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "2fb88c978a9c41a5f79cb79b9848091481659355d3e7344611308b9898c22275",
+    "metadata": {
+      "source_folder": "04_餐厅餐饮"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0131",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0131.jpg",
+    "original_name": "餐厅餐饮_011.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "餐厅餐饮",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "893d4e90d492808069ab484634fa523fb171e94a2ca0e8d12310b8d34e910e1f",
+    "metadata": {
+      "source_folder": "04_餐厅餐饮"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0132",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0132.jpg",
+    "original_name": "餐厅餐饮_012.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "餐厅餐饮",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "b6a022c5a7bb7f90cd386c961e914c06acee00810e405dff3e6e9f6be4c609d2",
+    "metadata": {
+      "source_folder": "04_餐厅餐饮"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0133",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0133.jpg",
+    "original_name": "餐厅餐饮_013.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "餐厅餐饮",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "6ecf669f94b3e0bc57b7ee2ea769ce7e5b73542978666453f97fef22cfed54cf",
+    "metadata": {
+      "source_folder": "04_餐厅餐饮"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0134",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0134.jpg",
+    "original_name": "休闲设施_001.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "休闲设施",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "0301bc5b54e597ba6de1a124b4f08b82b3bdce0b6d1f4e20e60875c59d4370d9",
+    "metadata": {
+      "source_folder": "05_休闲设施"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0135",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0135.jpg",
+    "original_name": "休闲设施_002.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "休闲设施",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "2f8321bda5d17234d74b3d219f15efe5e3b8dd7a184297a6f0a7c91333dded1f",
+    "metadata": {
+      "source_folder": "05_休闲设施"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0136",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0136.jpg",
+    "original_name": "休闲设施_003.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "休闲设施",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "3a98da7892e45b087d70b2968961e03e4ba352abf66bfac607f8db0c98c2cc9c",
+    "metadata": {
+      "source_folder": "05_休闲设施"
+    }
+  },
+  {
+    "media_code": "JJPHOTO-0137",
+    "media_type": "image",
+    "file_path": "/static/assets/hotel_photos/JJPHOTO-0137.jpg",
+    "original_name": "休闲设施_004.jpg",
+    "source": "上海锦江饭店照片包",
+    "rights_status": "internal",
+    "category": "休闲设施",
+    "asset_code": null,
+    "space_code": null,
+    "hotel_code": "JJ-SH-001",
+    "checksum_sha256": "a8c4450b921ecefb8cf4b65c6813bbd84d6c138979d43cf42c69dc16287af973",
+    "metadata": {
+      "source_folder": "05_休闲设施"
+    }
+  }
+]

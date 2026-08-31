@@ -1,0 +1,332 @@
+[
+  {
+    "space_code": "S001",
+    "hotel_code": "JJ-SH-001",
+    "name": "空间 S001",
+    "building": null,
+    "floor": null,
+    "space_type": "待补充",
+    "function": "待补充",
+    "style": "待补充",
+    "area_sqm": null,
+    "display_available": null,
+    "display_type": null,
+    "wall_size": null,
+    "light_condition": null,
+    "visitor_access": null,
+    "tags": [],
+    "status": "needs_enrichment",
+    "cover": "/static/assets/spaces/S001_01.jpg",
+    "metadata": {
+      "image_descriptions": [
+        "锦楠楼1",
+        "锦楠楼1-2"
+      ],
+      "data_gap": "缺空间名称、楼宇、功能、尺寸、展陈条件"
+    }
+  },
+  {
+    "space_code": "S002",
+    "hotel_code": "JJ-SH-001",
+    "name": "空间 S002",
+    "building": null,
+    "floor": null,
+    "space_type": "待补充",
+    "function": "待补充",
+    "style": "待补充",
+    "area_sqm": null,
+    "display_available": null,
+    "display_type": null,
+    "wall_size": null,
+    "light_condition": null,
+    "visitor_access": null,
+    "tags": [],
+    "status": "needs_enrichment",
+    "cover": "/static/assets/spaces/S002_01.jpg",
+    "metadata": {
+      "image_descriptions": [
+        "锦楠楼2-1",
+        "锦楠楼2-2"
+      ],
+      "data_gap": "缺空间名称、楼宇、功能、尺寸、展陈条件"
+    }
+  },
+  {
+    "space_code": "S003",
+    "hotel_code": "JJ-SH-001",
+    "name": "空间 S003",
+    "building": null,
+    "floor": null,
+    "space_type": "待补充",
+    "function": "待补充",
+    "style": "待补充",
+    "area_sqm": null,
+    "display_available": null,
+    "display_type": null,
+    "wall_size": null,
+    "light_condition": null,
+    "visitor_access": null,
+    "tags": [],
+    "status": "needs_enrichment",
+    "cover": "/static/assets/spaces/S003_01.jpg",
+    "metadata": {
+      "image_descriptions": [
+        "3-1",
+        "3-2",
+        "3-3",
+        "3-4"
+      ],
+      "data_gap": "缺空间名称、楼宇、功能、尺寸、展陈条件"
+    }
+  },
+  {
+    "space_code": "S004",
+    "hotel_code": "JJ-SH-001",
+    "name": "空间 S004",
+    "building": null,
+    "floor": null,
+    "space_type": "待补充",
+    "function": "待补充",
+    "style": "待补充",
+    "area_sqm": null,
+    "display_available": null,
+    "display_type": null,
+    "wall_size": null,
+    "light_condition": null,
+    "visitor_access": null,
+    "tags": [],
+    "status": "needs_enrichment",
+    "cover": "/static/assets/spaces/S004_01.jpg",
+    "metadata": {
+      "image_descriptions": [
+        "4"
+      ],
+      "data_gap": "缺空间名称、楼宇、功能、尺寸、展陈条件"
+    }
+  },
+  {
+    "space_code": "S005",
+    "hotel_code": "JJ-SH-001",
+    "name": "空间 S005",
+    "building": null,
+    "floor": null,
+    "space_type": "待补充",
+    "function": "待补充",
+    "style": "待补充",
+    "area_sqm": null,
+    "display_available": null,
+    "display_type": null,
+    "wall_size": null,
+    "light_condition": null,
+    "visitor_access": null,
+    "tags": [],
+    "status": "needs_enrichment",
+    "cover": "/static/assets/spaces/S005_01.jpg",
+    "metadata": {
+      "image_descriptions": [
+        "5"
+      ],
+      "data_gap": "缺空间名称、楼宇、功能、尺寸、展陈条件"
+    }
+  },
+  {
+    "space_code": "S006",
+    "hotel_code": "JJ-SH-001",
+    "name": "空间 S006",
+    "building": null,
+    "floor": null,
+    "space_type": "待补充",
+    "function": "待补充",
+    "style": "待补充",
+    "area_sqm": null,
+    "display_available": null,
+    "display_type": null,
+    "wall_size": null,
+    "light_condition": null,
+    "visitor_access": null,
+    "tags": [],
+    "status": "needs_enrichment",
+    "cover": "/static/assets/spaces/S006_01.jpg",
+    "metadata": {
+      "image_descriptions": [
+        "6"
+      ],
+      "data_gap": "缺空间名称、楼宇、功能、尺寸、展陈条件"
+    }
+  },
+  {
+    "space_code": "S007",
+    "hotel_code": "JJ-SH-001",
+    "name": "空间 S007",
+    "building": null,
+    "floor": null,
+    "space_type": "待补充",
+    "function": "待补充",
+    "style": "待补充",
+    "area_sqm": null,
+    "display_available": null,
+    "display_type": null,
+    "wall_size": null,
+    "light_condition": null,
+    "visitor_access": null,
+    "tags": [],
+    "status": "needs_enrichment",
+    "cover": "/static/assets/spaces/S007_01.jpg",
+    "metadata": {
+      "image_descriptions": [
+        "7"
+      ],
+      "data_gap": "缺空间名称、楼宇、功能、尺寸、展陈条件"
+    }
+  },
+  {
+    "space_code": "S008",
+    "hotel_code": "JJ-SH-001",
+    "name": "空间 S008",
+    "building": null,
+    "floor": null,
+    "space_type": "待补充",
+    "function": "待补充",
+    "style": "待补充",
+    "area_sqm": null,
+    "display_available": null,
+    "display_type": null,
+    "wall_size": null,
+    "light_condition": null,
+    "visitor_access": null,
+    "tags": [],
+    "status": "needs_enrichment",
+    "cover": "/static/assets/spaces/S008_01.jpg",
+    "metadata": {
+      "image_descriptions": [
+        "8"
+      ],
+      "data_gap": "缺空间名称、楼宇、功能、尺寸、展陈条件"
+    }
+  },
+  {
+    "space_code": "S009",
+    "hotel_code": "JJ-SH-001",
+    "name": "空间 S009",
+    "building": null,
+    "floor": null,
+    "space_type": "待补充",
+    "function": "待补充",
+    "style": "待补充",
+    "area_sqm": null,
+    "display_available": null,
+    "display_type": null,
+    "wall_size": null,
+    "light_condition": null,
+    "visitor_access": null,
+    "tags": [],
+    "status": "needs_enrichment",
+    "cover": "/static/assets/spaces/S009_01.jpg",
+    "metadata": {
+      "image_descriptions": [
+        "10"
+      ],
+      "data_gap": "缺空间名称、楼宇、功能、尺寸、展陈条件"
+    }
+  },
+  {
+    "space_code": "S010",
+    "hotel_code": "JJ-SH-001",
+    "name": "空间 S010",
+    "building": null,
+    "floor": null,
+    "space_type": "待补充",
+    "function": "待补充",
+    "style": "待补充",
+    "area_sqm": null,
+    "display_available": null,
+    "display_type": null,
+    "wall_size": null,
+    "light_condition": null,
+    "visitor_access": null,
+    "tags": [],
+    "status": "needs_enrichment",
+    "cover": "/static/assets/spaces/S010_01.jpg",
+    "metadata": {
+      "image_descriptions": [
+        "9"
+      ],
+      "data_gap": "缺空间名称、楼宇、功能、尺寸、展陈条件"
+    }
+  },
+  {
+    "space_code": "S011",
+    "hotel_code": "JJ-SH-001",
+    "name": "空间 S011",
+    "building": null,
+    "floor": null,
+    "space_type": "待补充",
+    "function": "待补充",
+    "style": "待补充",
+    "area_sqm": null,
+    "display_available": null,
+    "display_type": null,
+    "wall_size": null,
+    "light_condition": null,
+    "visitor_access": null,
+    "tags": [],
+    "status": "needs_enrichment",
+    "cover": "/static/assets/spaces/S011_01.jpg",
+    "metadata": {
+      "image_descriptions": [
+        "11"
+      ],
+      "data_gap": "缺空间名称、楼宇、功能、尺寸、展陈条件"
+    }
+  },
+  {
+    "space_code": "S012",
+    "hotel_code": "JJ-SH-001",
+    "name": "空间 S012",
+    "building": null,
+    "floor": null,
+    "space_type": "待补充",
+    "function": "待补充",
+    "style": "待补充",
+    "area_sqm": null,
+    "display_available": null,
+    "display_type": null,
+    "wall_size": null,
+    "light_condition": null,
+    "visitor_access": null,
+    "tags": [],
+    "status": "needs_enrichment",
+    "cover": "/static/assets/spaces/S012_01.jpg",
+    "metadata": {
+      "image_descriptions": [
+        "卫浴1"
+      ],
+      "data_gap": "缺空间名称、楼宇、功能、尺寸、展陈条件"
+    }
+  },
+  {
+    "space_code": "S013",
+    "hotel_code": "JJ-SH-001",
+    "name": "空间 S013",
+    "building": null,
+    "floor": null,
+    "space_type": "待补充",
+    "function": "待补充",
+    "style": "待补充",
+    "area_sqm": null,
+    "display_available": null,
+    "display_type": null,
+    "wall_size": null,
+    "light_condition": null,
+    "visitor_access": null,
+    "tags": [],
+    "status": "needs_enrichment",
+    "cover": "/static/assets/spaces/S013_01.jpg",
+    "metadata": {
+      "image_descriptions": [
+        "卫浴2"
+      ],
+      "data_gap": "缺空间名称、楼宇、功能、尺寸、展陈条件"
+    }
+  }
+]

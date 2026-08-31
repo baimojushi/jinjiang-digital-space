@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>锦江数字空间｜数字资产管理</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/asset-admin.css">
+</head>
+<body class="admin-body">
+<div class="asset-admin">
+  <header class="aa-head">
+    <div>
+      <div class="eyebrow">锦江饭店 · 数字资产主数据</div>
+      <h1>数字资产管理</h1>
+      <p>统一管理文化作品、酒店文化物件、空间、媒体、授权与发布门禁。</p>
+    </div>
+    <div class="aa-links">
+      <a class="tag" href="/admin">运营看板</a>
+      <a class="tag" href="/">用户端</a>
+      <a class="tag" href="/docs">API 文档</a>
+    </div>
+  </header>
+
+  <section class="aa-kpis" id="summary"></section>
+
+  <section class="aa-panel">
+    <div class="aa-panel-head">
+      <div><div class="eyebrow">CultureAsset</div><h2>文化资源库</h2></div>
+      <div class="aa-filters">
+        <input id="q" placeholder="搜索作品名 / 编号 / 作者 / 来源">
+        <select id="collection">
+          <option value="">全部资源集合</option>
+          <option value="COL-WWZ">王味之画作</option>
+          <option value="COL-ZHB">中华珍宝馆</option>
+          <option value="COL-JJ-ARTIFACT">锦江文化物件</option>
+        </select>
+        <select id="rights">
+          <option value="">全部授权</option>
+          <option value="authorized">已授权</option>
+          <option value="pending">待确认</option>
+          <option value="internal">仅内部</option>
+          <option value="restricted">受限</option>
+        </select>
+        <select id="publish">
+          <option value="">全部发布状态</option>
+          <option value="published">已发布</option>
+          <option value="draft">草稿</option>
+          <option value="archived">已归档</option>
+        </select>
+      </div>
+    </div>
+    <div class="aa-table-wrap">
+      <table class="aa-table">
+        <thead><tr><th>资产</th><th>资源集合</th><th>授权</th><th>审核</th><th>发布</th><th>发布门禁</th></tr></thead>
+        <tbody id="assetBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="aa-two">
+    <section class="aa-panel">
+      <div class="aa-panel-head">
+        <div><div class="eyebrow">Rights</div><h2>授权处理队列</h2></div>
+        <span class="aa-count" id="rightsCount">0</span>
+      </div>
+      <div id="rightsQueue" class="aa-list"></div>
+    </section>
+    <section class="aa-panel">
+      <div class="aa-panel-head">
+        <div><div class="eyebrow">Data Quality</div><h2>数据质量</h2></div>
+        <div><span class="aa-badge blocking" id="blockingCount">0 阻断</span><span class="aa-badge warning" id="warningCount">0 提醒</span></div>
+      </div>
+      <div id="qualityList" class="aa-list"></div>
+    </section>
+  </div>
+
+  <section class="aa-panel">
+    <div class="aa-panel-head">
+      <div>
+        <div class="eyebrow">Space</div>
+        <h2>酒店空间主数据</h2>
+        <p>原始文件仅提供 S001–S013 和图片。补齐楼宇、空间类型、功能、展陈条件后，系统才会生成可用于正式策展的空间适配。</p>
+      </div>
+      <button class="aa-btn" id="recompute">重算空间匹配</button>
+    </div>
+    <div class="aa-space-grid" id="spaceGrid"></div>
+  </section>
+
+  <section class="aa-panel">
+    <div class="aa-panel-head">
+      <div><div class="eyebrow">MediaAsset</div><h2>媒体资源库</h2><p>酒店照片按业务目录分类入库，未确认具体空间的媒体保持未绑定。</p></div>
+      <select id="mediaCategory">
+        <option value="">全部媒体</option>
+        <option>客房</option><option>大堂公共区域</option><option>会议商务</option><option>餐厅餐饮</option><option>休闲设施</option>
+        <option>artwork</option><option>hotel_artifact</option><option>space</option>
+      </select>
+    </div>
+    <div class="aa-media-grid" id="mediaGrid"></div>
+  </section>
+
+  <section class="aa-panel">
+    <div class="eyebrow">Import Batch</div>
+    <h2>数字资产导入记录</h2>
+    <div class="aa-table-wrap">
+      <table class="aa-table">
+        <thead><tr><th>来源</th><th>类型</th><th>状态</th><th>总数</th><th>成功</th><th>提醒</th><th>说明</th></tr></thead>
+        <tbody id="batchBody"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<div class="aa-drawer hidden" id="drawer">
+  <div class="aa-drawer-card">
+    <button class="close" id="drawerClose">×</button>
+    <div id="assetEditor"></div>
+  </div>
+</div>
+
+<script src="/static/asset-admin.js"></script>
+</body>
+</html>

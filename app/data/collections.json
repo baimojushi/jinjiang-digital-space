@@ -1,0 +1,26 @@
+[
+  {
+    "collection_code": "COL-WWZ",
+    "name": "王味之画作数据库",
+    "provider": "王味之公众号 / 业务提供方",
+    "asset_type": "artwork",
+    "rights_default": "authorized",
+    "description": "已授权的当代中国画作品，可用于用户端文化推荐与共创策展。"
+  },
+  {
+    "collection_code": "COL-ZHB",
+    "name": "中华珍宝馆·锦江饭店作品库",
+    "provider": "中华珍宝馆业务数据库",
+    "asset_type": "artwork",
+    "rights_default": "pending",
+    "description": "传统绘画策展资源，带楼宇归属；数字图片授权状态待业务确认。"
+  },
+  {
+    "collection_code": "COL-JJ-ARTIFACT",
+    "name": "锦江饭店文化物件",
+    "provider": "上海锦江饭店空间数据库",
+    "asset_type": "hotel_artifact",
+    "rights_default": "internal",
+    "description": "锦江饭店历史文化物件，用于锦江故事和内部策展关联。"
+  }
+]

@@ -1,0 +1,1395 @@
+[
+  {
+    "asset_code": "WWZ-0001",
+    "asset_type": "artwork",
+    "collection_code": "COL-WWZ",
+    "title": "春泽",
+    "source": "王味之公众号",
+    "author": "王味之",
+    "region": "无",
+    "era": "现代",
+    "dimensions": "71*140cm",
+    "style": "当代写意花鸟。水墨写出树干，大量细密线条交织成伞状树冠；以黑、绿、细碎红点打点，不去刻画具体花朵，用色点象征萌芽初绽。诗书画印完整结合，传统笔墨之上融入现代平面构成，线条繁密有序，整体素雅清润。",
+    "theme_text": "冬尽春启，万物初醒。玄冥归去，句芒布泽，写春天来临最初的讯号，大地还未盛放，生机已经在枯枝之间悄然萌发。",
+    "story": "寒冬尚未完全退场，满树还都是疏朗的寒枝，没有繁花灼灼。春神句芒降临九州，甘霖洒落，沉睡的枝干慢慢苏醒。星星点点细碎色点，是刚刚萌发的芽苞，是春天递来的第一则讯息。天地悄然轮转，看不见盛大热闹，却藏着蓄势待发的蓬勃生命力。对应哲思：大道轮转有序，一切繁盛，都始于静默的苏醒。",
+    "rights_status": "authorized",
+    "review_status": "approved",
+    "publish_status": "published",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/wang_weizhi/WWZ-0001.jpg",
+    "tags": [
+      "中国画",
+      "当代艺术",
+      "现代"
+    ],
+    "metadata": {
+      "original_work_id": 1
+    }
+  },
+  {
+    "asset_code": "WWZ-0002",
+    "asset_type": "artwork",
+    "collection_code": "COL-WWZ",
+    "title": "春荣",
+    "source": "王味之公众号",
+    "author": "王味之",
+    "region": "无",
+    "era": "现代",
+    "dimensions": "71*140cm",
+    "style": "写意花鸟国画。树干以浓淡变化的水墨写出，繁密细劲的线条铺展万千枝杈；运用点彩手法，以粉、红、绿各色色点错落表现繁花，满纸碎点缤纷，不刻画单朵花瓣，重整体氛围。构图饱满，向上撑开如伞盖，上方配有题诗书法，诗画合一，兼具现代构成感与传统文人写意韵味。",
+    "theme_text": "春心萌动，花苞初绽。暖风拂过山河，万物感春气而动，生命的喜悦慢慢舒展，是从苏醒走向盛放的过渡时刻。",
+    "story": "氤氲春风漫过天地，山河润泽明亮。枝头无数花苞次第绽开，点点粉花缀满万千枝条，林间渐渐热闹起来。置身此景，目之所及皆是新生，内心被生命的欢愉触动。正如《毛诗序》所言，情动于中而发于诗文，古往今来无数人咏叹春天，正是被这份蓬勃生机打动。花开不是终点，是生命热烈情感的流露。",
+    "rights_status": "authorized",
+    "review_status": "approved",
+    "publish_status": "published",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/wang_weizhi/WWZ-0002.jpg",
+    "tags": [
+      "中国画",
+      "当代艺术",
+      "现代"
+    ],
+    "metadata": {
+      "original_work_id": 2
+    }
+  },
+  {
+    "asset_code": "WWZ-0003",
+    "asset_type": "artwork",
+    "collection_code": "COL-WWZ",
+    "title": "春永",
+    "source": "王味之公众号",
+    "author": "王味之",
+    "region": "无",
+    "era": "现代",
+    "dimensions": "71*140cm",
+    "style": "当代写意花鸟。树干以水墨写出，万千枝条用细密劲挺的线条交织，形成伞状饱满构图；放弃刻画单朵花瓣，运用点彩技法，以大小错落的粉、红色色点表现漫天繁花。画面兼具传统文人画诗书画印一体的形式，又融入现代构成感，繁而不乱，整体氛围烂漫蓬勃。",
+    "theme_text": "华枝春满，春心永驻。繁花满树，映照生命哲思：世间荣枯无常，但人心可常驻春天，年岁老去，春心不老，人便永远是少年。",
+    "story": "繁花缀满全部枝头，迎来春天最盛大的模样。宇宙大道轮转不息，世间万物有荣有枯，盛衰消长是无法改变的自然规律。肉身会衰老凋零，但精神世界可以自主选择。只要内心怀抱生机，便能心中四季花开。如同吴冠中晚年，躯体老去，心中依旧保有少年般的青春意气，外在的春天会落幕，但内心的春天可以永恒常驻。",
+    "rights_status": "authorized",
+    "review_status": "approved",
+    "publish_status": "published",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/wang_weizhi/WWZ-0003.jpg",
+    "tags": [
+      "中国画",
+      "当代艺术",
+      "现代"
+    ],
+    "metadata": {
+      "original_work_id": 3
+    }
+  },
+  {
+    "asset_code": "WWZ-0004",
+    "asset_type": "artwork",
+    "collection_code": "COL-WWZ",
+    "title": "上海城隍庙风俗图",
+    "source": "王味之公众号",
+    "author": "王味之",
+    "region": "上海城隍庙",
+    "era": "现代",
+    "dimensions": "250*500cm",
+    "style": "继承《清明上河图》的中国界画风俗长卷范式，全景俯瞰构图。以细密严谨的白描、水墨线条为主，不追求浓艳色彩。建筑、街巷、商铺、市井人物刻画极尽精微，是纪实性国画。兼顾界画的建筑工整，又保有传统人物风俗画的生动气韵，经过十三轮构图打磨，画面细节贴合史料考据，艺术表达和历史真实性并重。",
+    "theme_text": "复刻民国上海老城厢城隍庙市井图景，以《清明上河图》的全景纪实绘画范式，打捞碎片化的老上海记忆。描绘兼具中华传统底蕴与近代文明朝气的老城厢，留存不被现代城市趋同浪潮消解的本土城市记忆，让后人直观看见旧时城隍庙一带真实的风俗人情与城市烟火。",
+    "story": "如今的城市面貌日渐趋同，国人心中魂牵梦绕的老上海，藏在零碎的旧影像、文献文字之中。那是率先接触现代文明，又深深扎根中国传统文化，兼具青春活力与文化底气的老城厢。创作者翻阅海量地方文献、搜集老图像资料，历经十三次构图打磨，以全景长卷落笔城隍庙片区。画面里鳞次栉比的传统砖木民居、街巷河道、商铺庙宇，往来熙攘的市井百姓，复原民国时期城隍庙真实生活场景。它不只是一张风景画，是把散落的老上海文化碎片整合为可视的画卷。在当代城市迭代变迁之下，留住老城厢的市井烟火，为后世留存一份可以直观品读的上海城市人文记忆。",
+    "rights_status": "authorized",
+    "review_status": "approved",
+    "publish_status": "published",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/wang_weizhi/WWZ-0004.jpg",
+    "tags": [
+      "上海",
+      "上海城隍庙",
+      "中国画",
+      "城市记忆",
+      "当代艺术",
+      "海派文化",
+      "现代"
+    ],
+    "metadata": {
+      "original_work_id": 4
+    }
+  },
+  {
+    "asset_code": "WWZ-0005",
+    "asset_type": "artwork",
+    "collection_code": "COL-WWZ",
+    "title": "惠风海上图",
+    "source": "王味之公众号",
+    "author": "王味之",
+    "region": "上海城隍庙",
+    "era": "现代",
+    "dimensions": "49*2010cm",
+    "style": "继承《清明上河图》中国都市全景纪实长卷传统，同时做当代创新。以细密水墨白描为主，三卷分列的构图形式。直面现代建筑宏大尺度带来的人与建筑比例冲突，不去复刻现实物理透视，构建视觉心理上和谐的综合空间。把古建、超高层现代建筑、世博场馆、山水风物融汇在同一套东方绘画语言之中，传统界画技法适配现代都市题材，实现古典绘画范式的当代转译。",
+    "theme_text": "承接上海世博会“城市，让生活更美好”的时代命题，重新诠释内核——拥有良好历史文脉传承的城市，才让生活更美好。画卷串联上海从古至今的城市切片：千年古镇、明清园林、民国建筑、现代摩天楼宇、世博园区，最终归于山水自然。展现一座兼顾历史遗产、现代文明与山水理想，充满人文厚度的当代上海，也为当代城市用艺术全景展示城市魅力提供创作样本。",
+    "story": "创作于2010上海世博会举办时期，“城市让生活更美好”引发创作者深度思考。国内很多城市现代化，是以拆毁传统建筑文脉为代价。而上海，在城市迭代中尽力守护历史遗存，这份取舍成为画卷的精神出发点。整幅长卷顺着时间脉络缓缓铺展：开篇是江南千年古镇与古典园林，留存城市古老根脉；继而过渡到老上海民国历史建筑；接着是陆家嘴等摩天都市群，将世博园标志性场馆纳入画面，描绘当代都市人的生活百态；画卷结尾，从繁华都市收束到湖山自然，回归中国人骨子里的山水情怀。它不只是上海城市风光绘图，借古卷的外壳回答时代议题：真正美好的城市，不是全盘推倒过去，而是承接历史文脉，现代文明与传统记忆、自然生态共生共存。同时也探索出范本：当代城市，可以用东方长卷艺术，完整讲述自己的城市故事。",
+    "rights_status": "authorized",
+    "review_status": "approved",
+    "publish_status": "published",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/wang_weizhi/WWZ-0005.jpg",
+    "tags": [
+      "上海",
+      "上海城隍庙",
+      "中国画",
+      "城市记忆",
+      "当代艺术",
+      "海派文化",
+      "现代"
+    ],
+    "metadata": {
+      "original_work_id": 5
+    }
+  },
+  {
+    "asset_code": "WWZ-0006",
+    "asset_type": "artwork",
+    "collection_code": "COL-WWZ",
+    "title": "古镇新貌--朱家角",
+    "source": "王味之公众号",
+    "author": "王味之",
+    "region": "上海朱家角古镇",
+    "era": "现代",
+    "dimensions": "200*220cm",
+    "style": "高空俯瞰全景构图，水墨黑白为主色调。做删繁就简的艺术提炼，把错落屋顶概括成方形、斜形、多边形几何块面；采用多层平涂技法，依靠平涂次数差异打造富有节奏的明暗层次，让灰色屋顶层次丰富灵动。保留江南古镇界画的空间格局，又用几何化概括，形成素雅明快、充满韵律感的当代国画面貌。",
+    "theme_text": "以高空俯瞰视角诠释朱家角古镇独有的江南气质。捕捉粉墙黛瓦的视觉韵律，展现古镇小桥流水、漕港河、放生桥的地域建筑特色，挖掘江南古镇含蓄温婉又充满鲜活生机的美感，用全新的绘画语言演绎朱家角，跳出传统古镇绘画的固有表达。",
+    "story": "创作者在观看朱家角纪录片时，被高空俯瞰的全景镜头激发创作灵感。成片错落灰瓦，形态多变的白墙，如同跳动的白色音符，温婉又富有生命力，这份独特美感很少被绘画表达，由此萌生创作想法。画面还原朱家角真实格局：漕港河将古镇分隔两岸，四百五十年历史的五孔放生桥横跨河面，串联起两岸民居，完整呈现小桥流水的江南风貌。没有堆砌细碎写实细节，而是对建筑做艺术简化，以块面、层次平涂塑造整片古镇。既保留朱家角小家碧玉式的素雅气质，又用全新视觉语言，呈现传统古镇蓬勃鲜活的当代面貌。",
+    "rights_status": "authorized",
+    "review_status": "approved",
+    "publish_status": "published",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/wang_weizhi/WWZ-0006.jpg",
+    "tags": [
+      "上海",
+      "上海朱家角古镇",
+      "中国画",
+      "城市记忆",
+      "当代艺术",
+      "海派文化",
+      "现代"
+    ],
+    "metadata": {
+      "original_work_id": 6
+    }
+  },
+  {
+    "asset_code": "WWZ-0007",
+    "asset_type": "artwork",
+    "collection_code": "COL-WWZ",
+    "title": "时尚山居图--松阳古村新生记",
+    "source": "王味之公众号",
+    "author": "王味之",
+    "region": "浙江丽水松阳古村",
+    "era": "现代",
+    "dimensions": "34*3400cm（？）",
+    "style": "鸟瞰全景式淡彩水墨，延续全景风俗长卷的创作语言。将多座古村风物整合再创作，不局限复刻某一个村落实景。民居建筑做块面化归纳处理，山林云雾层次温润素雅，把传统山水界画技法，用来表现当代乡村生活景象，兼具乡土诗意与现实纪实感。",
+    "theme_text": "以松阳多个古村为创作原型，聚焦乡土活化的时代现象。展现曾经衰败的浙南山地古村，依托山水资源、历史底蕴与保护政策，通过民宿、文创、文旅业态重获新生，刻画传统古村落与现代生活交融共生，记录乡村振兴下古村焕发的当代活力。",
+    "story": "2023年创作者赴丽水松阳写生，目睹古村的巨大变化。往日凋敝的山村，依托秀美山水与厚重历史，加上地方保护政策，吸引创业者、游客纷至沓来。民宿、书店、美术馆、文创业态蓬勃兴起，老村落重焕生机。画作以陈家铺村为基底，融合杨家堂、善垄、酉田、南岱等村落特色风貌，艺术化整合重构，并非单纯写实写生。群山云雾环抱之中，古旧民居错落排布，古老的乡土外壳包裹着鲜活的现代生活，描绘出属于新时代的山居图景。",
+    "rights_status": "authorized",
+    "review_status": "approved",
+    "publish_status": "published",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/wang_weizhi/WWZ-0007.jpg",
+    "tags": [
+      "中国画",
+      "当代艺术",
+      "浙江丽水松阳古村",
+      "现代"
+    ],
+    "metadata": {
+      "original_work_id": 7
+    }
+  },
+  {
+    "asset_code": "WWZ-0008",
+    "asset_type": "artwork",
+    "collection_code": "COL-WWZ",
+    "title": "刀郎情醉",
+    "source": "王味之公众号",
+    "author": "王味之",
+    "region": "塔里木盆地叶尔羌河畔",
+    "era": "现代",
+    "dimensions": "160*140cm",
+    "style": "人物风俗国画，以细密白描线条为主，局部铺染红底重彩。借鉴传统人物群像长卷的构图方式，场面饱满宏大，人物众多。精准刻画乐手、舞者、围观群众的动态神态，线条奔放有力，烘托出热烈奔放的歌舞氛围，以东方笔墨再现少数民族非遗民俗。",
+    "theme_text": "表现新疆刀郎木卡姆原生态民间歌舞盛景，记录叶尔羌河畔维吾尔族独特非物质文化。展现刀郎木卡姆原始野性、高亢质朴的艺术特质，还原当地人以吼喊式歌唱，纵情歌舞的民俗现场，传承古老鲜活的民族民间文化记忆。",
+    "story": "刀郎木卡姆流传于塔里木盆地叶尔羌河畔，是极具原生态的维吾尔民间歌舞。歌者不靠演唱技巧，以本色嗓音“吼喊”歌唱，旋律高亢激越，裹挟着原始野性，这份歌唱方式从远古延续至今。画卷定格盛大欢聚的瞬间：乐手围坐演奏手鼓等传统乐器，舞者舒展身姿尽情起舞，四周民众席地环绕。没有修饰雕琢，还原刀郎人从日出到日落，放声高歌、纵情欢舞的真实民俗场景，用笔墨留住这份热烈厚重的少数民族非遗风情。",
+    "rights_status": "authorized",
+    "review_status": "approved",
+    "publish_status": "published",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/wang_weizhi/WWZ-0008.jpg",
+    "tags": [
+      "中国画",
+      "塔里木盆地叶尔羌河畔",
+      "当代艺术",
+      "现代"
+    ],
+    "metadata": {
+      "original_work_id": 8
+    }
+  },
+  {
+    "asset_code": "WWZ-0009",
+    "asset_type": "artwork",
+    "collection_code": "COL-WWZ",
+    "title": "信笔时尚",
+    "source": "王味之公众号",
+    "author": "王味之",
+    "region": "无",
+    "era": "现代",
+    "dimensions": "20*20cm",
+    "style": "极简白描小品，一尺见方小幅构图。舍弃色彩与繁复明暗，只用简练流动的单线勾勒人物神态造型，线条概括松弛，信笔写就，保留速写即兴感，以印章落款，兼具现代速写意趣与东方白描笔墨气质。",
+    "theme_text": "从时尚杂志的人物形象汲取灵感，剥离商业物化的审美包装，回归人本身的生命质感。捕捉女性沉静娴雅、悠然自在的精神状态，表达对纯粹生命本真之美的感悟，是随感而发的小品创作。",
+    "story": "创作者平日翻阅休闲时尚杂志，从中挑选神态安静自然的女性形象进行即兴创作。过滤杂志背后物质化、情色化的商业导向，不追逐浮华外表，被人物本身的生命状态所触动，内心精神得到感召，随性落笔。不去复刻商业照片，着重捕捉人物若有所思、娴雅悠然的神情，用简约线条留存生命本真的美好。",
+    "rights_status": "authorized",
+    "review_status": "approved",
+    "publish_status": "published",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/wang_weizhi/WWZ-0009.jpg",
+    "tags": [
+      "中国画",
+      "当代艺术",
+      "现代"
+    ],
+    "metadata": {
+      "original_work_id": 9
+    }
+  },
+  {
+    "asset_code": "WWZ-0010",
+    "asset_type": "artwork",
+    "collection_code": "COL-WWZ",
+    "title": "仫佬族依饭节",
+    "source": "王味之公众号",
+    "author": "王味之",
+    "region": "广西",
+    "era": "现代",
+    "dimensions": "140*140cm",
+    "style": "大型民俗人物国画，细密白描为主。场面宏大饱满，人物群组排布丰富，将祭祀供案、香炉、面具、民俗道具尽数入画。线条繁复扎实，还原祭祀现场庄重热烈的氛围，以中国传统风俗长卷的绘画语言记录少数民族非遗仪式。",
+    "theme_text": "描绘广西仫佬族国家级非遗依饭节祭祀盛典。展现节日还愿祈福，祈求人畜平安、五谷丰登的民俗内核，透过隆重神圣的祭祀仪式，呈现仫佬族的伦理观念与对美好生活的向往。",
+    "story": "依饭节是仫佬族最为隆重的传统节日，三年一大庆，一年一小庆，又称“喜乐愿”，于立冬之后择吉日举办。节日核心是向祖先还愿，祈求风调雨顺、人畜兴旺。画卷还原盛大祭祀现场：香炉香火缭绕，供品陈列，巫师起舞，族人环聚参与仪式，背景排布祭祀面具。完整再现神圣庄重的祭祀全过程，用笔墨留存仫佬族独有的民俗信仰与精神追求。",
+    "rights_status": "authorized",
+    "review_status": "approved",
+    "publish_status": "published",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/wang_weizhi/WWZ-0010.jpg",
+    "tags": [
+      "中国画",
+      "广西",
+      "当代艺术",
+      "现代"
+    ],
+    "metadata": {
+      "original_work_id": 10
+    }
+  },
+  {
+    "asset_code": "ZHB-0001",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "瑞鹤图",
+    "source": "辽宁省博物馆",
+    "author": "赵佶",
+    "region": "中原",
+    "era": "北宋",
+    "dimensions": "51.6*138cm",
+    "style": "院体工笔设色",
+    "theme_text": "祥瑞宫廷",
+    "story": "绘北宋宣和年间宫城瑞鹤盘旋，象征国泰祥瑞",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦北楼",
+    "cover": "/static/assets/treasure/ZHB-0001.jpg",
+    "tags": [
+      "中原",
+      "传统绘画",
+      "北宋",
+      "祥瑞宫廷",
+      "锦北楼"
+    ],
+    "metadata": {
+      "source_row": 2,
+      "original_image_id": "ID_1C3526D53C864FB28696073517A8A17E"
+    }
+  },
+  {
+    "asset_code": "ZHB-0002",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "晴峦萧寺图",
+    "source": "纳尔逊‑阿特金斯艺术博物馆",
+    "author": "李成",
+    "region": "中原",
+    "era": "北宋",
+    "dimensions": "111.8*56cm",
+    "style": "北派全景山水",
+    "theme_text": "古寺山水",
+    "story": "北方平远寒林山水，山寺隐于群山之间",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦北楼",
+    "cover": "/static/assets/treasure/ZHB-0002.jpg",
+    "tags": [
+      "中原",
+      "传统绘画",
+      "北宋",
+      "古寺山水",
+      "锦北楼"
+    ],
+    "metadata": {
+      "source_row": 3,
+      "original_image_id": "ID_B0593139559C4BF5936506236471F6B9"
+    }
+  },
+  {
+    "asset_code": "ZHB-0003",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "早春图",
+    "source": "台北故宫博物院",
+    "author": "郭熙",
+    "region": "中原",
+    "era": "北宋",
+    "dimensions": "158.3*108.1cm",
+    "style": "北派全景山水",
+    "theme_text": "四时山水",
+    "story": "描绘春日山川万物复苏，山水氤氲气象",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦北楼",
+    "cover": "/static/assets/treasure/ZHB-0003.jpg",
+    "tags": [
+      "中原",
+      "传统绘画",
+      "北宋",
+      "四时山水",
+      "锦北楼"
+    ],
+    "metadata": {
+      "source_row": 4,
+      "original_image_id": "ID_9C1ED64833DF4ABE862136A074FC17E5"
+    }
+  },
+  {
+    "asset_code": "ZHB-0004",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "溪山行旅图",
+    "source": "台北故宫博物院",
+    "author": "范宽",
+    "region": "中原",
+    "era": "北宋",
+    "dimensions": "206.3*103.3cm",
+    "style": "北派全景山水",
+    "theme_text": "行旅山水",
+    "story": "巍峨大山，行旅穿行山间，雄浑庄重",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦北楼",
+    "cover": "/static/assets/treasure/ZHB-0004.jpg",
+    "tags": [
+      "中原",
+      "传统绘画",
+      "北宋",
+      "行旅山水",
+      "锦北楼"
+    ],
+    "metadata": {
+      "source_row": 5,
+      "original_image_id": "ID_D35DBEC7F3584B72A2E42DE79D8251D3"
+    }
+  },
+  {
+    "asset_code": "ZHB-0005",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "千里江山图",
+    "source": "故宫博物院",
+    "author": "王希孟",
+    "region": "中原",
+    "era": "北宋",
+    "dimensions": null,
+    "style": "大青绿山水",
+    "theme_text": "江山盛景",
+    "story": "传世青绿长卷，描绘锦绣万里河山",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦北楼",
+    "cover": "/static/assets/treasure/ZHB-0005.jpg",
+    "tags": [
+      "中原",
+      "传统绘画",
+      "北宋",
+      "江山盛景",
+      "锦北楼"
+    ],
+    "metadata": {
+      "source_row": 6,
+      "original_image_id": "ID_28FFF3BDA7C446B4B2A7D557DE98E2E2"
+    }
+  },
+  {
+    "asset_code": "ZHB-0006",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "玉堂富贵图",
+    "source": "台北故宫博物院",
+    "author": "徐熙",
+    "region": "江南",
+    "era": "五代十国",
+    "dimensions": "112.5*38.3cm",
+    "style": "院体工笔花鸟",
+    "theme_text": "吉祥花鸟",
+    "story": "牡丹玉兰满堂，寓意玉堂富贵",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦北楼",
+    "cover": "/static/assets/treasure/ZHB-0006.jpg",
+    "tags": [
+      "五代十国",
+      "传统绘画",
+      "吉祥花鸟",
+      "江南",
+      "锦北楼"
+    ],
+    "metadata": {
+      "source_row": 7,
+      "original_image_id": "ID_2BC02D6608D84523BAB15233296A359C"
+    }
+  },
+  {
+    "asset_code": "ZHB-0007",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "京畿瑞雪图",
+    "source": "故宫博物院",
+    "author": "李思训",
+    "region": "中原",
+    "era": "唐",
+    "dimensions": "42.7*45.2cm",
+    "style": "青绿山水",
+    "theme_text": "宫苑雪景",
+    "story": "京城宫苑雪景，金碧山水皇家气象",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦北楼",
+    "cover": "/static/assets/treasure/ZHB-0007.jpg",
+    "tags": [
+      "中原",
+      "传统绘画",
+      "唐",
+      "宫苑雪景",
+      "锦北楼"
+    ],
+    "metadata": {
+      "source_row": 8,
+      "original_image_id": "ID_45CCD5048EE544FA81A7C45EA560F02C"
+    }
+  },
+  {
+    "asset_code": "ZHB-0008",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "画牡丹图",
+    "source": "台北故宫博物院",
+    "author": "赵昌",
+    "region": "中原",
+    "era": "北宋",
+    "dimensions": "143.5*59.3cm",
+    "style": "院体工笔花鸟",
+    "theme_text": "花卉瑞景",
+    "story": "精工写生牡丹，华贵富丽",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦北楼",
+    "cover": "/static/assets/treasure/ZHB-0008.jpg",
+    "tags": [
+      "中原",
+      "传统绘画",
+      "北宋",
+      "花卉瑞景",
+      "锦北楼"
+    ],
+    "metadata": {
+      "source_row": 9,
+      "original_image_id": "ID_D2C7A02F12A746139249EC9140480C1F"
+    }
+  },
+  {
+    "asset_code": "ZHB-0009",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "松鹤延年图",
+    "source": "故宫博物院",
+    "author": "童垲",
+    "region": "江南",
+    "era": "明",
+    "dimensions": "201.8*97.2cm",
+    "style": "院体花鸟",
+    "theme_text": "吉祥祝寿",
+    "story": "青松仙鹤，寓意松鹤延年，福寿绵长",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦北楼",
+    "cover": "/static/assets/treasure/ZHB-0009.jpg",
+    "tags": [
+      "传统绘画",
+      "吉祥祝寿",
+      "明",
+      "江南",
+      "锦北楼"
+    ],
+    "metadata": {
+      "source_row": 10,
+      "original_image_id": "ID_6BB4DE70A122453D950B2FFF4EFA5604"
+    }
+  },
+  {
+    "asset_code": "ZHB-0010",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "明皇斗鸡图",
+    "source": "纳尔逊‑阿特金斯艺术博物馆",
+    "author": "李嵩（传）",
+    "region": "江南",
+    "era": "南宋",
+    "dimensions": "23.3*21.6cm",
+    "style": "院体人物",
+    "theme_text": "宫廷故事",
+    "story": "唐明皇斗鸡典故，宋代院画人物叙事",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦北楼",
+    "cover": "/static/assets/treasure/ZHB-0010.jpg",
+    "tags": [
+      "传统绘画",
+      "南宋",
+      "宫廷故事",
+      "江南",
+      "锦北楼"
+    ],
+    "metadata": {
+      "source_row": 11,
+      "original_image_id": "ID_0CC353F1AA094BC49C740575F8E03146"
+    }
+  },
+  {
+    "asset_code": "ZHB-0011",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "西园雅集图",
+    "source": "台北故宫博物院",
+    "author": "程仲坚",
+    "region": "江南",
+    "era": "明",
+    "dimensions": "117.4*39.6cm",
+    "style": "文人人物",
+    "theme_text": "文人雅集",
+    "story": "宋代文人西园雅集，名士聚会交游",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "贵宾楼",
+    "cover": "/static/assets/treasure/ZHB-0011.jpg",
+    "tags": [
+      "传统绘画",
+      "文人雅集",
+      "明",
+      "江南",
+      "贵宾楼"
+    ],
+    "metadata": {
+      "source_row": 12,
+      "original_image_id": "ID_DCE6A9271CB14BE49F3D7CB2038A959D"
+    }
+  },
+  {
+    "asset_code": "ZHB-0012",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "兰亭修禊图",
+    "source": "大都会艺术博物馆",
+    "author": "李公麟",
+    "region": "中原",
+    "era": "北宋",
+    "dimensions": "43*43cm",
+    "style": "白描人物",
+    "theme_text": "文会雅集",
+    "story": "兰亭曲水流觞，古代文人集会礼乐",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "贵宾楼",
+    "cover": "/static/assets/treasure/ZHB-0012.jpg",
+    "tags": [
+      "中原",
+      "传统绘画",
+      "北宋",
+      "文会雅集",
+      "贵宾楼"
+    ],
+    "metadata": {
+      "source_row": 13,
+      "original_image_id": "ID_7F756FFDD41B422BBD814A9C03145292"
+    }
+  },
+  {
+    "asset_code": "ZHB-0013",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "赤壁图",
+    "source": "纳尔逊‑阿特金斯艺术博物馆",
+    "author": "李嵩",
+    "region": "江南",
+    "era": "南宋",
+    "dimensions": "24.8*26cm",
+    "style": "山水人物",
+    "theme_text": "历史典故",
+    "story": "苏子赤壁泛舟，怀古文事题材",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "贵宾楼",
+    "cover": "/static/assets/treasure/ZHB-0013.jpg",
+    "tags": [
+      "传统绘画",
+      "南宋",
+      "历史典故",
+      "江南",
+      "贵宾楼"
+    ],
+    "metadata": {
+      "source_row": 14,
+      "original_image_id": "ID_44215369991146A2B414D40251D1CB67"
+    }
+  },
+  {
+    "asset_code": "ZHB-0014",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "阆苑女仙图",
+    "source": "故宫博物院",
+    "author": "阮郜",
+    "region": "江南",
+    "era": "五代十国",
+    "dimensions": "42.7*173.6cm",
+    "style": "工笔道释人物",
+    "theme_text": "仙苑华贵",
+    "story": "仙山阆苑，华贵绮丽的仙境图景",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "贵宾楼",
+    "cover": "/static/assets/treasure/ZHB-0014.jpg",
+    "tags": [
+      "五代十国",
+      "仙苑华贵",
+      "传统绘画",
+      "江南",
+      "贵宾楼"
+    ],
+    "metadata": {
+      "source_row": 15,
+      "original_image_id": "ID_E1F8CB851602406EA660FBC6FFB2C940"
+    }
+  },
+  {
+    "asset_code": "ZHB-0015",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "仕女玉兔图页",
+    "source": null,
+    "author": "周文矩",
+    "region": "江南",
+    "era": "五代十国",
+    "dimensions": "25*23cm",
+    "style": "工笔仕女",
+    "theme_text": "贵族生活",
+    "story": "贵族仕女闲居，精致古代仕女题材",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "贵宾楼",
+    "cover": "/static/assets/treasure/ZHB-0015.jpg",
+    "tags": [
+      "五代十国",
+      "传统绘画",
+      "江南",
+      "贵宾楼",
+      "贵族生活"
+    ],
+    "metadata": {
+      "source_row": 16,
+      "original_image_id": "ID_9603D0F69A3F4069A2277809E7CF8782"
+    }
+  },
+  {
+    "asset_code": "ZHB-0016",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "茉莉舒芳图",
+    "source": null,
+    "author": "马麟",
+    "region": "江南",
+    "era": "南宋",
+    "dimensions": "22.8*22.8cm",
+    "style": "院体花鸟",
+    "theme_text": "清雅花卉",
+    "story": "茉莉盛放，工笔写生，秀润雅致",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "贵宾楼",
+    "cover": "/static/assets/treasure/ZHB-0016.jpg",
+    "tags": [
+      "传统绘画",
+      "南宋",
+      "江南",
+      "清雅花卉",
+      "贵宾楼"
+    ],
+    "metadata": {
+      "source_row": 17,
+      "original_image_id": "ID_16FA62F64AB0479CAF77A2813A9B8EB0"
+    }
+  },
+  {
+    "asset_code": "ZHB-0017",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "梅花双鹊图",
+    "source": "上海龙美术馆",
+    "author": "汤正仲",
+    "region": "江南",
+    "era": "南宋",
+    "dimensions": null,
+    "style": "院体花鸟",
+    "theme_text": "花鸟祥瑞",
+    "story": "寒梅枝头双鹊，报喜吉祥意象",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "贵宾楼",
+    "cover": "/static/assets/treasure/ZHB-0017.jpg",
+    "tags": [
+      "传统绘画",
+      "南宋",
+      "江南",
+      "花鸟祥瑞",
+      "贵宾楼"
+    ],
+    "metadata": {
+      "source_row": 18,
+      "original_image_id": "ID_3FD0A1C0063D4066A8F3215821C9EC42"
+    }
+  },
+  {
+    "asset_code": "ZHB-0018",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "白蔷薇图",
+    "source": "故宫博物院",
+    "author": "马远",
+    "region": "江南",
+    "era": "南宋",
+    "dimensions": null,
+    "style": "院体花鸟",
+    "theme_text": "花卉小品",
+    "story": "白蔷薇精工写生，简雅清丽",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "贵宾楼",
+    "cover": "/static/assets/treasure/ZHB-0018.jpg",
+    "tags": [
+      "传统绘画",
+      "南宋",
+      "江南",
+      "花卉小品",
+      "贵宾楼"
+    ],
+    "metadata": {
+      "source_row": 19,
+      "original_image_id": "ID_4009C7075D40419F8881028318F0D97C"
+    }
+  },
+  {
+    "asset_code": "ZHB-0019",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "花鸟图",
+    "source": "台北故宫博物院",
+    "author": "林椿",
+    "region": "江南",
+    "era": "南宋",
+    "dimensions": "149.4*89.9cm",
+    "style": "院体花鸟",
+    "theme_text": "花鸟小品",
+    "story": "南宋院体花鸟，灵动写实",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "贵宾楼",
+    "cover": "/static/assets/treasure/ZHB-0019.jpg",
+    "tags": [
+      "传统绘画",
+      "南宋",
+      "江南",
+      "花鸟小品",
+      "贵宾楼"
+    ],
+    "metadata": {
+      "source_row": 20,
+      "original_image_id": "ID_D0DBA608621741D0AC8EB77944F90F4B"
+    }
+  },
+  {
+    "asset_code": "ZHB-0020",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "花鸟图",
+    "source": "台北故宫博物院",
+    "author": "边鸾",
+    "region": "中原",
+    "era": "唐",
+    "dimensions": "58.1*57.4cm",
+    "style": "工笔花鸟",
+    "theme_text": "华贵花鸟",
+    "story": "唐代工笔花鸟，富丽古雅",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "贵宾楼",
+    "cover": "/static/assets/treasure/ZHB-0020.jpg",
+    "tags": [
+      "中原",
+      "传统绘画",
+      "华贵花鸟",
+      "唐",
+      "贵宾楼"
+    ],
+    "metadata": {
+      "source_row": 21,
+      "original_image_id": "ID_FF791A7386694F29AD03C4A6FC9A6DB6"
+    }
+  },
+  {
+    "asset_code": "ZHB-0021",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "渔笛图",
+    "source": "纳尔逊‑阿特金斯艺术博物馆",
+    "author": "仇英",
+    "region": "江南",
+    "era": "明",
+    "dimensions": "113*60cm",
+    "style": "院体山水",
+    "theme_text": "渔隐闲趣",
+    "story": "江上渔者吹笛，隐逸闲适山水",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦楠楼",
+    "cover": "/static/assets/treasure/ZHB-0021.jpg",
+    "tags": [
+      "传统绘画",
+      "明",
+      "江南",
+      "渔隐闲趣",
+      "锦楠楼"
+    ],
+    "metadata": {
+      "source_row": 22,
+      "original_image_id": "ID_B0FE84601BC54DFA9B34E5DE404A6556"
+    }
+  },
+  {
+    "asset_code": "ZHB-0022",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "荷花鸳鸯图",
+    "source": "故宫博物院",
+    "author": "陈洪绶",
+    "region": "江南",
+    "era": "明",
+    "dimensions": "184*98.3cm",
+    "style": "工笔花鸟",
+    "theme_text": "池苑禽鸟",
+    "story": "荷塘鸳鸯，荷塘自然意趣",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦楠楼",
+    "cover": "/static/assets/treasure/ZHB-0022.jpg",
+    "tags": [
+      "传统绘画",
+      "明",
+      "江南",
+      "池苑禽鸟",
+      "锦楠楼"
+    ],
+    "metadata": {
+      "source_row": 23,
+      "original_image_id": "ID_D42FB568112B4754AD0B9FA1F849DC91"
+    }
+  },
+  {
+    "asset_code": "ZHB-0023",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "莲池水禽图对幅",
+    "source": "智恩院",
+    "author": "于青言",
+    "region": "江南",
+    "era": "南宋",
+    "dimensions": "112*74cm",
+    "style": "院体花鸟",
+    "theme_text": "水禽池景",
+    "story": "莲池水鸟成对，江南水景风貌",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦楠楼",
+    "cover": "/static/assets/treasure/ZHB-0023.jpg",
+    "tags": [
+      "传统绘画",
+      "南宋",
+      "水禽池景",
+      "江南",
+      "锦楠楼"
+    ],
+    "metadata": {
+      "source_row": 24,
+      "original_image_id": "ID_6DB39756AA2B4A98925E1888418C4FD8"
+    }
+  },
+  {
+    "asset_code": "ZHB-0024",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "渌池擢素图",
+    "source": null,
+    "author": "吴炳",
+    "region": "江南",
+    "era": "南宋",
+    "dimensions": "25.4*26cm",
+    "style": "院体花鸟",
+    "theme_text": "荷塘风物",
+    "story": "荷塘风物小景，清逸自然",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦楠楼",
+    "cover": "/static/assets/treasure/ZHB-0024.jpg",
+    "tags": [
+      "传统绘画",
+      "南宋",
+      "江南",
+      "荷塘风物",
+      "锦楠楼"
+    ],
+    "metadata": {
+      "source_row": 26,
+      "original_image_id": "ID_EC7BD30C90864EF0BCFAE188B2BEB4A1"
+    }
+  },
+  {
+    "asset_code": "ZHB-0025",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "蜀山行旅图",
+    "source": null,
+    "author": "梁楷（传）",
+    "region": "江南",
+    "era": "南宋",
+    "dimensions": "105*51cm",
+    "style": "院体山水",
+    "theme_text": "行旅山水",
+    "story": "蜀地山川行旅，山川雄奇",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦楠楼",
+    "cover": "/static/assets/treasure/ZHB-0025.jpg",
+    "tags": [
+      "传统绘画",
+      "南宋",
+      "江南",
+      "行旅山水",
+      "锦楠楼"
+    ],
+    "metadata": {
+      "source_row": 27,
+      "original_image_id": "ID_2F8B09DC6A7B462CBB9F4F6761228241"
+    }
+  },
+  {
+    "asset_code": "ZHB-0026",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "听瀑图页",
+    "source": null,
+    "author": "李唐",
+    "region": "江南",
+    "era": "南宋",
+    "dimensions": "34*25cm",
+    "style": "院体山水",
+    "theme_text": "观瀑闲游",
+    "story": "高士临流听瀑，山水闲居意境",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦楠楼",
+    "cover": "/static/assets/treasure/ZHB-0026.jpg",
+    "tags": [
+      "传统绘画",
+      "南宋",
+      "江南",
+      "观瀑闲游",
+      "锦楠楼"
+    ],
+    "metadata": {
+      "source_row": 28,
+      "original_image_id": "ID_BEBCC1ABFB6D4376A98D040A6DE789F4"
+    }
+  },
+  {
+    "asset_code": "ZHB-0027",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "松坞延宾图",
+    "source": "台北故宫博物院",
+    "author": "李嵩",
+    "region": "江南",
+    "era": "南宋",
+    "dimensions": "24.5*24.4cm",
+    "style": "山水人物",
+    "theme_text": "山居会客",
+    "story": "松林山坞，宾友相聚，山居雅会",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦楠楼",
+    "cover": "/static/assets/treasure/ZHB-0027.jpg",
+    "tags": [
+      "传统绘画",
+      "南宋",
+      "山居会客",
+      "江南",
+      "锦楠楼"
+    ],
+    "metadata": {
+      "source_row": 29,
+      "original_image_id": "ID_F6AE4567530843E4B2D7EEDBFEA47AD0"
+    }
+  },
+  {
+    "asset_code": "ZHB-0028",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "翔鹁图",
+    "source": "台北故宫博物院",
+    "author": "李安忠（传）",
+    "region": "江南",
+    "era": "南宋",
+    "dimensions": "96*43.8cm",
+    "style": "院体花鸟",
+    "theme_text": "寒禽野趣",
+    "story": "寒鸦飞掠，郊野自然生趣",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦楠楼",
+    "cover": "/static/assets/treasure/ZHB-0028.jpg",
+    "tags": [
+      "传统绘画",
+      "南宋",
+      "寒禽野趣",
+      "江南",
+      "锦楠楼"
+    ],
+    "metadata": {
+      "source_row": 30,
+      "original_image_id": "ID_B31A8E13994D468BB39076115AC35020"
+    }
+  },
+  {
+    "asset_code": "ZHB-0029",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "青绿山水图页",
+    "source": null,
+    "author": "刘松年",
+    "region": "江南",
+    "era": "南宋",
+    "dimensions": "31*33cm",
+    "style": "青绿山水",
+    "theme_text": "江南山水",
+    "story": "南宋青绿小品，江南秀丽山光",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦楠楼",
+    "cover": "/static/assets/treasure/ZHB-0029.jpg",
+    "tags": [
+      "传统绘画",
+      "南宋",
+      "江南",
+      "江南山水",
+      "锦楠楼"
+    ],
+    "metadata": {
+      "source_row": 31,
+      "original_image_id": "ID_85F15B1D1F1C4A06A5A5C7B2B9BE1477"
+    }
+  },
+  {
+    "asset_code": "ZHB-0030",
+    "asset_type": "artwork",
+    "collection_code": "COL-ZHB",
+    "title": "秋渚文禽图",
+    "source": "台北故宫博物院",
+    "author": "惠崇",
+    "region": "中原",
+    "era": "北宋",
+    "dimensions": "27.3*28.7cm",
+    "style": "江南小景",
+    "theme_text": "水禽秋景",
+    "story": "秋水沙洲禽鸟，淡远江南野趣",
+    "rights_status": "pending",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": "锦楠楼",
+    "cover": "/static/assets/treasure/ZHB-0030.jpg",
+    "tags": [
+      "中原",
+      "传统绘画",
+      "北宋",
+      "水禽秋景",
+      "锦楠楼"
+    ],
+    "metadata": {
+      "source_row": 32,
+      "original_image_id": "ID_05E20BEFDED4426599395C37267F6BFD"
+    }
+  },
+  {
+    "asset_code": "A001",
+    "asset_type": "hotel_artifact",
+    "collection_code": "COL-JJ-ARTIFACT",
+    "title": "装饰1",
+    "source": "上海锦江饭店空间数据库",
+    "author": null,
+    "region": "上海",
+    "era": null,
+    "dimensions": null,
+    "style": "酒店文化物件",
+    "theme_text": "锦江故事",
+    "story": null,
+    "rights_status": "internal",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/hotel_artifacts/A001.jpg",
+    "tags": [
+      "锦江饭店",
+      "酒店文化",
+      "城市记忆"
+    ],
+    "metadata": {
+      "image_description": "装饰1"
+    }
+  },
+  {
+    "asset_code": "A002",
+    "asset_type": "hotel_artifact",
+    "collection_code": "COL-JJ-ARTIFACT",
+    "title": "装饰2",
+    "source": "上海锦江饭店空间数据库",
+    "author": null,
+    "region": "上海",
+    "era": null,
+    "dimensions": null,
+    "style": "酒店文化物件",
+    "theme_text": "锦江故事",
+    "story": null,
+    "rights_status": "internal",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/hotel_artifacts/A002.jpg",
+    "tags": [
+      "锦江饭店",
+      "酒店文化",
+      "城市记忆"
+    ],
+    "metadata": {
+      "image_description": "装饰2"
+    }
+  },
+  {
+    "asset_code": "A003",
+    "asset_type": "hotel_artifact",
+    "collection_code": "COL-JJ-ARTIFACT",
+    "title": "装饰3",
+    "source": "上海锦江饭店空间数据库",
+    "author": null,
+    "region": "上海",
+    "era": null,
+    "dimensions": null,
+    "style": "酒店文化物件",
+    "theme_text": "锦江故事",
+    "story": null,
+    "rights_status": "internal",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/hotel_artifacts/A003.jpg",
+    "tags": [
+      "锦江饭店",
+      "酒店文化",
+      "城市记忆"
+    ],
+    "metadata": {
+      "image_description": "装饰3"
+    }
+  },
+  {
+    "asset_code": "A004",
+    "asset_type": "hotel_artifact",
+    "collection_code": "COL-JJ-ARTIFACT",
+    "title": "装饰4",
+    "source": "上海锦江饭店空间数据库",
+    "author": null,
+    "region": "上海",
+    "era": null,
+    "dimensions": null,
+    "style": "酒店文化物件",
+    "theme_text": "锦江故事",
+    "story": null,
+    "rights_status": "internal",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/hotel_artifacts/A004.jpg",
+    "tags": [
+      "锦江饭店",
+      "酒店文化",
+      "城市记忆"
+    ],
+    "metadata": {
+      "image_description": "装饰4"
+    }
+  },
+  {
+    "asset_code": "A005",
+    "asset_type": "hotel_artifact",
+    "collection_code": "COL-JJ-ARTIFACT",
+    "title": "装饰5",
+    "source": "上海锦江饭店空间数据库",
+    "author": null,
+    "region": "上海",
+    "era": null,
+    "dimensions": null,
+    "style": "酒店文化物件",
+    "theme_text": "锦江故事",
+    "story": null,
+    "rights_status": "internal",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/hotel_artifacts/A005.jpg",
+    "tags": [
+      "锦江饭店",
+      "酒店文化",
+      "城市记忆"
+    ],
+    "metadata": {
+      "image_description": "装饰5"
+    }
+  },
+  {
+    "asset_code": "A006",
+    "asset_type": "hotel_artifact",
+    "collection_code": "COL-JJ-ARTIFACT",
+    "title": "装饰6",
+    "source": "上海锦江饭店空间数据库",
+    "author": null,
+    "region": "上海",
+    "era": null,
+    "dimensions": null,
+    "style": "酒店文化物件",
+    "theme_text": "锦江故事",
+    "story": null,
+    "rights_status": "internal",
+    "review_status": "pending",
+    "publish_status": "draft",
+    "hotel_code": "JJ-SH-001",
+    "building": null,
+    "cover": "/static/assets/hotel_artifacts/A006.jpg",
+    "tags": [
+      "锦江饭店",
+      "酒店文化",
+      "城市记忆"
+    ],
+    "metadata": {
+      "image_description": "装饰6"
+    }
+  }
+]
