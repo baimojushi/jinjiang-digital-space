@@ -407,11 +407,11 @@ def curation_pool():
         signal.append(d)
     signal.sort(key=lambda x:(x["interest_score"],x["curation_votes"]),reverse=True)
 
-    # 内部策展资源：允许酒店看见，未获得数字公开许可时不会进入C端推荐。
+    # 内部策展资源：未获得数字公开授权时不会进入C端推荐，但酒店可继续评估。
     internal_rows = con.execute("""
       SELECT a.*,c.name collection_name
       FROM culture_assets a LEFT JOIN collections c ON c.id=a.collection_id
-      WHERE a.internal_review=1 AND COALESCE(a.digital_public,0)=0
+      WHERE a.rights_status NOT IN ('authorized','public_domain_verified')
       ORDER BY CASE WHEN a.building IS NOT NULL THEN 0 ELSE 1 END,a.id
       LIMIT 60
     """).fetchall()
@@ -475,7 +475,7 @@ def hotel_story(hotel_id:int):
     con = connect()
     artifacts = [artwork_dict(r) for r in con.execute("""
       SELECT a.* FROM culture_assets a
-      WHERE a.hotel_id=? AND a.asset_type='hotel_artifact' AND a.internal_review=1
+      WHERE a.hotel_id=? AND a.asset_type='hotel_artifact'
       ORDER BY a.asset_code
     """,(hotel_id,)).fetchall()]
     photos = [dict(r) for r in con.execute("""
@@ -737,8 +737,8 @@ def analytics_dashboard():
         "funnel":funnel,"timeline":timeline,"themes":themes_out,"top_artworks":top[:10],
         "sources":sources,"exhibitions":ex_status,
         "diagnostics":{"algorithm_version":ALGORITHM_VERSION,
-                       "public_pool":len([a for a in arts.values() if a.get("digital_public")==1]),
-                       "internal_assets":len([a for a in arts.values() if a.get("internal_review")==1])}
+                       "public_pool":len([a for a in arts.values() if a.get("rights_status") in ("authorized","public_domain_verified")]),
+                       "internal_assets":len([a for a in arts.values() if a.get("rights_status") not in ("authorized","public_domain_verified")])}
     }
 
 @app.get("/recommendation-diagnostics")
@@ -748,7 +748,7 @@ def recommendation_diagnostics():
       SELECT a.asset_code,a.title,COUNT(r.id) exposures,
              ROUND(AVG(r.selected_score),3) avg_selected_score
       FROM culture_assets a LEFT JOIN recommendations r ON r.artwork_id=a.id
-      WHERE a.digital_public=1
+      WHERE a.rights_status IN ('authorized','public_domain_verified')
       GROUP BY a.id ORDER BY exposures DESC,a.id
     """).fetchall()
     con.close()

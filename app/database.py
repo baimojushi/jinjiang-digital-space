@@ -296,44 +296,8 @@ def init_database():
     CREATE INDEX IF NOT EXISTS idx_votes_artwork ON curation_votes(artwork_id);
     """)
 
-    # MVP 3.2：授权使用范围独立于“来源版权描述”，避免用一个字段承担所有业务许可。
-    for column, ddl in [
-        ("internal_review", "INTEGER"),
-        ("digital_public", "INTEGER"),
-        ("offline_exhibition", "INTEGER"),
-        ("marketing_use", "INTEGER"),
-        ("commercial_use", "INTEGER"),
-        ("rights_valid_from", "TEXT"),
-        ("rights_valid_to", "TEXT"),
-    ]:
-        _ensure_column(con, "culture_assets", column, ddl)
-
-    # 旧行为表增量迁移
-    for column, ddl in [
-        ("space_id","INTEGER"),
-        ("recommendation_id","TEXT"),
-        ("session_id","TEXT"),
-        ("source_id","INTEGER"),
-        ("metadata","TEXT NOT NULL DEFAULT '{}'"),
-    ]:
-        _ensure_column(con, "user_events", column, ddl)
-    for column, ddl in [
-        ("space_id","INTEGER"),
-        ("recommendation_id","TEXT"),
-        ("session_id","TEXT"),
-    ]:
-        _ensure_column(con, "curation_votes", column, ddl)
-
-    for column, ddl in [
-        ("generated_from_votes","INTEGER NOT NULL DEFAULT 0"),
-        ("source_note","TEXT"),
-        ("published_at","TEXT"),
-    ]:
-        _ensure_column(con, "exhibitions", column, ddl)
-
     seed_master_data(con)
     seed_sources(con)
-    derive_initial_usage_scope(con)
     rebuild_public_view(con)
     seed_exhibition(con)
     con.commit()
@@ -459,17 +423,6 @@ def seed_sources(con):
             name=excluded.name,scene=excluded.scene,description=excluded.description,updated_at=excluded.updated_at
         """,(code,name,scene,desc,ts,ts))
 
-def derive_initial_usage_scope(con):
-    # 所有业务资源可进入内部审核；只有明确已授权+审核通过+发布的资源默认允许数字端公开。
-    con.execute("UPDATE culture_assets SET internal_review=1 WHERE internal_review IS NULL")
-    con.execute("""
-      UPDATE culture_assets SET digital_public =
-        CASE WHEN rights_status IN ('authorized','public_domain_verified')
-               AND review_status='approved' AND publish_status='published'
-             THEN 1 ELSE 0 END
-      WHERE digital_public IS NULL
-    """)
-
 def rebuild_public_view(con):
     if _object_type(con, "artworks") == "view":
         con.execute("DROP VIEW artworks")
@@ -483,9 +436,9 @@ def rebuild_public_view(con):
         CASE a.rights_status WHEN 'authorized' THEN '已授权'
           WHEN 'public_domain_verified' THEN '公版已核验' ELSE a.rights_status END AS authorization,
         a.cover,a.asset_code,a.author,a.collection_id,a.building,a.theme_text,
-        a.rights_status,a.review_status,a.publish_status,a.dimensions,a.digital_public
+        a.rights_status,a.review_status,a.publish_status,a.dimensions
       FROM culture_assets a
-      WHERE a.digital_public=1
+      WHERE a.rights_status IN ('authorized','public_domain_verified')
         AND a.review_status='approved'
         AND a.publish_status='published'
         AND a.cover IS NOT NULL
@@ -552,8 +505,6 @@ def audit(con, entity_type, entity_id, action, payload=None, operator="mvp-admin
 
 def publication_gate(asset):
     missing = []
-    if asset.get("digital_public") != 1:
-        missing.append("数字端公开许可未开启")
     if asset.get("rights_status") not in RIGHTS_PUBLIC:
         missing.append("授权状态不可公开")
     if asset.get("review_status") != "approved":

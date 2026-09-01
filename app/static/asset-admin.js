@@ -13,9 +13,7 @@ async function loadSummary(){
  const s=await api("/api/admin/assets/summary");
  const data=[
   ["文化资产",s.total_assets,`${s.artworks}件作品 · ${s.hotel_artifacts}件酒店物件`],
-  ["内部可评估",s.internal_review_assets,"酒店运营可查看/评估"],
-  ["数字端公开",s.digital_public_assets,"公开许可范围"],
-  ["公开推荐池",s.public_pool,"同时通过审核/发布/媒体门禁"],
+  ["公开推荐池",s.public_pool,"同时通过授权/审核/发布/媒体门禁"],
   ["空间",s.spaces,`${s.spaces_need_enrichment}个待补主数据`],
   ["媒体",s.media,`${s.hotel_photos_unassigned}张酒店照片待空间确认`],
  ];
@@ -26,13 +24,13 @@ async function loadAssets(){
  const d=await api("/api/admin/assets?"+qs());
  $("#assetBody").innerHTML=d.items.map(a=>`<tr class="aa-row" data-id="${a.id}">
  <td><div class="aa-asset"><img src="${a.cover||""}"><div><b>${esc(a.title)}</b><small>${esc(a.asset_code)} · ${esc(a.author||"作者待补")}</small></div></div></td>
- <td>${esc(a.collection_name||"-")}</td><td>${yes(a.internal_review)}</td><td>${yes(a.digital_public)}</td>
+ <td>${esc(a.collection_name||"-")}</td>
  <td>${status(rights[a.rights_status]||a.rights_status,a.rights_status==="authorized"?"ok":a.rights_status==="pending"?"warn":"")}</td>
  <td>${status(review[a.review_status]||a.review_status,a.review_status==="approved"?"ok":"warn")} ${status(publish[a.publish_status]||a.publish_status,a.publish_status==="published"?"ok":"")}</td>
  <td>${a.publication_gate.eligible?status("可进入C端","ok"):status(a.publication_gate.blocking.join(" / "),"block")}</td></tr>`).join("");
  document.querySelectorAll(".aa-row").forEach(x=>x.onclick=()=>openAsset(+x.dataset.id));
 }
-async function loadRights(){const d=await api("/api/admin/rights/queue");$("#rightsCount").textContent=d.count;$("#rightsQueue").innerHTML=d.items.slice(0,50).map(a=>`<div class="aa-list-item" data-id="${a.id}"><b>${esc(a.asset_code)} · ${esc(a.title)}</b><span>${esc(a.collection_name||"")}｜${esc(rights[a.rights_status]||a.rights_status)}｜${a.internal_review===1?"内部可评估":"内部未开放"}</span></div>`).join("");document.querySelectorAll("#rightsQueue [data-id]").forEach(x=>x.onclick=()=>openAsset(+x.dataset.id))}
+async function loadRights(){const d=await api("/api/admin/rights/queue");$("#rightsCount").textContent=d.count;$("#rightsQueue").innerHTML=d.items.slice(0,50).map(a=>`<div class="aa-list-item" data-id="${a.id}"><b>${esc(a.asset_code)} · ${esc(a.title)}</b><span>${esc(a.collection_name||"")}｜${esc(rights[a.rights_status]||a.rights_status)}</span></div>`).join("");document.querySelectorAll("#rightsQueue [data-id]").forEach(x=>x.onclick=()=>openAsset(+x.dataset.id))}
 async function loadQuality(){const d=await api("/api/admin/data-quality");$("#blockingCount").textContent=d.blocking+" 阻断";$("#warningCount").textContent=d.warning+" 提醒";$("#qualityList").innerHTML=d.issues.slice(0,100).map(i=>`<div class="aa-list-item"><b>${status(i.severity==="blocking"?"阻断":"提醒",i.severity==="blocking"?"block":"warn")} ${esc(i.code)}</b><span>${esc(i.message)}</span></div>`).join("")}
 async function loadSpaces(){const d=await api("/api/admin/spaces");$("#spaceGrid").innerHTML=d.items.map(s=>`<div class="aa-space" data-id="${s.id}"><img src="${s.cover||""}"><div><b>${esc(s.space_code)} · ${esc(s.name)}</b><span>${esc(s.building||"楼宇待补")}｜${esc(s.space_type||"类型待补")}｜${s.media_count}张关联图</span></div></div>`).join("");document.querySelectorAll(".aa-space").forEach(x=>x.onclick=()=>openSpace(+x.dataset.id,d.items.find(s=>s.id==+x.dataset.id)))}
 async function loadMedia(){const cat=$("#mediaCategory").value;const d=await api("/api/admin/media?page_size=120"+(cat?"&category="+encodeURIComponent(cat):""));$("#mediaGrid").innerHTML=d.items.map(m=>`<div class="aa-media"><img loading="lazy" src="${m.file_path}"><span>${esc(m.category||m.media_code)}</span></div>`).join("")}
@@ -51,12 +49,6 @@ async function openAsset(id){
  <div class="aa-field"><label>授权状态</label><select id="f_rights_status">${options(rights,a.rights_status)}</select></div>
  <div class="aa-field"><label>审核状态</label><select id="f_review_status">${options(review,a.review_status)}</select></div>
  <div class="aa-field"><label>发布状态</label><select id="f_publish_status">${options(publish,a.publish_status)}</select></div>
- <div class="aa-field"><label>内部可评估</label><select id="f_internal_review">${boolOptions(a.internal_review)}</select></div>
- <div class="aa-field"><label>数字端公开</label><select id="f_digital_public">${boolOptions(a.digital_public)}</select></div>
- <div class="aa-field"><label>线下展陈许可</label><select id="f_offline_exhibition">${boolOptions(a.offline_exhibition)}</select></div>
- <div class="aa-field"><label>营销传播许可</label><select id="f_marketing_use">${boolOptions(a.marketing_use)}</select></div>
- <div class="aa-field"><label>商业衍生许可</label><select id="f_commercial_use">${boolOptions(a.commercial_use)}</select></div>
- ${field("rights_valid_from","授权开始",a.rights_valid_from)}${field("rights_valid_to","授权结束",a.rights_valid_to)}
  <div class="aa-field full"><label>标签（逗号分隔）</label><input id="f_tags" value="${esc((a.tags||[]).join(","))}"></div>
  <div class="aa-field full"><label>主题说明</label><textarea id="f_theme_text">${esc(a.theme_text||"")}</textarea></div>
  <div class="aa-field full"><label>作品故事</label><textarea id="f_story">${esc(a.story||"")}</textarea></div></div>
@@ -64,9 +56,8 @@ async function openAsset(id){
  $("#drawer").classList.remove("hidden");
  $("#saveAsset").onclick=async()=>{
   const payload={};
-  ["title","author","source","building","region","era","dimensions","style","theme_text","story","rights_status","review_status","publish_status","rights_valid_from","rights_valid_to"].forEach(k=>payload[k]=$("#f_"+k)?.value??null);
+  ["title","author","source","building","region","era","dimensions","style","theme_text","story","rights_status","review_status","publish_status"].forEach(k=>payload[k]=$("#f_"+k)?.value??null);
   payload.tags=$("#f_tags").value.split(",").map(x=>x.trim()).filter(Boolean);
-  ["internal_review","digital_public","offline_exhibition","marketing_use","commercial_use"].forEach(k=>payload[k]=getBool("f_"+k));
   try{await api("/api/admin/assets/"+id,{method:"PUT",body:JSON.stringify(payload)});await refreshAll();await openAsset(id)}catch(e){alert("保存失败："+e.message)}
  };
  $("#publishAsset").onclick=async()=>{try{await api("/api/admin/assets/"+id+"/publish",{method:"POST",body:"{}"});await refreshAll();await openAsset(id)}catch(e){alert("校验失败："+e.message)}};

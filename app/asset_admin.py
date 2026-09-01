@@ -27,13 +27,6 @@ class AssetPatch(BaseModel):
     publish_status: str | None = None
     building: str | None = None
     tags: list[str] | None = None
-    internal_review: bool | None = None
-    digital_public: bool | None = None
-    offline_exhibition: bool | None = None
-    marketing_use: bool | None = None
-    commercial_use: bool | None = None
-    rights_valid_from: str | None = None
-    rights_valid_to: str | None = None
 
 class SpacePatch(BaseModel):
     name: str | None = None
@@ -85,9 +78,7 @@ def asset_summary():
         SUM(CASE WHEN asset_type='hotel_artifact' THEN 1 ELSE 0 END) hotel_artifacts,
         SUM(CASE WHEN rights_status='pending' THEN 1 ELSE 0 END) rights_pending,
         SUM(CASE WHEN review_status='pending' THEN 1 ELSE 0 END) review_pending,
-        SUM(CASE WHEN publish_status='published' THEN 1 ELSE 0 END) published,
-        SUM(CASE WHEN internal_review=1 THEN 1 ELSE 0 END) internal_review_assets,
-        SUM(CASE WHEN digital_public=1 THEN 1 ELSE 0 END) digital_public_assets
+        SUM(CASE WHEN publish_status='published' THEN 1 ELSE 0 END) published
       FROM culture_assets
     """).fetchone())
     counts["spaces"] = con.execute("SELECT COUNT(*) c FROM spaces").fetchone()["c"]
@@ -172,17 +163,13 @@ def update_asset(asset_id: int, body: AssetPatch):
         if not gate["eligible"]:
             con.close(); raise HTTPException(400,{"message":"未通过发布门禁","blocking":gate["blocking"]})
     allowed={"title","source","author","region","era","dimensions","style","theme_text","story",
-             "rights_status","review_status","publish_status","building","tags",
-             "internal_review","digital_public","offline_exhibition","marketing_use","commercial_use",
-             "rights_valid_from","rights_valid_to"}
+             "rights_status","review_status","publish_status","building","tags"}
     sets=[]; vals=[]
     for k,v in changes.items():
         if k not in allowed: continue
         sets.append(f"{k}=?")
         if k=="tags":
             v=json.dumps(v,ensure_ascii=False)
-        if k in {"internal_review","digital_public","offline_exhibition","marketing_use","commercial_use"} and v is not None:
-            v=1 if v else 0
         vals.append(v)
     if sets:
         sets.append("updated_at=?"); vals.append(now()); vals.append(asset_id)
@@ -219,9 +206,7 @@ def data_quality():
     for r in con.execute("SELECT * FROM culture_assets ORDER BY id"):
         d=dict(r)
         if d["rights_status"]=="pending":
-            severity="blocking" if d.get("digital_public")==1 else "warning"
-            message="授权状态待确认；当前数字公开许可已开启，必须先完成授权核验" if severity=="blocking" else "授权状态待确认；可继续内部策展评估，暂不进入数字公开"
-            issues.append({"severity":severity,"entity":"asset","id":d["id"],"code":d["asset_code"],"field":"rights_status","message":message})
+            issues.append({"severity":"warning","entity":"asset","id":d["id"],"code":d["asset_code"],"field":"rights_status","message":"授权状态待确认；可继续内部策展评估，暂不进入数字公开"})
         if not d["source"]:
             issues.append({"severity":"warning","entity":"asset","id":d["id"],"code":d["asset_code"],"field":"source","message":"缺作品来源"})
         if d["asset_type"]=="artwork" and not d["dimensions"]:
@@ -322,10 +307,10 @@ def recompute_space_matches():
             b=1.0 if a.get("building") and s.get("building") and a["building"]==s["building"] else (0.4 if a.get("building") and not s.get("building") else 0.55)
             union=len(atags|stags); th=(len(atags&stags)/union if union else 0.35)
             sty=0.7 if a.get("style") and s.get("style") and s.get("style")!="待补充" and any(x in str(a["style"]) for x in str(s["style"]).split("、")) else 0.35
-            rights=1.0 if a.get("offline_exhibition")==1 else (0.5 if a.get("offline_exhibition") is None else 0.15)
+            rights=1.0 if a.get("rights_status") in ("authorized","public_domain_verified") else (0.5 if a.get("rights_status")=="pending" else 0.15)
             uh=heat.get(a["id"],0)/max_heat
             score=round(b*.35+th*.25+sty*.15+rights*.15+uh*.10,4)
-            readiness="blocked_by_space_metadata" if missing_space else ("ready" if a.get("offline_exhibition")==1 else "offline_rights_pending")
+            readiness="blocked_by_space_metadata" if missing_space else ("ready" if a.get("rights_status") in ("authorized","public_domain_verified") else "offline_rights_pending")
             expl="空间主数据缺楼宇/类型/展陈条件，当前得分仅用于候选排序，禁止作为正式摆放结论。" if missing_space else "基于楼宇、主题、风格、授权与用户热度计算。"
             con.execute("""INSERT INTO asset_space_matches(asset_id,space_id,match_score,building_score,theme_score,style_score,rights_score,user_heat_score,readiness,explanation,updated_at)
                            VALUES(?,?,?,?,?,?,?,?,?,?,?)""",
