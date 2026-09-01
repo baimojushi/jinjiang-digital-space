@@ -1,360 +1,138 @@
-/* 锦江数字空间 MVP 3.0 · 用户端
-   页面主线：今日随机推荐 → 匹配度拆解 → AI 推荐理由与抽取轨迹 → 用户反馈 → 加入策展候选 */
-
 const USER = "demo-user";
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const SOURCE = new URLSearchParams(location.search).get("source") || "direct";
+const SESSION_KEY = "jinjiang_session_v32";
+const makeId = () => (globalThis.crypto?.randomUUID ? crypto.randomUUID().replaceAll("-","") : (Date.now().toString(36)+Math.random().toString(36).slice(2)));
+const SESSION = localStorage.getItem(SESSION_KEY) || ("sess-web-" + makeId().slice(0,16));
+localStorage.setItem(SESSION_KEY, SESSION);
 
-let current = null;      // 当前作品
-let currentData = null;  // 当前推荐完整响应
-let drawing = false;     // 抽取动画进行中
+let current = null;
+let currentRecommendation = null;
+let currentSession = SESSION;
+let loading = false;
 
-/* ------------------------------------------------------------------ 基础 */
-
-async function api(path, options) {
-  const r = await fetch(path, options ? { headers: { "Content-Type": "application/json" }, ...options } : undefined);
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
+async function api(path, options={}) {
+  const r = await fetch(path,{headers:{"Content-Type":"application/json"},...options});
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(typeof data.detail==="string"?data.detail:JSON.stringify(data.detail||data));
+  return data;
+}
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function toast(msg){const el=$("#toast");el.textContent=msg;el.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("on"),1800)}
+function sendEvent(event,id=current?.id,metadata={}) {
+  if(!id) return Promise.resolve();
+  return api("/user-event",{method:"POST",body:JSON.stringify({
+    user_id:USER,event,artwork_id:id,recommendation_id:currentRecommendation,
+    session_id:currentSession,source_code:SOURCE,metadata
+  })}).catch(()=>{});
+}
+function workGrid(items){
+  if(!items?.length) return `<div class="quiet">还没有记录。</div>`;
+  return items.map(x=>`<div class="mini-work"><img src="${x.cover||""}" alt="${esc(x.title)}"><span>${esc(x.title)}</span></div>`).join("");
 }
 
-function toast(msg) {
-  const el = $("#toast");
-  el.textContent = msg;
-  el.classList.add("on");
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => el.classList.remove("on"), 1900);
+async function loadRecommendation(exclude){
+  if(loading)return;loading=true;
+  try{
+    const q=new URLSearchParams({user_id:USER,session_id:currentSession,source:SOURCE});
+    if(exclude)q.set("exclude",exclude);
+    const d=await api("/daily-recommendation?"+q.toString());
+    current=d.artwork;currentRecommendation=d.recommendation_id;currentSession=d.session_id||currentSession;
+    $("#sourceChip").textContent=d.source?.name||"今日锦江";
+    $("#plateImg").src=current.cover;$("#plateImg").alt=current.title;
+    $("#relevanceLabel").textContent=d.relevance_label||current.theme;
+    $("#workTitle").textContent=current.title;
+    $("#workLead").textContent=current.theme_text||"从作品进入今天的锦江文化线索。";
+    $("#metaAuthor").textContent=current.author||"作者待补";
+    $("#metaOrigin").textContent=[current.region,current.era].filter(Boolean).join(" · ");
+    $("#reasonList").innerHTML=d.reason.map(x=>`<li>${esc(x)}</li>`).join("");
+    $("#workStory").textContent=current.story||current.theme_text||"";
+    $("#workTags").innerHTML=(current.tags||[]).slice(0,8).map(t=>`<span class="pill">${esc(t)}</span>`).join("");
+    $("#curateIdle").classList.remove("hidden");$("#curateDone").classList.add("hidden");
+    $("#curateNote").textContent=d.curation_state?.votes?`已有 ${d.curation_state.votes} 次共创选择支持这件作品。你的选择也会进入酒店端。`:"你的选择会进入酒店端的共创策展候选，成为下一场文化内容的真实用户信号。";
+    ["btnLike","btnFav","btnDislike"].forEach(id=>$("#"+id).classList.remove("on"));
+    const detail=await api("/artworks/"+current.id+"?user_id="+encodeURIComponent(USER));
+    $("#relatedList").innerHTML=(detail.related||[]).map(r=>`<figure data-open="${r.id}"><img src="${r.cover}" alt="${esc(r.title)}"><figcaption>${esc(r.title)}</figcaption></figure>`).join("");
+    await sendEvent("impression",current.id);
+  }catch(e){toast("推荐服务暂时不可用");console.error(e)}
+  finally{loading=false}
 }
 
-function sendEvent(name, id = current && current.id) {
-  if (!id) return Promise.resolve();
-  return api("/user-event", {
-    method: "POST",
-    body: JSON.stringify({ user_id: USER, event: name, artwork_id: id })
-  }).catch(() => {});
-}
-
-const wait = ms => new Promise(r => setTimeout(r, ms));
-
-/* ------------------------------------------------------------------ 渲染 */
-
-function renderLabel(d) {
-  const a = d.artwork, L = d.label;
-  $("#plateImg").src = a.cover;
-  $("#plateImg").alt = `${a.title}｜${a.category}`;
-  $("#plateNo").textContent = L.no;
-  $("#plateTag").textContent = `今日推荐 · 第 ${d.sequence_no} 次`;
-  $("#labelTheme").textContent = a.theme;
-  $("#workTitle").textContent = a.title;
-  $("#metaNo").textContent = L.no;
-  $("#metaMedium").textContent = L.medium;
-  $("#metaOrigin").textContent = L.origin;
-  $("#metaCredit").textContent = L.credit;
-  $("#workStory").textContent = a.story;
-  $("#workTags").innerHTML = a.tags.map(t => `<span class="pill">${t}</span>`).join("");
-  $("#stampDate").textContent = d.date.replace(/-/g, ".");
-}
-
-const SEG_CLASS = { brand: "seg-brand", region: "seg-region", theme: "seg-theme", style: "seg-style" };
-
-function renderMatch(d) {
-  const bd = d.score_breakdown;
-  const pct = Math.round(Math.min(bd.total, 1) * 100);
-  $("#matchValue").textContent = pct;
-
-  const total = bd.items.reduce((s, i) => s + i.contribution, 0) + Math.max(0, bd.feedback_adjust);
-  const seg = bd.items.map(i =>
-    `<i class="${SEG_CLASS[i.key]}" style="width:${(i.contribution / total * 100).toFixed(2)}%" title="${i.label}"></i>`
-  ).join("");
-  const fb = bd.feedback_adjust > 0
-    ? `<i class="seg-feedback" style="width:${(bd.feedback_adjust / total * 100).toFixed(2)}%" title="用户反馈修正"></i>` : "";
-  $("#matchStack").innerHTML = seg + fb;
-
-  const rows = bd.items.map(i => `
-    <div class="legend-row">
-      <span class="legend-key ${SEG_CLASS[i.key]}"></span>
-      <span class="legend-name">${i.label}<small>${i.note}</small></span>
-      <span class="legend-weight num">权重 ${Math.round(i.weight * 100)}%</span>
-      <span class="legend-val num">${i.percent}</span>
-    </div>`).join("");
-  const fbRow = `
-    <div class="legend-row">
-      <span class="legend-key seg-feedback"></span>
-      <span class="legend-name">用户反馈修正<small>${bd.feedback_note}</small></span>
-      <span class="legend-weight num">实时</span>
-      <span class="legend-val num">${bd.feedback_adjust >= 0 ? "+" : ""}${bd.feedback_adjust.toFixed(3)}</span>
-    </div>`;
-  $("#matchLegend").innerHTML = rows + fbRow;
-  $("#matchCaption").textContent =
-    `基础分 ${bd.base_score.toFixed(3)}，叠加用户行为修正 ${bd.feedback_adjust >= 0 ? "+" : ""}${bd.feedback_adjust.toFixed(3)}。`;
-}
-
-function renderReasons(d) {
-  $("#reasonList").innerHTML = d.reason.map(x => `<li>${x}</li>`).join("");
-  $("#traceSteps").innerHTML = d.trace.map(s => `
-    <div class="trace-step">
-      <span class="s-no">${s.step}</span>
-      <span class="s-label">${s.label}<small>${s.detail}</small></span>
-      <span class="s-val num">${s.value}<em>${s.unit}</em></span>
-    </div>`).join("");
-  $("#poolCount").textContent = `${d.pool_size} 件 · 保留匹配度前 15 名`;
-}
-
-function renderPool(d, { markPicked = true } = {}) {
-  $("#poolStrip").innerHTML = d.pool_preview.map(p => `
-    <div class="pool-cell ${markPicked && p.picked ? "picked on" : ""}" data-pid="${p.id}">
-      <img src="${p.cover}" alt="${p.title}">
-      <b>${Math.round(Math.min(p.match_score, 1) * 100)}</b>
-    </div>`).join("");
-}
-
-function renderCurateState(d) {
-  const s = d.curation_state || { votes: 0 };
-  $("#curateIdle").classList.remove("hidden");
-  $("#curateDone").classList.add("hidden");
-  $("#curateNote").textContent = s.votes
-    ? `已有 ${s.votes} 位用户把它推荐给锦江饭店，目前排在候选池第 ${s.rank} 位。`
-    : "你的选择会直接进入锦江饭店的策展候选池，参与决定下一场展览。";
-}
-
-function renderRelated(list) {
-  if (!list || !list.length) { $("#relatedList").innerHTML = ""; return; }
-  $("#relatedList").innerHTML = list.map(r => `
-    <figure data-open="${r.id}">
-      <img src="${r.cover}" alt="${r.title}">
-      <figcaption>${r.title}</figcaption>
-    </figure>`).join("");
-}
-
-function resetFeedback() {
-  ["#btnLike", "#btnDislike", "#btnFav"].forEach(s => $(s).classList.remove("on"));
-}
-
-function render(d) {
-  currentData = d;
-  current = d.artwork;
-  renderLabel(d);
-  renderMatch(d);
-  renderReasons(d);
-  renderPool(d);
-  renderCurateState(d);
-  resetFeedback();
-  api("/artworks/" + current.id).then(a => renderRelated(a.related)).catch(() => {});
-}
-
-/* ------------------------------------------------------------------ 抽取动画 */
-
-async function animateDraw(d) {
-  const panelOpen = !$("#tracePanel").classList.contains("hidden");
-  $("#plate").classList.add("loading");
-
-  if (!REDUCED && panelOpen) {
-    renderPool(d, { markPicked: false });
-    const cells = $$("#poolStrip .pool-cell");
-    const pickedIdx = d.pool_preview.findIndex(p => p.picked);
-    const start = performance.now();
-    // 前 700ms 高频跳动，之后减速，最后落在中签作品上
-    while (performance.now() - start < 900) {
-      const i = Math.floor(Math.random() * cells.length);
-      cells.forEach(c => c.classList.remove("on"));
-      cells[i].classList.add("on");
-      const t = (performance.now() - start) / 900;
-      await wait(45 + t * t * 110);
-    }
-    cells.forEach(c => c.classList.remove("on"));
-    if (pickedIdx >= 0) {
-      cells[pickedIdx].classList.add("on", "picked");
-      cells[pickedIdx].scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-    }
-    await wait(220);
-  } else if (!REDUCED) {
-    await wait(260);
-  }
-
-  render(d);
-  $("#plate").classList.remove("loading");
-}
-
-/* ------------------------------------------------------------------ 数据加载 */
-
-async function loadRecommendation(exclude) {
-  const q = "/daily-recommendation?user_id=" + USER + (exclude ? "&exclude=" + exclude : "");
-  const d = await api(q);
-  if (exclude) {
-    await animateDraw(d);
-  } else {
-    render(d);
-  }
-  sendEvent("impression", d.artwork.id);
-  return d;
-}
-
-async function loadHotel() {
-  const h = await api("/hotel/1");
-  $("#hotelStory").textContent = h.history + h.positioning + "。";
-  $("#hotelTags").innerHTML = h.keywords.map(t => `<span class="pill">${t}</span>`).join("");
-  $("#hotelSpaces").innerHTML = h.spaces.map(s =>
-    `<div class="tile"><b>${s.name}</b><p>${s.function}</p></div>`).join("");
-}
-
-async function loadLive() {
-  const p = await api("/curation/proposal");
-  $("#liveSource").textContent = p.status;
-  if (!p.works.length) {
-    $("#liveProposal").innerHTML =
-      `<div class="empty"><b>候选池还是空的</b>回到今日推荐，把第一件作品送进来。</div>`;
-    return;
-  }
-  $("#liveProposal").innerHTML = `
-    <div class="proposal">
-      <div class="label">${p.theme}</div>
-      <h3>${p.title}</h3>
-      <p class="p-statement">${p.statement}</p>
-      <div class="proposal-works" style="grid-template-columns:repeat(3,1fr)">
-        ${p.works.map(w => `<figure><img src="${w.cover}" alt="${w.title}">
-          <figcaption>${w.title}<span class="v">${w.votes} 票</span></figcaption></figure>`).join("")}
-      </div>
-      <div class="route">
-        ${p.route.map(r => `<div><div class="r-role">${r.role}</div>
-          <div class="r-space">${r.space}</div><div class="r-note">${r.note}</div></div>`).join("")}
-      </div>
-      <div class="label" style="margin-bottom:10px">配套活动</div>
-      <div class="next"><div>${p.activity.title}｜${p.activity.location}｜${p.activity.status}</div></div>
-    </div>`;
-}
-
-const EFFECT = [
-  { k: "like", label: "喜欢", w: "+0.035" },
-  { k: "favorite", label: "收藏", w: "+0.050" },
-  { k: "curation", label: "加入策展", w: "+0.080" },
-  { k: "dislike", label: "不感兴趣", w: "−0.040" }
-];
-
-async function loadMe() {
-  const a = await api("/analytics");
-  $("#myLikes").textContent = a.likes || 0;
-  $("#myFavs").textContent = a.favorites || 0;
-  $("#myVotes").textContent = a.curation_votes || 0;
-  $("#myChanges").textContent = a.changes || 0;
-  const ev = a.events || {};
-  $("#myEffect").innerHTML = EFFECT.map(e => `
-    <div class="legend-row">
-      <span class="legend-key" style="background:var(--ink-4)"></span>
-      <span class="legend-name">${e.label}<small>每记录一次，该作品下一轮匹配度变化 ${e.w}</small></span>
-      <span class="legend-weight num">${e.w}</span>
-      <span class="legend-val num">${ev[e.k] || 0} 次</span>
-    </div>`).join("");
-}
-
-/* ------------------------------------------------------------------ 交互 */
-
-$("#btnLike").onclick = async () => {
-  await sendEvent("like"); $("#btnLike").classList.add("on"); $("#btnDislike").classList.remove("on");
-  toast("已记录喜欢，同类作品权重上调");
-};
-$("#btnDislike").onclick = async () => {
-  await sendEvent("dislike"); $("#btnDislike").classList.add("on"); $("#btnLike").classList.remove("on");
-  toast("已记录，同类作品权重下调");
-};
-$("#btnFav").onclick = async () => {
-  await sendEvent("favorite"); $("#btnFav").classList.add("on");
-  toast("已收藏");
-};
-$("#btnChange").onclick = async () => {
-  if (drawing) return;
-  drawing = true;
-  $("#btnChange").disabled = true;
-  try {
-    const old = current.id;
-    await sendEvent("change", old);
-    await loadRecommendation(old);
-    toast("已从高匹配候选池重新抽取");
-  } finally {
-    drawing = false;
-    $("#btnChange").disabled = false;
-  }
+$("#btnLike").onclick=async()=>{await sendEvent("like");$("#btnLike").classList.add("on");$("#btnDislike").classList.remove("on");toast("已记住你的喜欢")}
+$("#btnFav").onclick=async()=>{await sendEvent("favorite");$("#btnFav").classList.add("on");toast("已收藏")}
+$("#btnDislike").onclick=async()=>{await sendEvent("dislike");$("#btnDislike").classList.add("on");$("#btnLike").classList.remove("on");toast("已记录，下次会少一些类似内容")}
+$("#btnChange").onclick=async()=>{if(!current)return;const old=current.id;await sendEvent("change",old);await loadRecommendation(old);toast("换了一条新的文化线索")}
+$("#btnCurate").onclick=async()=>{
+  if(!current)return;
+  const r=await api("/curation-vote",{method:"POST",body:JSON.stringify({
+    user_id:USER,artwork_id:current.id,vote:1,recommendation_id:currentRecommendation,
+    session_id:currentSession,source_code:SOURCE
+  })});
+  $("#curateIdle").classList.add("hidden");$("#curateDone").classList.remove("hidden");
+  $("#curateMeta").textContent=`这件作品目前累计 ${r.votes} 次共创选择。酒店端已经收到新的用户信号。`;
+  toast("已加入锦江共创策展");
 };
 
-$("#traceToggle").onclick = () => {
-  const panel = $("#tracePanel");
-  const open = panel.classList.toggle("hidden") === false;
-  $("#traceToggle").setAttribute("aria-expanded", String(open));
-  $("#traceChev").textContent = open ? "收起 −" : "展开 +";
-  if (open) sendEvent("reason_open");
-};
-
-$("#btnCurate").onclick = async () => {
-  const r = await api("/curation-vote", {
-    method: "POST",
-    body: JSON.stringify({ user_id: USER, artwork_id: current.id, vote: 1 })
-  });
-  $("#curateIdle").classList.add("hidden");
-  $("#curateDone").classList.remove("hidden");
-  $("#curateMeta").innerHTML =
-    `累计 <b>${r.votes}</b> 票，在 ${r.pool_total} 件候选中排第 <b>${r.rank}</b> 位。<br>酒店后台已同步更新。`;
-  toast("已加入锦江饭店策展候选");
-};
-
-/* 详情抽屉 */
-async function openSheet(id) {
-  await sendEvent("detail", id);
-  const a = await api("/artworks/" + id);
-  $("#sheetImg").src = a.cover;
-  $("#sheetImg").alt = a.title;
-  $("#sheetTheme").textContent = a.theme;
-  $("#sheetTitle").textContent = a.title;
-  $("#sheetNo").textContent = a.label.no;
-  $("#sheetMedium").textContent = a.label.medium;
-  $("#sheetOrigin").textContent = a.label.origin;
-  $("#sheetStory").textContent = a.story;
-  $("#sheetReasons").innerHTML = a.reason.map(x => `<li>${x}</li>`).join("");
+async function openSheet(id){
+  await sendEvent("detail",id);
+  const a=await api("/artworks/"+id+"?user_id="+encodeURIComponent(USER));
+  $("#sheetImg").src=a.cover;$("#sheetImg").alt=a.title;
+  $("#sheetTheme").textContent=a.relevance_label||a.theme;$("#sheetTitle").textContent=a.title;
+  $("#sheetMeta").textContent=[a.author,a.region,a.era,a.source].filter(Boolean).join(" · ");
+  $("#sheetStory").textContent=a.story||a.theme_text||"";
+  $("#sheetReasons").innerHTML=(a.reason||[]).map(x=>`<li>${esc(x)}</li>`).join("");
   $("#sheet").classList.remove("hidden");
 }
-$("#sheetClose").onclick = () => $("#sheet").classList.add("hidden");
-$("#sheet").onclick = e => { if (e.target.id === "sheet") $("#sheet").classList.add("hidden"); };
-$("#plate").onclick = () => current && openSheet(current.id);
-$("#relatedList").onclick = e => {
-  const fig = e.target.closest("[data-open]");
-  if (fig) openSheet(Number(fig.dataset.open));
-};
-$("#poolStrip").onclick = e => {
-  const cell = e.target.closest("[data-pid]");
-  if (cell) openSheet(Number(cell.dataset.pid));
-};
+$("#plate").onclick=e=>{if(e.target.closest("button"))return;current&&openSheet(current.id)}
+$("#relatedList").onclick=e=>{const x=e.target.closest("[data-open]");if(x)openSheet(+x.dataset.open)}
+$("#sheetClose").onclick=()=>$("#sheet").classList.add("hidden");
+$("#sheet").onclick=e=>{if(e.target.id==="sheet")$("#sheet").classList.add("hidden")};
 
-/* 视图切换 */
-const VIEWS = ["today", "space", "live", "me"];
-async function go(name) {
-  $$(".nav button").forEach(b => b.classList.toggle("on", b.dataset.view === name));
-  VIEWS.forEach(v => $("#view-" + v).classList.toggle("hidden", v !== name));
-  window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
-  if (name === "space") await loadHotel();
-  if (name === "live") await loadLive();
-  if (name === "me") await loadMe();
+async function loadHotelStory(){
+  const d=await api("/hotel/1/story");
+  $("#hotelStory").textContent=(d.hotel.history||"")+" "+(d.hotel.positioning||"");
+  $("#storySections").innerHTML=(d.story_sections||[]).map((x,i)=>`<div class="story-line"><span class="eyebrow light">0${i+1}</span><b>${esc(x.title)}</b><p>${esc(x.text)}</p></div>`).join("");
+  $("#artifactGrid").innerHTML=(d.artifacts||[]).map(x=>`<div class="artifact"><img src="${x.cover}" alt="${esc(x.title)}"><div><b>${esc(x.title)}</b><span>${esc(x.code)} · ${esc(x.theme)}</span></div></div>`).join("");
+  $("#hotelGallery").innerHTML=(d.gallery||[]).map(x=>`<figure class="photo"><img loading="lazy" src="${x.file_path}" alt="${esc(x.category)}"><span>${esc(x.category)}</span></figure>`).join("");
 }
-$$(".nav button").forEach(b => b.onclick = () => go(b.dataset.view));
-$$("[data-go]").forEach(el => el.onclick = () => go(el.dataset.go));
+async function loadLive(){
+  const d=await api("/exhibitions");
+  if(!d.items?.length){$("#exhibitionList").innerHTML=`<section class="paper-card"><p class="story">酒店还没有发布展览。用户共创数据会先进入酒店后台，由运营人员确认后发布到这里。</p></section>`;return}
+  $("#exhibitionList").innerHTML=d.items.map(ex=>`<section class="exhibition">
+    <div class="exhibition-head"><div><span class="eyebrow">${esc(ex.theme||"锦江策展")}</span><h2>${esc(ex.title)}</h2></div><span class="exhibition-status">已发布</span></div>
+    <p class="exhibition-copy">${esc(ex.description||"")}</p>
+    <div class="ex-work-grid">${(ex.works||[]).map(w=>`<div class="ex-work"><img src="${w.cover||""}" alt="${esc(w.title)}"><span>${esc(w.title)}</span></div>`).join("")}</div>
+    ${(ex.activities||[]).map(a=>`<div class="activity-box"><b>${esc(a.title)}</b> · ${esc(a.location||"锦江饭店")} · ${esc(a.status)}</div>`).join("")}
+    ${ex.generated_from_votes?`<div class="cue" style="margin-bottom:0"><b>共创结果</b>这场展览由用户策展信号生成，并由酒店端确认发布。</div>`:""}
+  </section>`).join("");
+}
+async function loadMe(){
+  const p=await api("/users/"+encodeURIComponent(USER)+"/profile");
+  const s=p.stats||{};
+  $("#myRecommendations").textContent=s.recommendations||0;$("#myLikes").textContent=s.likes||0;$("#myFavs").textContent=s.favorites||0;$("#myVotes").textContent=s.curation_votes||0;
+  $("#myThemes").innerHTML=p.theme_preferences?.length?p.theme_preferences.map(x=>`<span class="preference">${esc(x.value)}<b>${Number(x.score).toFixed(1)}</b></span>`).join(""):`<span class="quiet">多做几次喜欢、收藏或共创选择后，这里会形成你的主题偏好。</span>`;
+  $("#myFavorites").innerHTML=workGrid(p.favorite_items);
+  $("#myCurated").innerHTML=workGrid(p.curated_items);
+  $("#myContributions").innerHTML=(p.published_contributions||[]).map(x=>`<div class="contribution">你的选择已进入已发布展览：<b>${esc(x.title)}</b></div>`).join("");
+}
 
-/* 演示旁白 */
-$("#demoToggle").onclick = () => {
-  const btn = $("#demoToggle");
-  const on = btn.getAttribute("aria-pressed") !== "true";
-  btn.setAttribute("aria-pressed", String(on));
-  $$("[data-cue]").forEach(c => c.classList.toggle("hidden", !on));
-  toast(on ? "演示旁白已打开" : "演示旁白已关闭");
+const VIEWS=["today","space","live","me"];
+async function go(name){
+  $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.view===name));
+  VIEWS.forEach(v=>$("#view-"+v).classList.toggle("hidden",v!==name));
+  window.scrollTo({top:0,behavior:"auto"});
+  if(name==="space")await loadHotelStory()
+  if(name==="live")await loadLive();
+  if(name==="me")await loadMe();
+}
+$$(".nav button").forEach(b=>b.onclick=()=>go(b.dataset.view));
+$$("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+
+$("#demoToggle").onclick=()=>{
+  const b=$("#demoToggle"),on=b.getAttribute("aria-pressed")!=="true";
+  b.setAttribute("aria-pressed",String(on));$$("[data-cue]").forEach(x=>x.classList.toggle("hidden",!on));
+  toast(on?"演示旁白已打开":"演示旁白已关闭");
 };
 
-/* 键盘快捷键：现场演示时不必精准点击 */
-document.addEventListener("keydown", e => {
-  if (e.target.matches("input,textarea")) return;
-  const map = { r: "#btnChange", l: "#btnLike", f: "#btnFav", c: "#btnCurate", w: "#traceToggle", d: "#demoToggle" };
-  const sel = map[e.key.toLowerCase()];
-  if (sel) { e.preventDefault(); $(sel).click(); }
-});
-
-loadRecommendation().catch(err => {
-  $("#workTitle").textContent = "推荐服务没有响应";
-  $("#labelTheme").textContent = "连接失败";
-  $("#matchCaption").textContent = "请确认后端已启动：python -m uvicorn app.main:app --port 8000";
-  console.error(err);
-});
+loadRecommendation();

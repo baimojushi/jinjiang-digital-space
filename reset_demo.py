@@ -1,38 +1,37 @@
 # -*- coding: utf-8 -*-
-"""重置演示数据。
+"""锦江数字空间 MVP 3.2 演示数据重置。
 
-python reset_demo.py          清空用户行为与策展票，保留 30 件作品，服务无需重启
-python reset_demo.py --all    删除整个数据库文件，下次启动服务时重建作品库
+python reset_demo.py
+    清空推荐、会话、用户行为、偏好和共创票，保留文化资产与已发布展览。
+
+python reset_demo.py --all
+    删除整个 SQLite 数据库；下次启动服务时由 JSON 主数据自动重建。
 """
-import sqlite3
-import sys
+import sqlite3, sys
 from pathlib import Path
 
-DB = Path(__file__).resolve().parent / "app" / "jinjiang.db"
-
+DB=Path(__file__).resolve().parent/"app"/"jinjiang.db"
 
 def main():
-    full = "--all" in sys.argv
-
     if not DB.exists():
-        print("数据库不存在，启动服务时会自动创建。")
+        print("数据库不存在；启动服务时会自动创建。")
         return
-
-    if full:
+    if "--all" in sys.argv:
         DB.unlink()
-        print("已删除数据库文件。重新启动服务后自动重建 30 件作品。")
+        print("数据库已删除。重新启动后会从 app/data 主数据重建。")
         return
+    con=sqlite3.connect(DB)
+    tables=["user_preferences","curation_votes","user_events","recommendations","user_sessions"]
+    counts={}
+    for table in tables:
+        try:
+            counts[table]=con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            con.execute(f"DELETE FROM {table}")
+        except sqlite3.OperationalError:
+            counts[table]=0
+    con.commit();con.close()
+    print("已清空消费者数据：",counts)
+    print("文化资产、空间、媒体、授权维护数据与已发布展览保留。")
 
-    con = sqlite3.connect(DB)
-    events = con.execute("SELECT COUNT(*) FROM user_events").fetchone()[0]
-    votes = con.execute("SELECT COUNT(*) FROM curation_votes").fetchone()[0]
-    con.execute("DELETE FROM user_events")
-    con.execute("DELETE FROM curation_votes")
-    con.commit()
-    con.close()
-    print(f"已清空 {events} 条行为与 {votes} 张策展票，作品库保留。")
-    print("演示前记得在后台点「注入演示数据」，否则看板是空的。")
-
-
-if __name__ == "__main__":
+if __name__=="__main__":
     main()

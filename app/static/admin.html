@@ -3,156 +3,85 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>锦江饭店 · 文化运营后台</title>
-<link rel="stylesheet" href="/static/styles.css">
+<title>锦江数字空间｜文化运营后台</title>
+<link rel="stylesheet" href="static/admin.css">
 </head>
-<body class="admin-body">
-<div class="wrap">
-
-  <header class="masthead">
-    <div class="masthead-top">
-      <div>
-        <div class="label">锦江饭店 · 文化运营后台</div>
-        <h1>策展候选池与数据看板</h1>
-        <p>用户在小程序里的每一次喜欢、收藏和"我想在锦江饭店看到它"，都会实时汇总到这里，成为策展选题、活动策划和内容采购的依据。</p>
-      </div>
-      <div class="tools">
-        <button class="tool" id="btnSeed">注入演示数据</button>
-        <button class="tool" id="btnReset">清空数据</button>
-        <button class="tool" id="btnAuto" aria-pressed="true">自动刷新 开</button>
-        <button class="tool" id="btnCue" aria-pressed="false">演示旁白</button>
-        <a class="tool solid" href="/" target="_blank">打开用户端 ↗</a>
-      </div>
+<body>
+<div class="admin">
+  <header class="head">
+    <div>
+      <span class="eyebrow">JINJIANG CULTURE OPERATIONS</span>
+      <h1>文化运营后台</h1>
+      <p>把消费者的发现、理解、喜欢和共创选择，转成酒店可执行的文化内容决策。</p>
     </div>
-  <a href="/asset-admin" class="tag">数字资产管理 →</a></header>
+    <div class="head-actions">
+      <button id="btnSeed">注入演示数据</button>
+      <button id="btnReset">清空行为数据</button>
+      <a href="asset-admin">数字资产维护</a>
+      <a href="." target="_blank" class="primary">打开用户端 ↗</a>
+    </div>
+  </header>
 
-  <div class="cue hidden" data-cue="6" style="margin:0 0 26px">
-    <span class="cue-t">1:35 — 1:55</span>
-    酒店打开后台看到的不是一堆艺术作品，而是一份由消费者真实偏好排过序的策展候选池。刚才那一票，已经在榜上了。
-  </div>
-
-  <!-- KPI -->
   <section class="kpis" id="kpis"></section>
 
-  <!-- ============================================ 数据可视化 -->
-  <section class="panel">
-    <div class="panel-head">
-      <h2>数据看板</h2>
-      <p>更新于 <span id="stamp" class="num">—</span>，用户端每产生一次行为，这里的曲线、漏斗和排行都会同步变化。</p>
-    </div>
-
-    <div class="viz-grid">
-      <div>
-        <div class="panel-head" style="margin-bottom:12px">
-          <h2 style="font-size:14px">行为量趋势</h2>
-          <p id="tlUnit">—</p>
-        </div>
-        <svg class="chart" id="chartTimeline" viewBox="0 0 620 230" preserveAspectRatio="xMidYMid meet" role="img" aria-label="行为量趋势"></svg>
-        <div class="chart-legend">
-          <span><i></i>全部行为</span>
-          <span><i class="dash"></i>加入策展</span>
-        </div>
-      </div>
-      <div>
-        <div class="panel-head" style="margin-bottom:12px">
-          <h2 style="font-size:14px">共创漏斗</h2>
-          <p>从看到推荐到把作品送进候选池的逐层转化</p>
-        </div>
-        <div class="funnel" id="funnel"></div>
-      </div>
-    </div>
-
-    <div class="viz-grid-3">
-      <div>
-        <div class="panel-head" style="margin-bottom:12px">
-          <h2 style="font-size:14px">主题偏好分布</h2>
-          <p>按策展票统计，竖线为三主题均分基线</p>
-        </div>
-        <div class="tbar" id="themeBars"></div>
-      </div>
-      <div>
-        <div class="panel-head" style="margin-bottom:12px">
-          <h2 style="font-size:14px">文化标签热度</h2>
-          <p>加入策展 5 分、收藏 3 分、喜欢 2 分加权</p>
-        </div>
-        <div class="tagcloud" id="tagCloud"></div>
-      </div>
-      <div>
-        <div class="panel-head" style="margin-bottom:12px">
-          <h2 style="font-size:14px">选题集中度</h2>
-          <p>判断偏好是否已经收敛到可以立项</p>
-        </div>
-        <div class="gauge" id="gauge"></div>
-      </div>
-    </div>
-
-    <div class="panel-head" style="margin:8px 0 12px">
-      <h2 style="font-size:14px">作品热度榜</h2>
-      <p>综合热度 = 策展票 ×5 + 收藏 ×3 + 喜欢 ×2 − 不感兴趣 ×2</p>
-    </div>
-    <div id="rankList"></div>
-  </section>
-
-  <!-- ============================================ 候选池 -->
-  <section class="panel">
-    <div class="panel-head">
-      <h2>策展候选池</h2>
-      <p>按综合热度排序，酒店可直接从这里挑选下一场展览的作品。</p>
-    </div>
-    <div class="table-scroll">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>排名</th><th>作品</th><th>主题</th>
-            <th class="n">策展票</th><th class="n">收藏</th><th class="n">喜欢</th>
-            <th class="n">匹配度</th><th class="n">综合热度</th>
-          </tr>
-        </thead>
-        <tbody id="poolBody"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- ============================================ 主题展方案 -->
-  <div class="cue hidden" data-cue="7" style="margin:0 0 20px">
-    <span class="cue-t">1:55 — 2:20</span>
-    点一下，候选池就变成一份可发布的主题展方案：展览主题、作品清单、三个空间的动线、配套沙龙。选题成本从"策展人花两个月"降到"一次点击"。
+  <div class="grid-2">
+    <section class="panel">
+      <div class="panel-head"><div><span class="eyebrow">USER JOURNEY</span><h2>文化体验漏斗</h2></div><p>推荐 → 详情 → 反馈 → 共创策展</p></div>
+      <div id="funnel" class="funnel"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><span class="eyebrow">INTEREST</span><h2>主题偏好</h2></div><p>由详情、喜欢、收藏和共创选择加权</p></div>
+      <div id="themeBars" class="bars"></div>
+    </section>
   </div>
 
   <section class="panel">
     <div class="panel-head">
-      <h2>主题展方案</h2>
-      <p>把候选池里的用户选择直接聚合成一份可发布的展览方案。</p>
+      <div><span class="eyebrow">CHANNEL</span><h2>渠道价值</h2></div>
+      <p>同一数字入口可以区分大堂、客房、活动等线下来源。</p>
     </div>
-    <div id="proposalBox">
-      <div class="empty">
-        <b>还没有生成方案</b>
-        点下面的按钮，用当前候选池数据生成一份主题展方案。
-      </div>
-    </div>
-    <button class="tool solid" id="btnProposal" style="margin-top:16px">生成主题展方案</button>
+    <div class="table-wrap"><table>
+      <thead><tr><th>渠道</th><th>场景</th><th>会话</th><th>推荐次数</th><th>强兴趣会话</th><th>共创会话</th><th>强兴趣率</th></tr></thead>
+      <tbody id="sourceBody"></tbody>
+    </table></div>
   </section>
-
-  <!-- ============================================ 闭环 -->
-  <div class="cue hidden" data-cue="8" style="margin:0 0 20px">
-    <span class="cue-t">2:20 — 2:40</span>
-    每一次浏览、收藏、加入策展都进入数据层：趋势看内容是不是持续有人看，漏斗看共创机制成不成立，集中度告诉酒店偏好有没有收敛到能立项。这些数字又回去调整下一轮推荐的权重。
-  </div>
 
   <section class="panel">
-    <div class="panel-head"><h2>文化运营闭环</h2><p>这一版 MVP 要跑通的六个环节。</p></div>
-    <div class="flow" id="flow">
-      <div><b>01</b><span>每日随机推荐</span></div>
-      <div><b>02</b><span>AI 解释理由</span></div>
-      <div><b>03</b><span>用户给出选择</span></div>
-      <div><b>04</b><span>进入策展候选池</span></div>
-      <div><b>05</b><span>形成主题展与活动</span></div>
-      <div><b>06</b><span>数据回流下一轮</span></div>
+    <div class="panel-head">
+      <div><span class="eyebrow">CONTENT</span><h2>消费者内容信号</h2></div>
+      <p>这里排序的是用户行为，不展示给消费者的算法评分。</p>
     </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>作品</th><th>主题</th><th>曝光</th><th>详情</th><th>喜欢</th><th>收藏</th><th>策展票</th><th>兴趣热度</th></tr></thead>
+      <tbody id="contentBody"></tbody>
+    </table></div>
   </section>
 
+  <div class="grid-2">
+    <section class="panel">
+      <div class="panel-head"><div><span class="eyebrow">CO-CURATION</span><h2>用户共创候选</h2></div><p>只有消费者真实可见内容才产生用户投票。</p></div>
+      <div id="signalList" class="candidate-list"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><span class="eyebrow">INTERNAL COLLECTION</span><h2>内部策展资源</h2></div><p>中华珍宝馆等资源可先内部评估，数字公开许可独立控制。</p></div>
+      <div id="internalList" class="candidate-list"></div>
+    </section>
+  </div>
+
+  <section class="panel proposal-panel">
+    <div class="panel-head">
+      <div><span class="eyebrow">EXHIBITION</span><h2>从共创数据形成展览</h2></div>
+      <div class="inline-actions"><button id="btnProposal">生成策展预案</button><button id="btnPublish" class="primary" disabled>确认并发布</button></div>
+    </div>
+    <div id="proposalBox" class="empty">先生成一份基于当前用户信号的策展预案。发布后，用户端“正在发生”会直接读取数据库中的展览。</div>
+  </section>
+
+  <section class="panel diagnostics">
+    <div class="panel-head"><div><span class="eyebrow">INTERNAL DIAGNOSTICS</span><h2>推荐诊断</h2></div><p>精确权重、候选池规模和曝光分布仅供运营/开发调参。</p></div>
+    <div id="diagnostics"></div>
+  </section>
 </div>
-<div class="toast" id="toast"></div>
-<script src="/static/admin.js"></script>
+<div id="toast" class="toast"></div>
+<script src="static/admin.js"></script>
 </body>
 </html>

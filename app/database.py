@@ -36,8 +36,7 @@ def init_database():
     con = connect()
     cur = con.cursor()
 
-    # An older MVP database may still contain the physical artworks table.
-    # Preserve it as legacy data before creating the public compatibility view.
+    # 兼容旧版：artworks 物理表保留为 legacy，新的 artworks 是面向C端的公开视图。
     if _object_type(con, "artworks") == "table":
         suffix = datetime.now().strftime("%Y%m%d%H%M%S")
         cur.execute(f"ALTER TABLE artworks RENAME TO legacy_artworks_{suffix}")
@@ -67,7 +66,8 @@ def init_database():
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       theme_code TEXT NOT NULL UNIQUE,
       hotel_id INTEGER,
-      name TEXT NOT NULL, keywords TEXT NOT NULL DEFAULT '[]',
+      name TEXT NOT NULL,
+      keywords TEXT NOT NULL DEFAULT '[]',
       active INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
       FOREIGN KEY(hotel_id) REFERENCES hotels(id)
@@ -129,6 +129,120 @@ def init_database():
       FOREIGN KEY(asset_id) REFERENCES culture_assets(id)
     );
 
+    CREATE TABLE IF NOT EXISTS sources(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      source_code TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      scene TEXT NOT NULL,
+      description TEXT,
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS user_sessions(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id TEXT NOT NULL UNIQUE,
+      user_id TEXT NOT NULL,
+      source_id INTEGER,
+      started_at TEXT NOT NULL,
+      last_seen_at TEXT NOT NULL,
+      FOREIGN KEY(source_id) REFERENCES sources(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS recommendations(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      recommendation_id TEXT NOT NULL UNIQUE,
+      user_id TEXT NOT NULL,
+      session_id TEXT,
+      source_id INTEGER,
+      hotel_id INTEGER,
+      artwork_id INTEGER NOT NULL,
+      algorithm_version TEXT NOT NULL,
+      candidate_count INTEGER NOT NULL,
+      selected_score REAL,
+      context TEXT NOT NULL DEFAULT '{}',
+      shown_at TEXT NOT NULL,
+      FOREIGN KEY(source_id) REFERENCES sources(id),
+      FOREIGN KEY(hotel_id) REFERENCES hotels(id),
+      FOREIGN KEY(artwork_id) REFERENCES culture_assets(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS user_events(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT,
+      event TEXT,
+      artwork_id INTEGER,
+      space_id INTEGER,
+      recommendation_id TEXT,
+      session_id TEXT,
+      source_id INTEGER,
+      metadata TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS user_preferences(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      dimension TEXT NOT NULL,
+      value TEXT NOT NULL,
+      score REAL NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL,
+      UNIQUE(user_id, dimension, value)
+    );
+
+    CREATE TABLE IF NOT EXISTS curation_votes(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT,
+      artwork_id INTEGER,
+      space_id INTEGER,
+      recommendation_id TEXT,
+      session_id TEXT,
+      vote INTEGER DEFAULT 1,
+      created_at TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS exhibitions(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      theme_code TEXT,
+      hotel_id INTEGER,
+      status TEXT NOT NULL DEFAULT 'draft',
+      period TEXT,
+      description TEXT,
+      generated_from_votes INTEGER NOT NULL DEFAULT 0,
+      source_note TEXT,
+      published_at TEXT,
+      created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+      FOREIGN KEY(hotel_id) REFERENCES hotels(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS exhibition_assets(
+      exhibition_id INTEGER NOT NULL,
+      asset_id INTEGER NOT NULL,
+      space_id INTEGER,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY(exhibition_id, asset_id),
+      FOREIGN KEY(exhibition_id) REFERENCES exhibitions(id),
+      FOREIGN KEY(asset_id) REFERENCES culture_assets(id),
+      FOREIGN KEY(space_id) REFERENCES spaces(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS activities(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      exhibition_id INTEGER,
+      hotel_id INTEGER,
+      title TEXT NOT NULL,
+      activity_type TEXT,
+      location TEXT,
+      status TEXT NOT NULL DEFAULT 'draft',
+      starts_at TEXT,
+      capacity INTEGER,
+      description TEXT,
+      created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+      FOREIGN KEY(exhibition_id) REFERENCES exhibitions(id),
+      FOREIGN KEY(hotel_id) REFERENCES hotels(id)
+    );
+
     CREATE TABLE IF NOT EXISTS asset_space_matches(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       asset_id INTEGER NOT NULL,
@@ -143,47 +257,6 @@ def init_database():
       explanation TEXT,
       updated_at TEXT NOT NULL,
       UNIQUE(asset_id, space_id),
-      FOREIGN KEY(asset_id) REFERENCES culture_assets(id),
-      FOREIGN KEY(space_id) REFERENCES spaces(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS user_events(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id TEXT,
-      event TEXT,
-      artwork_id INTEGER,
-      space_id INTEGER,
-      created_at TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS curation_votes(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id TEXT,
-      artwork_id INTEGER,
-      space_id INTEGER,
-      vote INTEGER DEFAULT 1,
-      created_at TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS exhibitions(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      theme_code TEXT,
-      hotel_id INTEGER,
-      status TEXT NOT NULL DEFAULT 'draft',
-      period TEXT,
-      description TEXT,
-      created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
-      FOREIGN KEY(hotel_id) REFERENCES hotels(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS exhibition_assets(
-      exhibition_id INTEGER NOT NULL,
-      asset_id INTEGER NOT NULL,
-      space_id INTEGER,
-      sort_order INTEGER NOT NULL DEFAULT 0,
-      PRIMARY KEY(exhibition_id, asset_id),
-      FOREIGN KEY(exhibition_id) REFERENCES exhibitions(id),
       FOREIGN KEY(asset_id) REFERENCES culture_assets(id),
       FOREIGN KEY(space_id) REFERENCES spaces(id)
     );
@@ -217,15 +290,52 @@ def init_database():
     CREATE INDEX IF NOT EXISTS idx_media_space ON media_assets(space_id);
     CREATE INDEX IF NOT EXISTS idx_events_artwork ON user_events(artwork_id);
     CREATE INDEX IF NOT EXISTS idx_events_created ON user_events(created_at);
+    CREATE INDEX IF NOT EXISTS idx_events_session ON user_events(session_id);
+    CREATE INDEX IF NOT EXISTS idx_rec_user ON recommendations(user_id, shown_at);
+    CREATE INDEX IF NOT EXISTS idx_rec_source ON recommendations(source_id, shown_at);
     CREATE INDEX IF NOT EXISTS idx_votes_artwork ON curation_votes(artwork_id);
     """)
 
-    # Additive migration from MVP 2.0/3.0 behavior tables.
-    _ensure_column(con, "user_events", "space_id", "INTEGER")
-    _ensure_column(con, "curation_votes", "space_id", "INTEGER")
+    # MVP 3.2：授权使用范围独立于“来源版权描述”，避免用一个字段承担所有业务许可。
+    for column, ddl in [
+        ("internal_review", "INTEGER"),
+        ("digital_public", "INTEGER"),
+        ("offline_exhibition", "INTEGER"),
+        ("marketing_use", "INTEGER"),
+        ("commercial_use", "INTEGER"),
+        ("rights_valid_from", "TEXT"),
+        ("rights_valid_to", "TEXT"),
+    ]:
+        _ensure_column(con, "culture_assets", column, ddl)
+
+    # 旧行为表增量迁移
+    for column, ddl in [
+        ("space_id","INTEGER"),
+        ("recommendation_id","TEXT"),
+        ("session_id","TEXT"),
+        ("source_id","INTEGER"),
+        ("metadata","TEXT NOT NULL DEFAULT '{}'"),
+    ]:
+        _ensure_column(con, "user_events", column, ddl)
+    for column, ddl in [
+        ("space_id","INTEGER"),
+        ("recommendation_id","TEXT"),
+        ("session_id","TEXT"),
+    ]:
+        _ensure_column(con, "curation_votes", column, ddl)
+
+    for column, ddl in [
+        ("generated_from_votes","INTEGER NOT NULL DEFAULT 0"),
+        ("source_note","TEXT"),
+        ("published_at","TEXT"),
+    ]:
+        _ensure_column(con, "exhibitions", column, ddl)
 
     seed_master_data(con)
+    seed_sources(con)
+    derive_initial_usage_scope(con)
     rebuild_public_view(con)
+    seed_exhibition(con)
     con.commit()
     con.close()
 
@@ -269,7 +379,8 @@ def seed_master_data(con):
         con.execute("""
           INSERT INTO culture_assets(
             asset_code,asset_type,collection_id,hotel_id,title,source,author,region,era,dimensions,
-            style,theme_text,story,rights_status,review_status,publish_status,building,cover,tags,metadata,created_at,updated_at)
+            style,theme_text,story,rights_status,review_status,publish_status,building,cover,tags,metadata,
+            created_at,updated_at)
           VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
           ON CONFLICT(asset_code) DO UPDATE SET
             asset_type=excluded.asset_type,collection_id=excluded.collection_id,hotel_id=excluded.hotel_id,
@@ -323,14 +434,41 @@ def seed_master_data(con):
 
     if con.execute("SELECT COUNT(*) c FROM import_batches").fetchone()["c"] == 0:
         rows = [
-          ("华佳妮：王味之 画作数据库.xlsx","xlsx","success",10,10,0,0,"10件作品授权字段完整，已审核并发布。"),
-          ("中华珍宝馆-锦江饭店数据库终版.xlsx","xlsx","warning",30,30,30,0,"30件作品已入库；授权状态全部待确认，公开发布被阻断。"),
-          ("上海锦江饭店空间数据库_0829.xlsx","xlsx","warning",19,19,13,0,"酒店画像、6件文化物件、13个空间已入库；13个空间缺名称/楼宇/功能/展陈条件。"),
-          ("上海锦江饭店照片2.zip","zip","success",137,137,137,0,"137张酒店照片已去重入媒体库；暂按业务目录分类，未强行绑定具体Space。"),
+          ("华佳妮：王味之 画作数据库.xlsx","xlsx","success",10,10,0,0,"10件作品授权字段完整，进入公开内容准备。"),
+          ("中华珍宝馆-锦江饭店数据库终版.xlsx","xlsx","warning",30,30,30,0,"30件传统绘画进入内部策展资源库；数字图片公开授权待确认。"),
+          ("上海锦江饭店空间数据库_0829.xlsx","xlsx","warning",19,19,13,0,"酒店画像、6件文化物件、13个空间已入库；空间主数据待补。"),
+          ("上海锦江饭店照片2.zip","zip","success",137,137,137,0,"137张酒店照片进入媒体库；未确认具体Space时保持未绑定。"),
         ]
         con.executemany("""INSERT INTO import_batches(source_name,source_type,status,total_rows,success_rows,warning_rows,error_rows,note,created_at)
                           VALUES(?,?,?,?,?,?,?,?,?)""",
                         [(*r, ts) for r in rows])
+
+def seed_sources(con):
+    ts = now()
+    rows = [
+        ("direct","直接进入","数字入口","无渠道参数的直接访问"),
+        ("hotel-lobby-qr","饭店大堂二维码","酒店线下","用于大堂/文化展示入口"),
+        ("guest-room-qr","客房二维码","酒店线下","用于客房数字触点"),
+        ("event-qr","活动二维码","文化活动","用于展览、沙龙等活动现场"),
+    ]
+    for code,name,scene,desc in rows:
+        con.execute("""
+          INSERT INTO sources(source_code,name,scene,description,active,created_at,updated_at)
+          VALUES(?,?,?,?,1,?,?)
+          ON CONFLICT(source_code) DO UPDATE SET
+            name=excluded.name,scene=excluded.scene,description=excluded.description,updated_at=excluded.updated_at
+        """,(code,name,scene,desc,ts,ts))
+
+def derive_initial_usage_scope(con):
+    # 所有业务资源可进入内部审核；只有明确已授权+审核通过+发布的资源默认允许数字端公开。
+    con.execute("UPDATE culture_assets SET internal_review=1 WHERE internal_review IS NULL")
+    con.execute("""
+      UPDATE culture_assets SET digital_public =
+        CASE WHEN rights_status IN ('authorized','public_domain_verified')
+               AND review_status='approved' AND publish_status='published'
+             THEN 1 ELSE 0 END
+      WHERE digital_public IS NULL
+    """)
 
 def rebuild_public_view(con):
     if _object_type(con, "artworks") == "view":
@@ -338,50 +476,61 @@ def rebuild_public_view(con):
     con.execute("""
       CREATE VIEW artworks AS
       SELECT
-        a.id,
-        a.title,
-        CASE a.asset_type
-          WHEN 'hotel_artifact' THEN '酒店文化物件'
-          ELSE '文化艺术作品'
-        END AS category,
-        COALESCE(a.region,'') AS region,
-        COALESCE(a.era,'') AS era,
-        COALESCE(a.style,'') AS style,
-        a.tags AS tags,
-        COALESCE(a.story,a.theme_text,'') AS story,
-        COALESCE(a.source,'业务数据库') AS source,
-        CASE a.rights_status
-          WHEN 'authorized' THEN '已授权'
-          WHEN 'public_domain_verified' THEN '公版已核验'
-          ELSE a.rights_status
-        END AS authorization,
-        a.cover,
-        a.asset_code,
-        a.author,
-        a.collection_id,
-        a.building,
-        a.theme_text,
-        a.rights_status,
-        a.review_status,
-        a.publish_status,
-        a.dimensions
+        a.id,a.title,
+        CASE a.asset_type WHEN 'hotel_artifact' THEN '酒店文化物件' ELSE '文化艺术作品' END AS category,
+        COALESCE(a.region,'') AS region,COALESCE(a.era,'') AS era,COALESCE(a.style,'') AS style,
+        a.tags AS tags,COALESCE(a.story,a.theme_text,'') AS story,COALESCE(a.source,'业务数据库') AS source,
+        CASE a.rights_status WHEN 'authorized' THEN '已授权'
+          WHEN 'public_domain_verified' THEN '公版已核验' ELSE a.rights_status END AS authorization,
+        a.cover,a.asset_code,a.author,a.collection_id,a.building,a.theme_text,
+        a.rights_status,a.review_status,a.publish_status,a.dimensions,a.digital_public
       FROM culture_assets a
-      WHERE a.rights_status IN ('authorized','public_domain_verified')
+      WHERE a.digital_public=1
         AND a.review_status='approved'
         AND a.publish_status='published'
         AND a.cover IS NOT NULL
     """)
 
+def seed_exhibition(con):
+    if con.execute("SELECT COUNT(*) c FROM exhibitions").fetchone()["c"] > 0:
+        return
+    hotel = con.execute("SELECT id FROM hotels ORDER BY id LIMIT 1").fetchone()
+    if not hotel:
+        return
+    asset_rows = con.execute("""
+      SELECT id,asset_code FROM culture_assets
+      WHERE asset_code IN ('WWZ-0004','WWZ-0005','WWZ-0006')
+      ORDER BY asset_code
+    """).fetchall()
+    if not asset_rows:
+        return
+    ts = now()
+    con.execute("""
+      INSERT INTO exhibitions(title,theme_code,hotel_id,status,period,description,generated_from_votes,source_note,published_at,created_at,updated_at)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?)
+    """,("上海城市记忆：从城隍庙到锦江","T006",hotel["id"],"published","MVP 演示期",
+         "以真实上海题材作品建立数字展览样本，用于验证“文化推荐—用户参与—酒店策展—展览回流”的闭环。",
+         0,"数据库初始化的演示展览；后续可由用户策展数据生成并替换。",ts,ts,ts))
+    eid = con.execute("SELECT last_insert_rowid() id").fetchone()["id"]
+    for order,r in enumerate(asset_rows,1):
+        con.execute("INSERT INTO exhibition_assets(exhibition_id,asset_id,sort_order) VALUES(?,?,?)",
+                    (eid,r["id"],order))
+    con.execute("""
+      INSERT INTO activities(exhibition_id,hotel_id,title,activity_type,location,status,capacity,description,created_at,updated_at)
+      VALUES(?,?,?,?,?,?,?,?,?,?)
+    """,(eid,hotel["id"],"城市记忆·策展导览","文化导览","锦江饭店","published",40,
+         "围绕上海城市记忆与锦江饭店文化脉络的轻量导览活动。",ts,ts))
+
 def hotel_profile():
     con = connect()
     r = con.execute("SELECT * FROM hotels ORDER BY id LIMIT 1").fetchone()
-    con.close()
     if not r:
+        con.close()
         return {}
     d = dict(r)
-    d["id"] = r["id"]
-    d["themes"] = [x["name"] for x in active_themes()]
-    # Compatibility aliases expected by current scoring/frontend.
+    themes = con.execute("SELECT name FROM themes WHERE active=1 ORDER BY theme_code").fetchall()
+    con.close()
+    d["themes"] = [x["name"] for x in themes]
     d["keywords"] = ["上海","锦江","海派","建筑","城市记忆","国宾馆","经典"]
     return d
 
@@ -391,7 +540,8 @@ def active_themes():
     con.close()
     out = []
     for r in rows:
-        d = dict(r); d["keywords"] = json.loads(d["keywords"] or "[]")
+        d = dict(r)
+        d["keywords"] = json.loads(d["keywords"] or "[]")
         out.append(d)
     return out
 
@@ -402,10 +552,14 @@ def audit(con, entity_type, entity_id, action, payload=None, operator="mvp-admin
 
 def publication_gate(asset):
     missing = []
-    if asset["rights_status"] not in RIGHTS_PUBLIC:
+    if asset.get("digital_public") != 1:
+        missing.append("数字端公开许可未开启")
+    if asset.get("rights_status") not in RIGHTS_PUBLIC:
         missing.append("授权状态不可公开")
-    if asset["review_status"] != "approved":
+    if asset.get("review_status") != "approved":
         missing.append("内容尚未审核通过")
-    if not asset["cover"]:
+    if asset.get("publish_status") != "published":
+        missing.append("尚未发布")
+    if not asset.get("cover"):
         missing.append("缺少封面媒体")
     return {"eligible": not missing, "blocking": missing}

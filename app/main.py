@@ -1,87 +1,136 @@
-"""锦江数字空间 MVP 3.0 · 后端服务
+"""锦江数字空间 MVP 3.2 · 文化运营数据闭环版
 
-相对 2.0 的主要变化：
-1. 推荐结果携带 score_breakdown（四维权重贡献 + 反馈修正），让"匹配度"可解释、可视化
-2. 推荐结果携带 trace（候选池 → 过滤 → 评分 → Top-N → 带权随机），把"受控随机"变成可演示的过程
-3. 新增 /analytics/dashboard，一次性返回后台可视化所需的 KPI、漏斗、时序、主题分布、标签热度、集中度
-4. 新增 /curation/proposal，把策展候选池自动聚合成一份可展示的主题展方案
-5. 新增 /demo/seed 与 /demo/reset，保证现场演示时看板有数据、可反复重跑
-6. 2.0 的全部接口与字段保持兼容，不影响既有前端调用
+产品原则：
+1. C端只感知文化内容、推荐理由、个人选择和策展结果。
+2. 精确评分、候选池、发布门禁等属于酒店运营/推荐诊断能力。
+3. 数据库重点连接“推荐记录 → 用户行为 → 偏好 → 策展候选 → 展览发布 → 数据回流”。
+4. 数字资产维护是后台基础设施，不作为用户端主叙事。
 """
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from pathlib import Path
 from datetime import datetime, date, timedelta
 from collections import Counter, defaultdict
-import sqlite3, json, random, math
+from uuid import uuid4
+import json, random, math
 
-from .database import connect, init_database, hotel_profile, active_themes
+from .database import connect, init_database, hotel_profile, active_themes, now
 from .asset_admin import router as asset_admin_router
 
 BASE = Path(__file__).resolve().parent
-DB = BASE / "jinjiang.db"
 STATIC = BASE / "static"
+DB = BASE / "jinjiang.db"
 
-app = FastAPI(title="锦江数字空间 MVP 3.1 · 真实数字资产版", version="3.1.0")
+app = FastAPI(title="锦江数字空间 MVP 3.2 · 文化运营数据闭环版", version="3.2.0")
+
+
+@app.middleware("http")
+async def inject_base_href(request: Request, call_next):
+    # 支持 /jinjiang 子路径部署：在页面 HTML 的 <head> 注入 <base href>
+    response = await call_next(request)
+    if request.url.path in ("/", "/admin") and 200 <= response.status_code < 300:
+        body = b""
+        async for chunk in response.body_iterator:
+            body += chunk
+        text = body.decode("utf-8", errors="replace")
+        if "<head>" in text and '<base href=' not in text:
+            text = text.replace("<head>", '<head>\n<base href="/jinjiang">', 1)
+        headers = {k: v for k, v in response.headers.items() if k.lower() != "content-length"}
+        return Response(content=text.encode("utf-8"), status_code=response.status_code,
+                        headers=headers, media_type=response.media_type)
+    return response
+
+
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 app.include_router(asset_admin_router)
 
-init_database()
+
+def _ensure_database():
+    # 数据库文件存在但为空（如运行中被外部删除/截断）时自动重建，避免 500
+    try:
+        if DB.exists() and DB.stat().st_size == 0:
+            DB.unlink()
+    except OSError:
+        pass
+    init_database()
+
+
+_ensure_database()
 HOTEL = hotel_profile()
 THEMES = active_themes()
 
-EVENT_TYPES = {"like", "dislike", "favorite", "change", "detail", "curation", "activity_click", "impression", "reason_open"}
-WEIGHTS = {"brand": .30, "region": .30, "theme": .20, "style": .20}
-TOP_N = 15
-
-
-
+ALGORITHM_VERSION = "controlled-random-rules-v3.2"
+TOP_N = 10
+EVENT_TYPES = {
+    "impression","detail","reason_open","like","dislike","favorite","change",
+    "curation","activity_click","exhibition_view","story_view"
+}
+WEIGHTS = {"brand": .30, "region": .25, "theme": .25, "style": .20}
 
 class EventIn(BaseModel):
     user_id: str = "demo-user"
     event: str
     artwork_id: int
-
+    recommendation_id: str | None = None
+    session_id: str | None = None
+    source_code: str = "direct"
+    metadata: dict = {}
 
 class VoteIn(BaseModel):
     user_id: str = "demo-user"
     artwork_id: int
     vote: int = 1
+    recommendation_id: str | None = None
+    session_id: str | None = None
+    source_code: str = "direct"
     space_id: int | None = None
-
 
 class MatchIn(BaseModel):
     hotel_id: int = 1
     artwork_id: int
 
-
 class SeedIn(BaseModel):
-    users: int = 68
+    users: int = 72
     days: int = 7
 
+class PublishProposalIn(BaseModel):
+    title: str | None = None
+    period: str = "待排期"
+    source_note: str = "由当前用户共创策展数据生成"
 
 def artwork_dict(row):
-    d = dict(row); d["tags"] = json.loads(d["tags"]); return d
+    d = dict(row)
+    try:
+        d["tags"] = json.loads(d.get("tags") or "[]")
+    except Exception:
+        d["tags"] = []
+    return d
 
+def source_row(con, source_code):
+    row = con.execute("SELECT * FROM sources WHERE source_code=? AND active=1",(source_code,)).fetchone()
+    if row:
+        return row
+    return con.execute("SELECT * FROM sources WHERE source_code='direct'").fetchone()
 
-def event_boost(con, artwork_id, user_id=None):
-    params = [artwork_id]
-    sql = "SELECT event,COUNT(*) c FROM user_events WHERE artwork_id=?"
-    if user_id:
-        sql += " AND user_id=?"; params.append(user_id)
-    sql += " GROUP BY event"
-    counts = {r["event"]: r["c"] for r in con.execute(sql, params).fetchall()}
-    return counts.get("like", 0) * .035 + counts.get("favorite", 0) * .05 \
-         + counts.get("curation", 0) * .08 - counts.get("dislike", 0) * .04
-
+def ensure_session(con, user_id, session_id=None, source_code="direct"):
+    sid = session_id or f"sess-{uuid4().hex[:16]}"
+    source = source_row(con, source_code)
+    ts = now()
+    existing = con.execute("SELECT * FROM user_sessions WHERE session_id=?",(sid,)).fetchone()
+    if existing:
+        con.execute("UPDATE user_sessions SET last_seen_at=? WHERE session_id=?",(ts,sid))
+    else:
+        con.execute("""INSERT INTO user_sessions(session_id,user_id,source_id,started_at,last_seen_at)
+                       VALUES(?,?,?,?,?)""",(sid,user_id,source["id"] if source else None,ts,ts))
+    return sid, source
 
 def _asset_text(a):
     values = list(a.get("tags", [])) + [
-        a.get("title",""), a.get("region",""), a.get("era",""), a.get("style",""),
-        a.get("story",""), a.get("theme_text",""), a.get("building","")
+        a.get("title",""),a.get("region",""),a.get("era",""),a.get("style",""),
+        a.get("story",""),a.get("theme_text",""),a.get("building","")
     ]
     return " ".join(str(x) for x in values if x)
 
@@ -90,215 +139,234 @@ def best_theme(a):
     ranked = []
     for t in THEMES:
         hits = sum(1 for k in t["keywords"] if k and k in text)
-        ranked.append((hits, t["name"]))
+        ranked.append((hits,t["name"]))
     ranked.sort(reverse=True)
     if ranked and ranked[0][0] > 0:
         return ranked[0][1]
-    if "上海" in text or "城市" in text or "古镇" in text:
+    if any(k in text for k in ("上海","城市","古镇","城隍庙")):
         return "城市记忆"
     return "海派文化"
 
+def _preference_map(con, user_id):
+    rows = con.execute("SELECT dimension,value,score FROM user_preferences WHERE user_id=?",(user_id,)).fetchall()
+    return {(r["dimension"],r["value"]):r["score"] for r in rows}
 
-def score_parts(a, con, user_id="demo-user"):
-    """返回四个维度的原始得分与反馈修正，供评分与可视化共用。"""
+def score_parts(a, con, user_id):
+    text = _asset_text(a)
     tags = set(a["tags"])
-    brand = 1.0 if ("锦江" in tags or "酒店" in tags
-                    or a["category"] in ["酒店档案", "空间设计", "服务文化"]) else .65
-    region = 1.0 if a["region"] == HOTEL["city"] else .2
-    theme = max((sum(k in _asset_text(a) for k in t["keywords"]) / max(1, len(t["keywords"])) for t in THEMES), default=.25)
-    style = 1.0 if any(k in tags for k in ["海派", "建筑", "设计", "城市", "生活"]) else .55
-    return {"brand": brand, "region": region, "theme": theme, "style": style,
-            "feedback": event_boost(con, a["id"], user_id)}
+    brand = 1.0 if any(k in text for k in ("锦江","上海","海派","城市记忆")) else .58
+    region = 1.0 if "上海" in str(a.get("region","")) or "上海" in text else .35
+    theme = max(
+        (sum(1 for k in t["keywords"] if k and k in text) / max(1,min(8,len(t["keywords"]))))
+        for t in THEMES
+    ) if THEMES else .3
+    theme = min(1.0, max(.25, theme))
+    style = .85 if any(k in text for k in ("水墨","海派","城市","建筑","写意","山水","风俗")) else .55
 
+    prefs = _preference_map(con,user_id)
+    pref = prefs.get(("theme",best_theme(a)),0.0)
+    for tag in list(tags)[:8]:
+        pref += prefs.get(("tag",tag),0.0) * .35
+    pref_boost = max(-.12,min(.15,pref/25.0))
+    return {"brand":brand,"region":region,"theme":theme,"style":style,"preference":pref_boost}
 
-def score_artwork(a, con, user_id="demo-user"):
-    p = score_parts(a, con, user_id)
-    base = sum(p[k] * WEIGHTS[k] for k in WEIGHTS)
-    return min(1.35, base + p["feedback"])
-
-
-LABELS = {"brand": "品牌相关", "region": "地域匹配", "theme": "主题契合", "style": "风格一致"}
-NOTES = {
-    "brand": "作品是否直接指向锦江品牌、酒店空间或服务文化",
-    "region": "作品所属地域与锦江饭店所在城市是否一致",
-    "theme": "作品标签与三个锦江主题词库的重合程度",
-    "style": "作品是否落在海派、建筑、设计、城市、生活的调性区间",
-}
-
-
-def build_breakdown(a, con, user_id="demo-user"):
-    """把匹配度拆成可展示的四条权重贡献 + 一条反馈修正。"""
-    p = score_parts(a, con, user_id)
-    items = []
-    for k, w in WEIGHTS.items():
-        items.append({
-            "key": k, "label": LABELS[k], "weight": w,
-            "raw": round(p[k], 3),
-            "contribution": round(p[k] * w, 4),
-            "percent": round(p[k] * 100),
-            "note": NOTES[k],
-        })
-    base = sum(i["contribution"] for i in items)
-    fb = round(p["feedback"], 4)
-    return {
-        "items": items,
-        "base_score": round(base, 4),
-        "feedback_adjust": fb,
-        "feedback_note": "喜欢 +0.035 / 收藏 +0.05 / 加入策展 +0.08 / 不感兴趣 −0.04，来自真实用户行为回流",
-        "total": round(min(1.35, base + fb), 4),
-    }
-
-
-def build_reason(a):
-    tags = a["tags"]
-    return [
-      f"它与“{best_theme(a)}”主题高度相关，能自然进入锦江饭店的文化叙事。",
-      f"作品包含{'、'.join(tags[:3])}等关键词，与锦江饭店的上海、海派与城市记忆画像相互呼应。",
-      "它具有清晰的城市文化识别度，也保留足够的新鲜感，适合作为今日探索入口。"
-    ]
-
+def score_artwork(a, con, user_id):
+    p = score_parts(a,con,user_id)
+    base = sum(p[k]*WEIGHTS[k] for k in WEIGHTS)
+    return max(.05,min(1.20,base+p["preference"]))
 
 def ranked_pool(user_id="demo-user"):
     con = connect()
-    rows = [artwork_dict(r) for r in con.execute(
-        "SELECT * FROM artworks").fetchall()]
+    rows = [artwork_dict(r) for r in con.execute("SELECT * FROM artworks").fetchall()]
     for a in rows:
-        a["match_score"] = round(score_artwork(a, con, user_id), 3)
         a["theme"] = best_theme(a)
-        a["reason"] = build_reason(a)
+        a["_score"] = score_artwork(a,con,user_id)
     con.close()
-    return sorted(rows, key=lambda x: x["match_score"], reverse=True)
+    rows.sort(key=lambda x:x["_score"],reverse=True)
+    return rows
 
+def recommendation_reason(a):
+    theme = a.get("theme") or best_theme(a)
+    tags = [t for t in a.get("tags",[]) if t not in ("中国画","当代艺术","传统绘画")]
+    lead = "、".join(tags[:3]) if tags else (a.get("style") or "文化线索")
+    reasons = [
+        f"今天从“{theme}”这条线索进入锦江，这件作品与饭店的上海文化语境能够形成自然对话。",
+        f"它带有{lead}等特征，适合从作品本身继续读到城市、建筑与生活方式。",
+        "如果你愿意把它加入策展候选，你的选择会进入酒店端，参与下一场文化内容的判断。"
+    ]
+    if "上海" in str(a.get("region","")):
+        reasons[1] = f"作品直接连接上海地域记忆，并带有{lead}等特征，和锦江饭店的城市文化叙事距离很近。"
+    return reasons
+
+def relevance_label(a):
+    theme = a.get("theme") or best_theme(a)
+    if "上海" in _asset_text(a):
+        return f"上海 · {theme}"
+    return theme
+
+def _preference_delta(event):
+    return {"like":2.0,"favorite":3.0,"curation":4.0,"dislike":-2.0,"detail":.5}.get(event,0.0)
+
+def update_preferences(con,user_id,artwork_id,event):
+    delta = _preference_delta(event)
+    if not delta:
+        return
+    row = con.execute("SELECT * FROM culture_assets WHERE id=?",(artwork_id,)).fetchone()
+    if not row:
+        return
+    a = artwork_dict(row)
+    values = [("theme",best_theme(a),delta)]
+    values += [("tag",tag,delta*.55) for tag in a["tags"][:10]]
+    ts = now()
+    for dim,val,score in values:
+        con.execute("""
+          INSERT INTO user_preferences(user_id,dimension,value,score,updated_at)
+          VALUES(?,?,?,?,?)
+          ON CONFLICT(user_id,dimension,value) DO UPDATE SET
+            score=user_preferences.score+excluded.score,
+            updated_at=excluded.updated_at
+        """,(user_id,dim,val,score,ts))
+
+def public_asset_or_404(con, artwork_id):
+    row = con.execute("SELECT * FROM artworks WHERE id=?",(artwork_id,)).fetchone()
+    if not row:
+        raise HTTPException(404,"作品不存在或当前不可公开")
+    return artwork_dict(row)
 
 @app.get("/")
-def home(): return FileResponse(STATIC / "index.html")
-
+def home():
+    return FileResponse(STATIC/"index.html")
 
 @app.get("/admin")
-def admin(): return FileResponse(STATIC / "admin.html")
-
+def admin():
+    return FileResponse(STATIC/"admin.html")
 
 @app.get("/themes")
-def themes(): return {"items": THEMES}
-
+def themes():
+    return {"items":THEMES}
 
 @app.get("/daily-recommendation")
-def daily_recommendation(user_id: str = "demo-user", exclude: int | None = None):
-    con = connect()
-    asset_stats = con.execute("""SELECT COUNT(*) total,
-        SUM(CASE WHEN rights_status IN ('authorized','public_domain_verified') AND review_status='approved' AND publish_status='published' AND cover IS NOT NULL THEN 1 ELSE 0 END) public
-        FROM culture_assets""").fetchone()
-    total_all = asset_stats["total"]
-    public_total = asset_stats["public"]
-    con.close()
-
+def daily_recommendation(
+    user_id: str = "demo-user",
+    exclude: int | None = None,
+    session_id: str | None = None,
+    source: str = "direct",
+    debug: bool = False,
+):
     pool_full = ranked_pool(user_id)
+    if not pool_full:
+        raise HTTPException(503,"当前没有可公开推荐的文化内容")
     pool = pool_full[:TOP_N]
     if exclude:
         filtered = [a for a in pool if a["id"] != exclude]
         if filtered:
             pool = filtered
-    weights = [max(.05, a["match_score"] ** 3) for a in pool]
-    item = random.choices(pool, weights=weights, k=1)[0]
+
+    weights = [max(.05,a["_score"]**3) for a in pool]
+    item = random.choices(pool,weights=weights,k=1)[0]
+    item["theme"] = best_theme(item)
+    item["reason"] = recommendation_reason(item)
 
     con = connect()
-    breakdown = build_breakdown(item, con, user_id)
-    seq = con.execute(
-        "SELECT COUNT(*) c FROM user_events WHERE user_id=? AND event IN ('impression','change')",
-        (user_id,)).fetchone()["c"] + 1
-    rank_row = con.execute("""
-        SELECT COUNT(*) c FROM (
-          SELECT artwork_id, COUNT(*) v FROM curation_votes WHERE vote=1 GROUP BY artwork_id
-          HAVING v > (SELECT COUNT(*) FROM curation_votes WHERE vote=1 AND artwork_id=?)
-        )""", (item["id"],)).fetchone()["c"]
-    votes = con.execute("SELECT COUNT(*) c FROM curation_votes WHERE vote=1 AND artwork_id=?",
-                        (item["id"],)).fetchone()["c"]
+    sid, src = ensure_session(con,user_id,session_id,source)
+    rec_id = f"rec-{uuid4().hex}"
+    con.execute("""
+      INSERT INTO recommendations(
+        recommendation_id,user_id,session_id,source_id,hotel_id,artwork_id,
+        algorithm_version,candidate_count,selected_score,context,shown_at)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?)
+    """,(rec_id,user_id,sid,src["id"] if src else None,HOTEL["id"],item["id"],
+         ALGORITHM_VERSION,len(pool),round(item["_score"],4),
+         json.dumps({"exclude":exclude},ensure_ascii=False),now()))
+    con.commit()
+    votes = con.execute("SELECT COUNT(*) c FROM curation_votes WHERE artwork_id=? AND vote=1",(item["id"],)).fetchone()["c"]
+    seq = con.execute("SELECT COUNT(*) c FROM recommendations WHERE user_id=?",(user_id,)).fetchone()["c"]
     con.close()
 
-    total_w = sum(weights)
-    picked_w = weights[[a["id"] for a in pool].index(item["id"])]
-    trace = [
-        {"step": "01", "label": "真实数字资产池", "value": total_all, "unit": "件",
-         "detail": "王味之作品 + 中华珍宝馆 + 锦江文化物件"},
-        {"step": "02", "label": "发布门禁", "value": public_total, "unit": "件",
-         "detail": "授权可公开 · 审核通过 · 已发布 · 有封面"},
-        {"step": "03", "label": "匹配评分", "value": len(pool_full), "unit": "件",
-         "detail": "品牌 30% · 地域 30% · 主题 20% · 风格 20%"},
-        {"step": "04", "label": "Top-N 候选池", "value": len(pool), "unit": "件",
-         "detail": f"保留匹配度前 {TOP_N} 名"},
-        {"step": "05", "label": "带权随机抽取", "value": 1, "unit": "件",
-         "detail": f"本次中签概率 {picked_w / total_w * 100:.1f}%"},
-    ]
-
-    return {
-        "date": date.today().isoformat(),
-        "hotel": HOTEL,
-        "artwork": item,
-        "reason": item["reason"],
-        "pool_size": len(pool),
-        "strategy": "酒店/主题过滤 → 匹配评分 → Top-N → 带权随机",
-        # ↓ 3.0 新增
-        "sequence_no": seq,
-        "score_breakdown": breakdown,
-        "trace": trace,
-        "pool_preview": [
-            {"id": a["id"], "title": a["title"], "cover": a["cover"],
-             "match_score": a["match_score"], "theme": a["theme"],
-             "picked": a["id"] == item["id"]}
-            for a in pool
-        ],
-        "curation_state": {"votes": votes, "rank": rank_row + 1 if votes else None},
-        "label": {
-            "no": item.get("asset_code") or f"No.{item['id']:03d}",
-            "medium": f"{item['category']} · {item['style']}",
-            "origin": f"{item['region']} · {item['era']}",
-            "credit": f"{item.get('author') or '作者待补'} · {item['source']} · {item['authorization']}",
-        },
+    out = {
+        "date":date.today().isoformat(),
+        "recommendation_id":rec_id,
+        "session_id":sid,
+        "source":{"code":src["source_code"],"name":src["name"]} if src else {"code":"direct","name":"直接进入"},
+        "sequence_no":seq,
+        "hotel":{"id":HOTEL["id"],"name":HOTEL["name"]},
+        "artwork":item,
+        "reason":item["reason"],
+        "relevance_label":relevance_label(item),
+        "curation_state":{"votes":votes},
+        "label":{
+            "no":item.get("asset_code") or f"No.{item['id']:03d}",
+            "medium":f"{item['category']} · {item['style']}",
+            "origin":f"{item['region']} · {item['era']}",
+            "credit":f"{item.get('author') or '作者待补'} · {item['source']}",
+        }
     }
-
+    if debug:
+        con = connect()
+        parts = score_parts(item,con,user_id)
+        total_public = con.execute("SELECT COUNT(*) c FROM artworks").fetchone()["c"]
+        con.close()
+        out["diagnostics"] = {
+            "algorithm_version":ALGORITHM_VERSION,
+            "public_pool":total_public,
+            "candidate_pool":len(pool),
+            "selected_score":round(item["_score"],4),
+            "score_parts":{k:round(v,4) for k,v in parts.items()},
+        }
+    return out
 
 @app.post("/user-event")
-def user_event(body: EventIn):
+def user_event(body:EventIn):
     if body.event not in EVENT_TYPES:
-        raise HTTPException(400, "不支持的事件类型")
+        raise HTTPException(400,"不支持的事件类型")
     con = connect()
-    if not con.execute("SELECT 1 FROM artworks WHERE id=?", (body.artwork_id,)).fetchone():
-        con.close(); raise HTTPException(404, "作品不存在")
-    con.execute("INSERT INTO user_events(user_id,event,artwork_id,created_at) VALUES(?,?,?,?)",
-                (body.user_id, body.event, body.artwork_id,
-                 datetime.now().isoformat(timespec="seconds")))
-    con.commit(); con.close(); return {"ok": True}
-
+    public_asset_or_404(con,body.artwork_id)
+    sid, src = ensure_session(con,body.user_id,body.session_id,body.source_code)
+    if body.recommendation_id:
+        rec = con.execute("SELECT 1 FROM recommendations WHERE recommendation_id=?",(body.recommendation_id,)).fetchone()
+        if not rec:
+            con.close()
+            raise HTTPException(400,"recommendation_id 不存在")
+    con.execute("""
+      INSERT INTO user_events(
+        user_id,event,artwork_id,recommendation_id,session_id,source_id,metadata,created_at)
+      VALUES(?,?,?,?,?,?,?,?)
+    """,(body.user_id,body.event,body.artwork_id,body.recommendation_id,sid,
+         src["id"] if src else None,json.dumps(body.metadata or {},ensure_ascii=False),now()))
+    update_preferences(con,body.user_id,body.artwork_id,body.event)
+    con.commit()
+    con.close()
+    return {"ok":True,"session_id":sid}
 
 @app.get("/artworks/{artwork_id}")
-def artwork_detail(artwork_id: int):
-    con = connect(); row = con.execute("SELECT * FROM artworks WHERE id=?", (artwork_id,)).fetchone()
-    if not row:
-        con.close(); raise HTTPException(404, "作品不存在")
-    a = artwork_dict(row)
-    a["reason"] = build_reason(a)
-    a["match_score"] = round(score_artwork(a, con), 3)
+def artwork_detail(artwork_id:int,user_id:str="demo-user"):
+    con = connect()
+    a = public_asset_or_404(con,artwork_id)
     a["theme"] = best_theme(a)
-    a["score_breakdown"] = build_breakdown(a, con)
+    a["reason"] = recommendation_reason(a)
+    a["relevance_label"] = relevance_label(a)
     a["label"] = {
-        "no": a.get("asset_code") or f"No.{a['id']:03d}",
-        "medium": f"{a['category']} · {a['style']}",
-        "origin": f"{a['region']} · {a['era']}",
-        "credit": f"{a.get('author') or '作者待补'} · {a['source']} · {a['authorization']}",
+        "no":a.get("asset_code") or f"No.{a['id']:03d}",
+        "medium":f"{a['category']} · {a['style']}",
+        "origin":f"{a['region']} · {a['era']}",
+        "credit":f"{a.get('author') or '作者待补'} · {a['source']}",
     }
-    related = [x for x in ranked_pool() if x["id"] != a["id"]
-               and set(x["tags"]) & set(a["tags"])][:3]
-    a["related"] = [{"id": r["id"], "title": r["title"], "cover": r["cover"],
-                     "theme": r["theme"]} for r in related]
-    con.close(); return a
-
+    candidates = [artwork_dict(r) for r in con.execute("SELECT * FROM artworks WHERE id<>?",(artwork_id,)).fetchall()]
+    for x in candidates:
+        x["theme"] = best_theme(x)
+        x["_related"] = len(set(x["tags"]) & set(a["tags"])) + (2 if x["theme"]==a["theme"] else 0)
+    candidates.sort(key=lambda x:x["_related"],reverse=True)
+    a["related"] = [{"id":x["id"],"title":x["title"],"cover":x["cover"],"theme":x["theme"]} for x in candidates[:3]]
+    con.close()
+    return a
 
 @app.get("/artworks/{artwork_id}/placement-options")
-def artwork_placement_options(artwork_id: int):
+def artwork_placement_options(artwork_id:int):
     con = connect()
-    asset = con.execute("SELECT * FROM culture_assets WHERE id=?", (artwork_id,)).fetchone()
+    asset = con.execute("SELECT * FROM culture_assets WHERE id=?",(artwork_id,)).fetchone()
     if not asset:
-        con.close(); raise HTTPException(404, "作品不存在")
+        con.close()
+        raise HTTPException(404,"作品不存在")
     matches = con.execute("""
       SELECT m.*,s.space_code,s.name space_name,s.building,s.status space_status,
              s.display_available,s.cover space_cover
@@ -306,449 +374,517 @@ def artwork_placement_options(artwork_id: int):
       WHERE m.asset_id=? ORDER BY m.match_score DESC LIMIT 5
     """,(artwork_id,)).fetchall()
     con.close()
+    ready = [dict(r) for r in matches if r["readiness"]=="ready"]
     return {
-      "artwork_id": artwork_id,
-      "asset_code": asset["asset_code"],
-      "preferred_building": asset["building"],
-      "precision_status": "ready" if matches and all(r["readiness"]=="ready" for r in matches[:1]) else "blocked_by_space_metadata",
-      "note": "空间名称、楼宇、功能与展陈条件补齐并审核后，前台才应开放具体空间选择。",
-      "items": [dict(r) for r in matches]
+        "artwork_id":artwork_id,
+        "precision_status":"ready" if ready else "blocked_by_space_metadata",
+        "note":"具体空间选择仅在Space主数据和展陈条件审核完成后开放。",
+        "items":[dict(r) for r in matches],
     }
-
 
 @app.get("/curation-pool")
 def curation_pool():
     con = connect()
+
+    # 用户共创信号：只来源于消费者实际可见作品。
     rows = con.execute("""
-    SELECT a.*,
-      SUM(CASE WHEN v.vote=1 THEN 1 ELSE 0 END) AS curation_votes,
-      (SELECT COUNT(*) FROM user_events e WHERE e.artwork_id=a.id AND e.event='like') AS likes,
-      (SELECT COUNT(*) FROM user_events e WHERE e.artwork_id=a.id AND e.event='favorite') AS favorites
-    FROM artworks a LEFT JOIN curation_votes v ON v.artwork_id=a.id GROUP BY a.id
+      SELECT a.*,
+        (SELECT COUNT(*) FROM curation_votes v WHERE v.artwork_id=a.id AND v.vote=1) AS curation_votes,
+        (SELECT COUNT(*) FROM user_events e WHERE e.artwork_id=a.id AND e.event='like') AS likes,
+        (SELECT COUNT(*) FROM user_events e WHERE e.artwork_id=a.id AND e.event='favorite') AS favorites,
+        (SELECT COUNT(*) FROM recommendations r WHERE r.artwork_id=a.id) AS exposures
+      FROM artworks a
     """).fetchall()
-    data = []
+    signal = []
     for r in rows:
         d = artwork_dict(r)
+        d["theme"] = best_theme(d)
         d["curation_votes"] = d["curation_votes"] or 0
         d["likes"] = d["likes"] or 0
         d["favorites"] = d["favorites"] or 0
-        d["score"] = d["curation_votes"] * 5 + d["favorites"] * 3 + d["likes"] * 2
-        d["theme"] = best_theme(d)
-        d["match_score"] = round(score_artwork(d, con), 3)
-        data.append(d)
-    con.close()
-    data.sort(key=lambda x: (x["score"], x["curation_votes"]), reverse=True)
-    return {"items": data[:20], "count": len(data)}
+        d["exposures"] = d["exposures"] or 0
+        d["interest_score"] = d["curation_votes"]*5+d["favorites"]*3+d["likes"]*2
+        signal.append(d)
+    signal.sort(key=lambda x:(x["interest_score"],x["curation_votes"]),reverse=True)
 
+    # 内部策展资源：允许酒店看见，未获得数字公开许可时不会进入C端推荐。
+    internal_rows = con.execute("""
+      SELECT a.*,c.name collection_name
+      FROM culture_assets a LEFT JOIN collections c ON c.id=a.collection_id
+      WHERE a.internal_review=1 AND COALESCE(a.digital_public,0)=0
+      ORDER BY CASE WHEN a.building IS NOT NULL THEN 0 ELSE 1 END,a.id
+      LIMIT 60
+    """).fetchall()
+    internal = []
+    for r in internal_rows:
+        d = artwork_dict(r)
+        d["theme"] = best_theme(d)
+        d["readiness"] = "内部策展可评估" if d["rights_status"] in ("pending","internal") else "需复核"
+        internal.append(d)
+    con.close()
+    return {"items":signal,"user_signal_items":signal,"internal_candidates":internal,
+            "count":len(signal),"internal_count":len(internal)}
 
 @app.post("/curation-vote")
-def curation_vote(body: VoteIn):
+def curation_vote(body:VoteIn):
     con = connect()
-    if not con.execute("SELECT 1 FROM artworks WHERE id=?", (body.artwork_id,)).fetchone():
-        con.close(); raise HTTPException(404, "作品不存在")
-    now = datetime.now().isoformat(timespec="seconds")
+    public_asset_or_404(con,body.artwork_id)
+    sid, src = ensure_session(con,body.user_id,body.session_id,body.source_code)
     if body.space_id is not None:
-        space = con.execute("SELECT * FROM spaces WHERE id=?", (body.space_id,)).fetchone()
+        space = con.execute("SELECT * FROM spaces WHERE id=?",(body.space_id,)).fetchone()
         if not space:
-            con.close(); raise HTTPException(404, "空间不存在")
-        if space["status"] != "active" or space["display_available"] != 1:
-            con.close(); raise HTTPException(400, "该空间尚未通过空间主数据与展陈条件审核")
-    con.execute("INSERT INTO curation_votes(user_id,artwork_id,space_id,vote,created_at) VALUES(?,?,?,?,?)",
-                (body.user_id, body.artwork_id, body.space_id, 1 if body.vote > 0 else 0, now))
-    con.execute("INSERT INTO user_events(user_id,event,artwork_id,created_at) VALUES(?,?,?,?)",
-                (body.user_id, "curation", body.artwork_id, now))
-    votes = con.execute("SELECT COUNT(*) c FROM curation_votes WHERE vote=1 AND artwork_id=?",
-                        (body.artwork_id,)).fetchone()["c"]
-    ahead = con.execute("""
-        SELECT COUNT(*) c FROM (
-          SELECT artwork_id, COUNT(*) v FROM curation_votes WHERE vote=1 GROUP BY artwork_id
-          HAVING v > ?)""", (votes,)).fetchone()["c"]
+            con.close()
+            raise HTTPException(404,"空间不存在")
+        if space["status"]!="active" or space["display_available"]!=1:
+            con.close()
+            raise HTTPException(400,"该空间尚未通过主数据与展陈条件审核")
+    ts = now()
+    con.execute("""
+      INSERT INTO curation_votes(user_id,artwork_id,space_id,recommendation_id,session_id,vote,created_at)
+      VALUES(?,?,?,?,?,?,?)
+    """,(body.user_id,body.artwork_id,body.space_id,body.recommendation_id,sid,1 if body.vote>0 else 0,ts))
+    con.execute("""
+      INSERT INTO user_events(user_id,event,artwork_id,recommendation_id,session_id,source_id,metadata,created_at)
+      VALUES(?,?,?,?,?,?,?,?)
+    """,(body.user_id,"curation",body.artwork_id,body.recommendation_id,sid,
+         src["id"] if src else None,"{}",ts))
+    update_preferences(con,body.user_id,body.artwork_id,"curation")
+    votes = con.execute("SELECT COUNT(*) c FROM curation_votes WHERE artwork_id=? AND vote=1",(body.artwork_id,)).fetchone()["c"]
     total = con.execute("SELECT COUNT(DISTINCT artwork_id) c FROM curation_votes WHERE vote=1").fetchone()["c"]
-    con.commit(); con.close()
-    return {"ok": True, "message": "已加入锦江饭店策展候选",
-            "votes": votes, "rank": ahead + 1, "pool_total": total}
-
+    con.commit()
+    con.close()
+    return {"ok":True,"message":"已加入锦江饭店共创策展","votes":votes,"pool_total":total}
 
 @app.get("/hotel/{hotel_id}")
-def hotel(hotel_id: int):
-    if hotel_id != HOTEL.get("id", 1):
-        raise HTTPException(404, "酒店不存在")
+def hotel(hotel_id:int):
+    if hotel_id != HOTEL.get("id",1):
+        raise HTTPException(404,"酒店不存在")
     con = connect()
-    spaces = []
-    for r in con.execute("""SELECT s.*,COUNT(m.id) media_count
-                            FROM spaces s LEFT JOIN media_assets m ON m.space_id=s.id
-                            WHERE s.hotel_id=? GROUP BY s.id ORDER BY s.id""",(hotel_id,)):
-        d = dict(r)
-        d["function"] = d["function"] or "待补充"
-        spaces.append(d)
-    media_count = con.execute("SELECT COUNT(*) c FROM media_assets WHERE hotel_id=?",(hotel_id,)).fetchone()["c"]
-    categories = [dict(x) for x in con.execute("""SELECT category,COUNT(*) count FROM media_assets
-                                                 WHERE hotel_id=? GROUP BY category ORDER BY count DESC""",(hotel_id,))]
+    spaces = [dict(r) for r in con.execute("""
+      SELECT s.*,COUNT(m.id) media_count
+      FROM spaces s LEFT JOIN media_assets m ON m.space_id=s.id
+      WHERE s.hotel_id=? GROUP BY s.id ORDER BY s.id
+    """,(hotel_id,)).fetchall()]
     con.close()
-    return {**HOTEL,
-      "video": {"title": "锦江饭店数字资产", "duration": None, "status": "真实媒体资源已入库"},
-      "spaces": spaces,
-      "media_count": media_count,
-      "media_categories": categories,
-      "space_data_note": "Space主数据保留原始S001-S013编号；名称、楼宇、功能与展陈条件缺失项在后台数据质量模块补录后再用于正式空间适配。"}
+    return {**HOTEL,"spaces":spaces}
 
-
-@app.get("/exhibitions")
-def exhibitions():
-    return {"items": [{"id": 1, "title": "上海城市记忆：从街角到饭店", "status": "候选展",
-       "hotel": "锦江饭店", "period": "MVP 演示",
-       "description": "由用户策展票选与酒店主题共同形成的数字策展示例。"}],
-       "activities": [{"id": 1, "title": "建筑与海派生活沙龙", "type": "文化沙龙",
-                       "location": "锦江饭店", "status": "可预约（演示）"}]}
-
-
-@app.post("/ai/match")
-def ai_match(body: MatchIn):
-    if body.hotel_id != 1:
-        raise HTTPException(404, "酒店不存在")
-    con = connect(); row = con.execute("SELECT * FROM artworks WHERE id=?", (body.artwork_id,)).fetchone()
-    if not row:
-        con.close(); raise HTTPException(404, "作品不存在")
-    a = artwork_dict(row)
-    score = score_artwork(a, con)
-    bd = build_breakdown(a, con)
-    con.close()
-    return {"hotel_id": 1, "artwork_id": a["id"], "match_score": round(score, 3),
-            "theme": best_theme(a), "reasons": build_reason(a),
-            "score_breakdown": bd, "model": "MVP规则分 + 标签语义模拟"}
-
-
-@app.get("/analytics")
-def analytics():
+@app.get("/hotel/{hotel_id}/story")
+def hotel_story(hotel_id:int):
+    if hotel_id != HOTEL.get("id",1):
+        raise HTTPException(404,"酒店不存在")
     con = connect()
-    total = con.execute("SELECT COUNT(*) c FROM user_events").fetchone()["c"]
-    events = {r["event"]: r["c"] for r in con.execute(
-        "SELECT event,COUNT(*) c FROM user_events GROUP BY event").fetchall()}
-    unique_artworks = con.execute("SELECT COUNT(DISTINCT artwork_id) c FROM user_events").fetchone()["c"]
-    votes = con.execute("SELECT COUNT(*) c FROM curation_votes WHERE vote=1").fetchone()["c"]
-    con.close()
-    return {"total_events": total, "unique_artworks_interacted": unique_artworks,
-            "curation_votes": votes, "likes": events.get("like", 0),
-            "favorites": events.get("favorite", 0), "changes": events.get("change", 0),
-            "events": events}
-
-
-# ---------------------------------------------------------------- 数据可视化
-
-
-def _bucket_spec(rows):
-    """根据事件时间跨度自适应选择时间粒度，保证演示时曲线一定有形状。"""
-    if not rows:
-        return "minute", 12, "%H:%M"
-    stamps = [datetime.fromisoformat(r["created_at"]) for r in rows]
-    span = (max(stamps) - min(stamps)).total_seconds()
-    if span < 45 * 60:
-        return "minute", 12, "%H:%M"
-    if span < 36 * 3600:
-        return "hour", 12, "%H:00"
-    return "day", 7, "%m-%d"
-
-
-def _floor(dt, unit):
-    if unit == "minute":
-        return dt.replace(second=0, microsecond=0)
-    if unit == "hour":
-        return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(hour=0, minute=0, second=0, microsecond=0)
-
-
-def _step(unit):
-    return {"minute": timedelta(minutes=1), "hour": timedelta(hours=1),
-            "day": timedelta(days=1)}[unit]
-
-
-@app.get("/analytics/dashboard")
-def analytics_dashboard():
-    """后台数据可视化版块所需的全部聚合结果，一次请求返回。"""
-    con = connect()
-    rows = con.execute("SELECT * FROM user_events ORDER BY created_at").fetchall()
-    arts = {r["id"]: artwork_dict(r) for r in con.execute("SELECT * FROM artworks").fetchall()}
-    vote_rows = con.execute("SELECT * FROM curation_votes WHERE vote=1").fetchall()
-
-    events = Counter(r["event"] for r in rows)
-    users = {r["user_id"] for r in rows}
-    total = len(rows)
-
-    # 时序
-    unit, n, fmt = _bucket_spec(rows)
-    step = _step(unit)
-    now = _floor(datetime.now(), unit)
-    buckets = [now - step * i for i in range(n - 1, -1, -1)]
-    idx = {b: i for i, b in enumerate(buckets)}
-    series = {k: [0] * n for k in ("total", "like", "favorite", "curation")}
-    for r in rows:
-        b = _floor(datetime.fromisoformat(r["created_at"]), unit)
-        if b in idx:
-            i = idx[b]
-            series["total"][i] += 1
-            if r["event"] in series:
-                series[r["event"]][i] += 1
-    timeline = {"unit": unit, "labels": [b.strftime(fmt) for b in buckets], "series": series}
-
-    # 共创漏斗
-    reached = {"impression": set(), "reason_open": set(), "feedback": set(), "curation": set()}
-    for r in rows:
-        u, e = r["user_id"], r["event"]
-        if e in ("impression", "change"):
-            reached["impression"].add(u)
-        elif e == "reason_open":
-            reached["reason_open"].add(u)
-        elif e in ("like", "dislike", "favorite"):
-            reached["feedback"].add(u)
-        elif e == "curation":
-            reached["curation"].add(u)
-    # 漏斗向下继承：进入下一层的用户必然经过上一层
-    order = ["impression", "reason_open", "feedback", "curation"]
-    for i in range(len(order) - 2, -1, -1):
-        reached[order[i]] |= reached[order[i + 1]]
-    base = max(1, len(reached["impression"]))
-    funnel_label = {"impression": "看到推荐", "reason_open": "展开理由",
-                    "feedback": "给出反馈", "curation": "加入策展"}
-    funnel = [{"key": k, "label": funnel_label[k], "value": len(reached[k]),
-               "rate": round(len(reached[k]) / base * 100, 1)} for k in order]
-
-    # 主题分布
-    theme_votes, theme_likes = Counter(), Counter()
-    for v in vote_rows:
-        a = arts.get(v["artwork_id"])
-        if a:
-            theme_votes[best_theme(a)] += 1
-    for r in rows:
-        if r["event"] in ("like", "favorite"):
-            a = arts.get(r["artwork_id"])
-            if a:
-                theme_likes[best_theme(a)] += 1
-    tv_total = max(1, sum(theme_votes.values()))
-    themes_out = [{"name": t["name"], "votes": theme_votes.get(t["name"], 0),
-                   "likes": theme_likes.get(t["name"], 0),
-                   "share": round(theme_votes.get(t["name"], 0) / tv_total * 100, 1)}
-                  for t in THEMES]
-    themes_out.sort(key=lambda x: x["votes"], reverse=True)
-
-    # 标签热度
-    tag_w = Counter()
-    w_map = {"curation": 5, "favorite": 3, "like": 2, "detail": 1, "reason_open": 1, "dislike": -2}
-    for r in rows:
-        a = arts.get(r["artwork_id"])
-        if a and r["event"] in w_map:
-            for t in a["tags"]:
-                tag_w[t] += w_map[r["event"]]
-    tags_out = [{"tag": t, "weight": w} for t, w in tag_w.most_common(12) if w > 0]
-
-    # 作品热度榜
-    per = defaultdict(lambda: {"likes": 0, "favorites": 0, "votes": 0, "dislikes": 0})
-    for r in rows:
-        e = r["event"]
-        if e == "like": per[r["artwork_id"]]["likes"] += 1
-        elif e == "favorite": per[r["artwork_id"]]["favorites"] += 1
-        elif e == "dislike": per[r["artwork_id"]]["dislikes"] += 1
-    for v in vote_rows:
-        per[v["artwork_id"]]["votes"] += 1
-    top = []
-    for aid, m in per.items():
-        a = arts.get(aid)
-        if not a:
-            continue
-        top.append({"id": aid, "title": a["title"], "cover": a["cover"], "theme": best_theme(a),
-                    "score": m["votes"] * 5 + m["favorites"] * 3 + m["likes"] * 2 - m["dislikes"] * 2,
-                    **m})
-    top.sort(key=lambda x: x["score"], reverse=True)
-    top = top[:8]
-
-    # 候选集中度：赫芬达尔指数，判断用户偏好是否收敛到可策展的主题
-    vc = Counter(v["artwork_id"] for v in vote_rows)
-    tot_v = sum(vc.values())
-    if tot_v:
-        hhi = round(sum((c / tot_v) ** 2 for c in vc.values()), 4)
-        top3 = round(sum(c for _, c in vc.most_common(3)) / tot_v * 100, 1)
-    else:
-        hhi, top3 = 0.0, 0.0
-    # 主题级显著度：与"三主题均分"这一无信息基线相比的提升倍数
-    lead = themes_out[0] if themes_out else {"name": "-", "share": 0.0}
-    uniform = 100 / max(1, len(THEMES))
-    lift = round(lead["share"] / uniform, 2) if lead["share"] else 0.0
-    if tot_v < 8:
-        verdict = "样本不足，继续累积用户选择"
-    elif lift >= 1.3:
-        verdict = f"主题偏好显著，可立项《{lead['name']}》主题展"
-    elif lift >= 1.1:
-        verdict = f"《{lead['name']}》初步领先，建议扩充同主题内容再立项"
-    else:
-        verdict = "偏好尚未分化，先做多主题小规模测试"
-
+    artifacts = [artwork_dict(r) for r in con.execute("""
+      SELECT a.* FROM culture_assets a
+      WHERE a.hotel_id=? AND a.asset_type='hotel_artifact' AND a.internal_review=1
+      ORDER BY a.asset_code
+    """,(hotel_id,)).fetchall()]
+    photos = [dict(r) for r in con.execute("""
+      SELECT * FROM media_assets
+      WHERE hotel_id=? AND category IN ('客房','大堂公共区域','会议商务','餐厅餐饮','休闲设施')
+      ORDER BY category,id
+    """,(hotel_id,)).fetchall()]
+    # 每类取前两张，形成轻量“锦江故事”视觉入口。
+    grouped = defaultdict(list)
+    for p in photos:
+        if len(grouped[p["category"]]) < 2:
+            grouped[p["category"]].append(p)
+    gallery = [x for cat in ("大堂公共区域","客房","餐厅餐饮","会议商务","休闲设施") for x in grouped.get(cat,[])]
     con.close()
     return {
-        "generated_at": datetime.now().isoformat(timespec="seconds"),
-        "kpi": {
-            "total_events": total,
-            "unique_users": len(users),
-            "unique_artworks": len({r["artwork_id"] for r in rows}),
-            "curation_votes": len(vote_rows),
-            "likes": events.get("like", 0),
-            "favorites": events.get("favorite", 0),
-            "changes": events.get("change", 0),
-            "details": events.get("detail", 0),
-            "participation_rate": round(
-                sum(events.get(k, 0) for k in ("like", "dislike", "favorite", "curation"))
-                / max(1, total) * 100, 1),
-            "curation_rate": round(len(reached["curation"]) / base * 100, 1),
-        },
-        "timeline": timeline,
-        "funnel": funnel,
-        "themes": themes_out,
-        "tags": tags_out,
-        "top_artworks": top,
-        "concentration": {"hhi": hhi, "top3_share": top3, "verdict": verdict,
-                          "voted_artworks": len(vc), "lead_theme": lead["name"],
-                          "lead_share": lead["share"], "lift": lift,
-                          "uniform_baseline": round(uniform, 1)},
-    }
-
-
-@app.get("/curation/proposal")
-def curation_proposal():
-    """把候选池自动聚合成一份可直接展示的主题展方案。"""
-    pool = curation_pool()["items"]
-    voted = [x for x in pool if x["score"] > 0] or pool[:6]
-    theme_score = Counter()
-    for x in voted:
-        theme_score[x["theme"]] += x["score"] or 1
-    theme = theme_score.most_common(1)[0][0] if theme_score else THEMES[0]["name"]
-    selected = [x for x in voted if x["theme"] == theme][:6]
-    if len(selected) < 4:
-        for x in voted:
-            if x not in selected:
-                selected.append(x)
-            if len(selected) >= 4:
-                break
-    titles = {
-        "上海城市记忆": ("城市记忆：从街角到饭店", "把日常街景、档案与声音重新排列，让宾客在大堂里读到一座城市的日常史。"),
-        "百年建筑": ("立面之下：百年建筑的当代读法", "以立面、拱窗与工业遗存为线索，把建筑史转译成可停留的空间叙事。"),
-        "海派生活": ("海派日常：一种生活方式的持续更新", "从服饰、家具、字体到咖啡，呈现海派审美如何进入当代日常。"),
-    }
-    title, statement = titles.get(theme, ("城市记忆：从街角到饭店", "由用户选择生成的主题展方案。"))
-    con = connect()
-    contributors = con.execute(
-        "SELECT COUNT(DISTINCT user_id) c FROM curation_votes WHERE vote=1").fetchone()["c"]
-    total_votes = con.execute(
-        "SELECT COUNT(*) c FROM curation_votes WHERE vote=1").fetchone()["c"]
-    con.close()
-    routes = [
-        {"space": selected[0].get("building") or "候选空间待确认", "role": "序章", "note": f"以票选第一名《{selected[0]['title']}》建立主题锚点；具体Space需通过空间主数据门禁"},
-        {"space": "候选空间待确认", "role": "主展区", "note": f"{max(0, len(selected)-2)} 件作品进入空间匹配候选，空间字段补齐后生成正式展陈建议"},
-        {"space": "数字空间", "role": "延伸", "note": "公开授权作品可先进入数字端推荐、展签与活动入口"},
-    ]
-    return {
-        "theme": theme,
-        "title": title,
-        "statement": statement,
-        "status": f"由 {contributors} 位用户的 {total_votes} 次策展选择生成",
-        "contributors": contributors,
-        "total_votes": total_votes,
-        "works": [{"id": x["id"], "title": x["title"], "cover": x["cover"],
-                   "votes": x["curation_votes"], "score": x["score"],
-                   "match_score": x["match_score"]} for x in selected],
-        "route": routes,
-        "activity": {"title": f"{theme}·策展人导览与沙龙", "type": "文化沙龙 + 导览",
-                     "location": "锦江饭店（具体空间待确认）", "capacity": 40,
-                     "status": "可发布（演示）"},
-        "next_actions": [
-            "确认作品授权与展陈尺寸",
-            "生成展签文案与二维码物料",
-            "在用户端发布展讯并向投票用户定向推送",
+        "hotel":{k:HOTEL.get(k) for k in ("id","name","history","positioning","keywords","themes")},
+        "artifacts":[{"id":a["id"],"code":a["asset_code"],"title":a["title"],"cover":a["cover"],
+                      "theme":a["theme_text"] or "锦江故事"} for a in artifacts],
+        "gallery":gallery,
+        "story_sections":[
+            {"title":"百年建筑","text":"从锦北楼、贵宾楼与小礼堂进入锦江的建筑与城市记忆。"},
+            {"title":"海派生活","text":"饭店中的家具、礼仪、餐饮与公共空间共同构成持续更新的海派生活。"},
+            {"title":"历史现场","text":"锦江饭店既是住宿空间，也是上海城市历史与公共文化的一部分。"},
         ],
     }
 
+def _exhibition_payload(con,row):
+    theme = con.execute("SELECT name FROM themes WHERE theme_code=?",(row["theme_code"],)).fetchone()
+    works = [dict(x) for x in con.execute("""
+      SELECT a.id,a.asset_code,a.title,a.cover,a.author,a.building,ea.sort_order
+      FROM exhibition_assets ea JOIN culture_assets a ON a.id=ea.asset_id
+      WHERE ea.exhibition_id=? ORDER BY ea.sort_order,a.id
+    """,(row["id"],)).fetchall()]
+    acts = [dict(x) for x in con.execute("""
+      SELECT * FROM activities WHERE exhibition_id=? AND status='published' ORDER BY id
+    """,(row["id"],)).fetchall()]
+    d = dict(row)
+    d["theme"] = theme["name"] if theme else row["theme_code"]
+    d["works"] = works
+    d["activities"] = acts
+    return d
 
-# ---------------------------------------------------------------- 演示数据
+@app.get("/exhibitions")
+def exhibitions():
+    con = connect()
+    rows = con.execute("""
+      SELECT * FROM exhibitions WHERE status='published' ORDER BY COALESCE(published_at,created_at) DESC,id DESC
+    """).fetchall()
+    items = [_exhibition_payload(con,r) for r in rows]
+    con.close()
+    return {"items":items}
 
+@app.post("/ai/match")
+def ai_match(body:MatchIn):
+    if body.hotel_id != HOTEL["id"]:
+        raise HTTPException(404,"酒店不存在")
+    con = connect()
+    a = public_asset_or_404(con,body.artwork_id)
+    a["theme"] = best_theme(a)
+    parts = score_parts(a,con,"demo-user")
+    score = score_artwork(a,con,"demo-user")
+    con.close()
+    return {
+        "hotel_id":HOTEL["id"],"artwork_id":a["id"],"theme":a["theme"],
+        "relevance":"高" if score>=.72 else "中",
+        "reasons":recommendation_reason(a),
+        "internal_diagnostics":{"score":round(score,3),"parts":{k:round(v,3) for k,v in parts.items()},
+                                "algorithm_version":ALGORITHM_VERSION},
+    }
+
+@app.get("/users/{user_id}/profile")
+def user_profile(user_id:str):
+    con = connect()
+    ev = {r["event"]:r["c"] for r in con.execute("""
+      SELECT event,COUNT(*) c FROM user_events WHERE user_id=? GROUP BY event
+    """,(user_id,)).fetchall()}
+    votes = con.execute("SELECT COUNT(*) c FROM curation_votes WHERE user_id=? AND vote=1",(user_id,)).fetchone()["c"]
+    recs = con.execute("SELECT COUNT(*) c FROM recommendations WHERE user_id=?",(user_id,)).fetchone()["c"]
+    prefs = [dict(r) for r in con.execute("""
+      SELECT dimension,value,ROUND(score,2) score FROM user_preferences
+      WHERE user_id=? AND score>0 ORDER BY score DESC LIMIT 12
+    """,(user_id,)).fetchall()]
+    theme_prefs = [p for p in prefs if p["dimension"]=="theme"][:4]
+    favorites = [dict(r) for r in con.execute("""
+      SELECT DISTINCT a.id,a.title,a.cover,a.asset_code
+      FROM user_events e JOIN culture_assets a ON a.id=e.artwork_id
+      WHERE e.user_id=? AND e.event='favorite'
+      ORDER BY e.created_at DESC LIMIT 6
+    """,(user_id,)).fetchall()]
+    curated = [dict(r) for r in con.execute("""
+      SELECT a.id,a.title,a.cover,a.asset_code,MAX(v.created_at) last_voted_at
+      FROM curation_votes v JOIN culture_assets a ON a.id=v.artwork_id
+      WHERE v.user_id=? AND v.vote=1
+      GROUP BY a.id ORDER BY last_voted_at DESC LIMIT 6
+    """,(user_id,)).fetchall()]
+    contributed = [dict(r) for r in con.execute("""
+      SELECT DISTINCT ex.id,ex.title,ex.status
+      FROM exhibitions ex
+      JOIN exhibition_assets ea ON ea.exhibition_id=ex.id
+      JOIN curation_votes v ON v.artwork_id=ea.asset_id
+      WHERE v.user_id=? AND v.vote=1 AND ex.status='published'
+        AND ex.generated_from_votes=1
+        AND COALESCE(ex.published_at,ex.created_at) >= v.created_at
+      ORDER BY ex.id DESC LIMIT 5
+    """,(user_id,)).fetchall()]
+    con.close()
+    return {
+        "user_id":user_id,
+        "stats":{"recommendations":recs,"likes":ev.get("like",0),"favorites":ev.get("favorite",0),
+                 "curation_votes":votes,"changes":ev.get("change",0),"details":ev.get("detail",0)},
+        "theme_preferences":theme_prefs,
+        "preferences":prefs,
+        "favorite_items":favorites,
+        "curated_items":curated,
+        "published_contributions":contributed,
+    }
+
+@app.get("/analytics")
+def analytics():
+    # 兼容旧调用；后台建议使用 /analytics/dashboard，C端使用 /users/{user_id}/profile。
+    con = connect()
+    total = con.execute("SELECT COUNT(*) c FROM user_events").fetchone()["c"]
+    events = {r["event"]:r["c"] for r in con.execute("SELECT event,COUNT(*) c FROM user_events GROUP BY event")}
+    votes = con.execute("SELECT COUNT(*) c FROM curation_votes WHERE vote=1").fetchone()["c"]
+    con.close()
+    return {"total_events":total,"curation_votes":votes,"likes":events.get("like",0),
+            "favorites":events.get("favorite",0),"changes":events.get("change",0),"events":events}
+
+def _bucket_spec(rows):
+    if not rows:
+        return "day",7,"%m-%d"
+    stamps = [datetime.fromisoformat(r["created_at"]) for r in rows if r["created_at"]]
+    if not stamps:
+        return "day",7,"%m-%d"
+    span = (max(stamps)-min(stamps)).total_seconds()
+    if span < 45*60:
+        return "minute",12,"%H:%M"
+    if span < 36*3600:
+        return "hour",12,"%H:00"
+    return "day",7,"%m-%d"
+
+def _floor(dt,unit):
+    if unit=="minute":
+        return dt.replace(second=0,microsecond=0)
+    if unit=="hour":
+        return dt.replace(minute=0,second=0,microsecond=0)
+    return dt.replace(hour=0,minute=0,second=0,microsecond=0)
+
+def _step(unit):
+    return {"minute":timedelta(minutes=1),"hour":timedelta(hours=1),"day":timedelta(days=1)}[unit]
+
+@app.get("/analytics/dashboard")
+def analytics_dashboard():
+    con = connect()
+    events = con.execute("SELECT * FROM user_events ORDER BY created_at").fetchall()
+    recs = con.execute("SELECT * FROM recommendations ORDER BY shown_at").fetchall()
+    votes = con.execute("SELECT * FROM curation_votes WHERE vote=1").fetchall()
+    arts = {r["id"]:artwork_dict(r) for r in con.execute("SELECT * FROM culture_assets").fetchall()}
+    sessions = con.execute("SELECT COUNT(*) c FROM user_sessions").fetchone()["c"]
+    users = con.execute("SELECT COUNT(DISTINCT user_id) c FROM user_sessions").fetchone()["c"]
+
+    # 推荐→详情→反馈→共创策展
+    rec_users = {r["user_id"] for r in recs}
+    detail_users = {r["user_id"] for r in events if r["event"]=="detail"}
+    feedback_users = {r["user_id"] for r in events if r["event"] in ("like","favorite","dislike")}
+    curation_users = {r["user_id"] for r in votes}
+    detail_users |= feedback_users | curation_users
+    feedback_users |= curation_users
+    base = max(1,len(rec_users))
+    funnel = [
+        {"key":"recommendation","label":"看到推荐","value":len(rec_users),"rate":round(len(rec_users)/base*100,1)},
+        {"key":"detail","label":"查看详情","value":len(detail_users),"rate":round(len(detail_users)/base*100,1)},
+        {"key":"feedback","label":"给出反馈","value":len(feedback_users),"rate":round(len(feedback_users)/base*100,1)},
+        {"key":"curation","label":"加入策展","value":len(curation_users),"rate":round(len(curation_users)/base*100,1)},
+    ]
+
+    # 时间序列
+    unit,n,fmt = _bucket_spec(events)
+    step = _step(unit)
+    current = _floor(datetime.now(),unit)
+    buckets = [current-step*i for i in range(n-1,-1,-1)]
+    idx = {b:i for i,b in enumerate(buckets)}
+    series = {"events":[0]*n,"curation":[0]*n}
+    for r in events:
+        if not r["created_at"]:
+            continue
+        b = _floor(datetime.fromisoformat(r["created_at"]),unit)
+        if b in idx:
+            series["events"][idx[b]] += 1
+            if r["event"]=="curation":
+                series["curation"][idx[b]] += 1
+    timeline = {"unit":unit,"labels":[b.strftime(fmt) for b in buckets],"series":series}
+
+    # 内容热度
+    per = defaultdict(lambda:{"likes":0,"favorites":0,"votes":0,"details":0,"exposures":0})
+    for r in recs:
+        per[r["artwork_id"]]["exposures"] += 1
+    for r in events:
+        if r["event"] in per[r["artwork_id"]]:
+            per[r["artwork_id"]][r["event"]] += 1
+        if r["event"]=="like": per[r["artwork_id"]]["likes"] += 1
+        if r["event"]=="favorite": per[r["artwork_id"]]["favorites"] += 1
+        if r["event"]=="detail": per[r["artwork_id"]]["details"] += 1
+    for r in votes:
+        per[r["artwork_id"]]["votes"] += 1
+    top = []
+    for aid,m in per.items():
+        a = arts.get(aid)
+        if not a:
+            continue
+        score = m["votes"]*5+m["favorites"]*3+m["likes"]*2+m["details"]
+        top.append({"id":aid,"asset_code":a.get("asset_code"),"title":a["title"],"cover":a.get("cover"),
+                    "theme":best_theme(a),"interest_score":score,**m})
+    top.sort(key=lambda x:x["interest_score"],reverse=True)
+
+    # 主题偏好
+    theme_w = Counter()
+    for r in events:
+        a = arts.get(r["artwork_id"])
+        if not a: continue
+        w = {"curation":5,"favorite":3,"like":2,"detail":1,"dislike":-2}.get(r["event"],0)
+        if w: theme_w[best_theme(a)] += w
+    theme_total = max(1,sum(v for v in theme_w.values() if v>0))
+    themes_out = [{"name":t["name"],"weight":theme_w.get(t["name"],0),
+                   "share":round(max(0,theme_w.get(t["name"],0))/theme_total*100,1)}
+                  for t in THEMES]
+    themes_out.sort(key=lambda x:x["weight"],reverse=True)
+
+    # 渠道价值
+    src_rows = con.execute("""
+      SELECT s.source_code,s.name,s.scene,
+        COUNT(DISTINCT us.session_id) sessions,
+        COUNT(DISTINCT r.recommendation_id) recommendations,
+        COUNT(DISTINCT CASE WHEN e.event IN ('like','favorite','curation') THEN e.session_id END) strong_sessions,
+        COUNT(DISTINCT CASE WHEN e.event='curation' THEN e.session_id END) curation_sessions
+      FROM sources s
+      LEFT JOIN user_sessions us ON us.source_id=s.id
+      LEFT JOIN recommendations r ON r.source_id=s.id
+      LEFT JOIN user_events e ON e.source_id=s.id
+      GROUP BY s.id ORDER BY sessions DESC
+    """).fetchall()
+    sources = []
+    for r in src_rows:
+        d = dict(r)
+        d["strong_rate"] = round(d["strong_sessions"]/max(1,d["sessions"])*100,1)
+        sources.append(d)
+
+    ex_status = {r["status"]:r["c"] for r in con.execute("SELECT status,COUNT(*) c FROM exhibitions GROUP BY status")}
+    con.close()
+    return {
+        "generated_at":now(),
+        "kpi":{
+            "sessions":sessions,"users":users,"recommendations":len(recs),"total_events":len(events),
+            "likes":sum(1 for e in events if e["event"]=="like"),
+            "favorites":sum(1 for e in events if e["event"]=="favorite"),
+            "curation_votes":len(votes),
+            "curation_rate":round(len(curation_users)/base*100,1),
+        },
+        "funnel":funnel,"timeline":timeline,"themes":themes_out,"top_artworks":top[:10],
+        "sources":sources,"exhibitions":ex_status,
+        "diagnostics":{"algorithm_version":ALGORITHM_VERSION,
+                       "public_pool":len([a for a in arts.values() if a.get("digital_public")==1]),
+                       "internal_assets":len([a for a in arts.values() if a.get("internal_review")==1])}
+    }
+
+@app.get("/recommendation-diagnostics")
+def recommendation_diagnostics():
+    con = connect()
+    rows = con.execute("""
+      SELECT a.asset_code,a.title,COUNT(r.id) exposures,
+             ROUND(AVG(r.selected_score),3) avg_selected_score
+      FROM culture_assets a LEFT JOIN recommendations r ON r.artwork_id=a.id
+      WHERE a.digital_public=1
+      GROUP BY a.id ORDER BY exposures DESC,a.id
+    """).fetchall()
+    con.close()
+    return {"algorithm_version":ALGORITHM_VERSION,"top_n":TOP_N,
+            "weights":WEIGHTS,"items":[dict(r) for r in rows]}
+
+def build_curation_proposal():
+    pool = curation_pool()["user_signal_items"]
+    voted = [x for x in pool if x["interest_score"]>0]
+    if not voted:
+        return {"works":[],"theme":None,"title":None,"statement":"当前没有足够的用户共创数据。"}
+    theme_score = Counter()
+    for x in voted:
+        theme_score[x["theme"]] += max(1,x["interest_score"])
+    theme = theme_score.most_common(1)[0][0]
+    selected = [x for x in voted if x["theme"]==theme][:6]
+    if len(selected)<3:
+        for x in voted:
+            if x not in selected:
+                selected.append(x)
+            if len(selected)>=4: break
+    titles = {
+        "城市记忆":("城市记忆：从街角到锦江","把用户选择中的上海文化线索组织成一条从城市到饭店的叙事。"),
+        "海派文化":("海派日常：从画面到饭店","从艺术作品、城市生活与锦江空间之间建立当代海派文化连接。"),
+        "建筑艺术":("建筑可阅读：锦江的城市立面","以建筑、城市与空间记忆作为主题线索组织候选作品。"),
+    }
+    title,statement = titles.get(theme,(f"{theme}：用户共创主题展","由用户真实选择形成的主题策展候选。"))
+    return {
+        "theme":theme,"title":title,"statement":statement,
+        "works":[{"id":x["id"],"title":x["title"],"cover":x["cover"],
+                  "votes":x["curation_votes"],"interest_score":x["interest_score"]} for x in selected]
+    }
+
+@app.get("/curation/proposal")
+def curation_proposal():
+    p = build_curation_proposal()
+    con = connect()
+    contributors = con.execute("SELECT COUNT(DISTINCT user_id) c FROM curation_votes WHERE vote=1").fetchone()["c"]
+    total_votes = con.execute("SELECT COUNT(*) c FROM curation_votes WHERE vote=1").fetchone()["c"]
+    con.close()
+    return {**p,"contributors":contributors,"total_votes":total_votes,
+            "status":f"{contributors} 位用户 · {total_votes} 次共创选择"}
+
+@app.post("/curation/proposal/publish")
+def publish_curation_proposal(body:PublishProposalIn):
+    p = build_curation_proposal()
+    if not p["works"]:
+        raise HTTPException(400,"当前没有足够的用户共创数据")
+    theme_code = next((t["theme_code"] for t in THEMES if t["name"]==p["theme"]),None)
+    ts = now()
+    con = connect()
+    con.execute("""
+      INSERT INTO exhibitions(title,theme_code,hotel_id,status,period,description,generated_from_votes,source_note,published_at,created_at,updated_at)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?)
+    """,(body.title or p["title"],theme_code,HOTEL["id"],"published",body.period,p["statement"],1,body.source_note,ts,ts,ts))
+    eid = con.execute("SELECT last_insert_rowid() id").fetchone()["id"]
+    for order,w in enumerate(p["works"],1):
+        con.execute("INSERT INTO exhibition_assets(exhibition_id,asset_id,sort_order) VALUES(?,?,?)",
+                    (eid,w["id"],order))
+    con.execute("""
+      INSERT INTO activities(exhibition_id,hotel_id,title,activity_type,location,status,capacity,description,created_at,updated_at)
+      VALUES(?,?,?,?,?,?,?,?,?,?)
+    """,(eid,HOTEL["id"],f"{p['theme']}·共创导览","文化导览","锦江饭店","published",40,
+         "围绕用户共创策展结果形成的配套导览活动。",ts,ts))
+    con.commit()
+    row = con.execute("SELECT * FROM exhibitions WHERE id=?",(eid,)).fetchone()
+    payload = _exhibition_payload(con,row)
+    con.close()
+    return {"ok":True,"exhibition":payload}
 
 @app.post("/demo/seed")
-def demo_seed(body: SeedIn):
-    """注入模拟用户行为，保证现场演示时看板与排行榜不是空的。
-
-    模拟数据统一使用 sim- 前缀的用户 ID，重复调用会先清空上一批，不会污染真实演示行为。
-    """
+def demo_seed(body:SeedIn):
     con = connect()
-    con.execute("DELETE FROM user_events WHERE user_id LIKE 'sim-%'")
+    # 只清理模拟数据，真实演示操作保留。
+    sim_sessions = [r["session_id"] for r in con.execute("SELECT session_id FROM user_sessions WHERE user_id LIKE 'sim-%'")]
+    con.execute("DELETE FROM user_preferences WHERE user_id LIKE 'sim-%'")
     con.execute("DELETE FROM curation_votes WHERE user_id LIKE 'sim-%'")
+    con.execute("DELETE FROM user_events WHERE user_id LIKE 'sim-%'")
+    con.execute("DELETE FROM recommendations WHERE user_id LIKE 'sim-%'")
+    con.execute("DELETE FROM user_sessions WHERE user_id LIKE 'sim-%'")
 
-    rng = random.Random(20260828)
+    rng = random.Random(20260901)
     arts = [artwork_dict(r) for r in con.execute("SELECT * FROM artworks").fetchall()]
-    # 模拟曝光复用线上同一套策略：Top-N 候选池 + 匹配度三次方带权随机，
-    # 因此看板上的集中度来自推荐算法本身，而非人为写死的分布
-    base_score = {}
-    for a in arts:
-        p = {"brand": 1.0 if ("锦江" in a["tags"] or "酒店" in a["tags"]
-                              or a["category"] in ["酒店档案", "空间设计", "服务文化"]) else .65,
-             "region": 1.0 if a["region"] == HOTEL["city"] else .2,
-             "theme": max(sum(k in set(a["tags"]) for k in t["keywords"]) / len(t["keywords"])
-                          for t in THEMES),
-             "style": 1.0 if any(k in a["tags"] for k in ["海派", "建筑", "设计", "城市", "生活"]) else .55}
-        base_score[a["id"]] = sum(p[k] * WEIGHTS[k] for k in WEIGHTS)
-    arts = sorted(arts, key=lambda a: base_score[a["id"]], reverse=True)[:TOP_N]
-
-    def pref(a):
-        return max(.05, base_score[a["id"]] ** 3)
-    weights = [pref(a) for a in arts]
-    now = datetime.now()
-    ev_rows, vote_rows = [], []
+    direct = source_row(con,"direct")
+    lobby = source_row(con,"hotel-lobby-qr")
+    room = source_row(con,"guest-room-qr")
+    event_src = source_row(con,"event-qr")
+    srcs = [lobby,room,event_src,direct]
+    ts_now = datetime.now()
+    rec_rows=[]; ev_rows=[]; vote_rows=[]; sess_rows=[]
 
     for u in range(body.users):
-        uid = f"sim-{u:03d}"
-        # 按用户序号单调铺开并叠加轻微抖动：日粒度曲线呈稳定上升，而非随机锯齿
-        x = (u + 0.5) / max(1, body.users)
-        days_ago = body.days * ((1 - x) ** 2.0) + rng.uniform(-.07, .07)
-        t = now - timedelta(days=max(0.0, days_ago), minutes=rng.uniform(0, 200))
-        seen = rng.choices(arts, weights=weights, k=rng.randint(1, 4))
-        opened_reason = False
-        gave_feedback = False
+        uid=f"sim-{u:03d}"
+        src=rng.choices(srcs,weights=[4,3,2,1],k=1)[0]
+        sid=f"sim-sess-{u:03d}"
+        t=ts_now-timedelta(days=rng.random()*body.days,hours=rng.random()*8)
+        sess_rows.append((sid,uid,src["id"],t.isoformat(timespec="seconds"),t.isoformat(timespec="seconds")))
+        seen = rng.sample(arts,k=min(len(arts),rng.randint(1,4)))
         for a in seen:
-            t += timedelta(minutes=rng.uniform(.4, 3))
-            ev_rows.append((uid, "impression", a["id"], t.isoformat(timespec="seconds")))
-            if rng.random() < .72:
-                opened_reason = True
-                ev_rows.append((uid, "reason_open", a["id"],
-                                (t + timedelta(seconds=rng.randint(4, 25))).isoformat(timespec="seconds")))
-            if rng.random() < .58:
-                gave_feedback = True
-                e = rng.choices(["like", "favorite", "dislike"], weights=[6, 3, 1.4])[0]
-                ev_rows.append((uid, e, a["id"],
-                                (t + timedelta(seconds=rng.randint(6, 40))).isoformat(timespec="seconds")))
-            if rng.random() < .34:
-                ev_rows.append((uid, "detail", a["id"],
-                                (t + timedelta(seconds=rng.randint(8, 60))).isoformat(timespec="seconds")))
-            if rng.random() < .30:
-                ev_rows.append((uid, "change", a["id"],
-                                (t + timedelta(seconds=rng.randint(10, 70))).isoformat(timespec="seconds")))
-        if opened_reason and gave_feedback and rng.random() < .46:
-            a = rng.choices(seen, weights=[pref(x) ** 3 for x in seen])[0]
-            ts = (t + timedelta(seconds=rng.randint(20, 120))).isoformat(timespec="seconds")
-            vote_rows.append((uid, a["id"], 1, ts))
-            ev_rows.append((uid, "curation", a["id"], ts))
-        if rng.random() < .18:
-            a = rng.choice(seen)
-            ev_rows.append((uid, "activity_click", a["id"],
-                            (t + timedelta(minutes=rng.uniform(1, 8))).isoformat(timespec="seconds")))
-
-    con.executemany("INSERT INTO user_events(user_id,event,artwork_id,created_at) VALUES(?,?,?,?)", ev_rows)
-    con.executemany("INSERT INTO curation_votes(user_id,artwork_id,vote,created_at) VALUES(?,?,?,?)", vote_rows)
-    con.commit(); con.close()
-    return {"ok": True, "users": body.users, "events": len(ev_rows),
-            "curation_votes": len(vote_rows),
-            "message": f"已注入 {body.users} 位模拟用户、{len(ev_rows)} 条行为"}
-
+            rid=f"sim-rec-{u:03d}-{a['id']}-{rng.randint(1000,9999)}"
+            t += timedelta(minutes=rng.randint(1,12))
+            rec_rows.append((rid,uid,sid,src["id"],HOTEL["id"],a["id"],ALGORITHM_VERSION,len(arts),
+                             round(rng.uniform(.62,.92),3),"{}",t.isoformat(timespec="seconds")))
+            if rng.random()<.58:
+                ev_rows.append((uid,"detail",a["id"],rid,sid,src["id"],"{}",(t+timedelta(seconds=10)).isoformat(timespec="seconds")))
+            if rng.random()<.50:
+                e=rng.choices(["like","favorite","dislike"],weights=[6,3,1],k=1)[0]
+                ev_rows.append((uid,e,a["id"],rid,sid,src["id"],"{}",(t+timedelta(seconds=30)).isoformat(timespec="seconds")))
+            if rng.random()<.22:
+                vt=(t+timedelta(seconds=55)).isoformat(timespec="seconds")
+                vote_rows.append((uid,a["id"],None,rid,sid,1,vt))
+                ev_rows.append((uid,"curation",a["id"],rid,sid,src["id"],"{}",vt))
+    con.executemany("""INSERT INTO user_sessions(session_id,user_id,source_id,started_at,last_seen_at) VALUES(?,?,?,?,?)""",sess_rows)
+    con.executemany("""INSERT INTO recommendations(recommendation_id,user_id,session_id,source_id,hotel_id,artwork_id,algorithm_version,candidate_count,selected_score,context,shown_at)
+                       VALUES(?,?,?,?,?,?,?,?,?,?,?)""",rec_rows)
+    con.executemany("""INSERT INTO user_events(user_id,event,artwork_id,recommendation_id,session_id,source_id,metadata,created_at)
+                       VALUES(?,?,?,?,?,?,?,?)""",ev_rows)
+    con.executemany("""INSERT INTO curation_votes(user_id,artwork_id,space_id,recommendation_id,session_id,vote,created_at)
+                       VALUES(?,?,?,?,?,?,?)""",vote_rows)
+    # 根据模拟行为重算偏好
+    for row in ev_rows:
+        update_preferences(con,row[0],row[2],row[1])
+    con.commit()
+    con.close()
+    return {"ok":True,"users":body.users,"recommendations":len(rec_rows),
+            "events":len(ev_rows),"curation_votes":len(vote_rows),
+            "message":f"已注入 {body.users} 位模拟用户的完整推荐与行为链路"}
 
 @app.post("/demo/reset")
 def demo_reset():
-    """清空全部行为数据，恢复到演示起点，作品库保持不变。"""
     con = connect()
-    con.execute("DELETE FROM user_events")
+    con.execute("DELETE FROM user_preferences")
     con.execute("DELETE FROM curation_votes")
-    con.commit(); con.close()
-    return {"ok": True, "message": "已清空全部行为数据，作品库保留"}
+    con.execute("DELETE FROM user_events")
+    con.execute("DELETE FROM recommendations")
+    con.execute("DELETE FROM user_sessions")
+    con.commit()
+    con.close()
+    return {"ok":True,"message":"已清空推荐、行为、偏好与共创数据；文化资产和已发布展览保留"}
