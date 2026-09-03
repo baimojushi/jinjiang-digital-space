@@ -7,19 +7,39 @@ const makeId = () => (globalThis.crypto?.randomUUID ? crypto.randomUUID().replac
 const SESSION = localStorage.getItem(SESSION_KEY) || ("sess-web-" + makeId().slice(0,16));
 localStorage.setItem(SESSION_KEY, SESSION);
 
+// API_BASE 推断：公网 /jinjiang/* 时取 /jinjiang，本地 / 时取空
+// 不依赖 <base href> 解析（某些代理会丢 base）
+// 优先用 <base>，fallback 用 pathname 推断
+const _baseEl = document.querySelector('base[href]');
+let _baseFromTag = _baseEl ? _baseEl.getAttribute('href') : '';
+if (!_baseFromTag) {
+  // pathname like /jinjiang/ or /jinjiang/foo -> /jinjiang
+  const p = window.location.pathname;
+  const m = p.match(/^(\/[^\/]+)(\/|$)/);
+  _baseFromTag = (m && m[1] !== '/') ? m[1] : '';
+}
+const API_BASE = _baseFromTag.replace(/\/$/, '');
+
+function apiPath(p) {
+  if (!p.startsWith('/')) return p;
+  return API_BASE + p;
+}
+
 let current = null;
 let currentRecommendation = null;
 let currentSession = SESSION;
 let loading = false;
 
 async function api(path, options={}) {
-  const r = await fetch(path,{headers:{"Content-Type":"application/json"},...options});
+  const r = await fetch(apiPath(path),{headers:{"Content-Type":"application/json"},...options});
   const data = await r.json().catch(()=>({}));
   if(!r.ok) throw new Error(typeof data.detail==="string"?data.detail:JSON.stringify(data.detail||data));
   return data;
 }
 function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 function toast(msg){const el=$("#toast");el.textContent=msg;el.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("on"),1800)}
+// 图片 URL — 后端给的是 /static/... 绝对路径，浏览器会绕过 <base> 落到 Funnel 根，必须加 API_BASE 前缀
+function url(p){if(!p)return p;if(/^https?:/i.test(p))return p;return API_BASE+(p.startsWith('/')?p:'/'+p);}
 function sendEvent(event,id=current?.id,metadata={}) {
   if(!id) return Promise.resolve();
   return api("/user-event",{method:"POST",body:JSON.stringify({
@@ -29,7 +49,7 @@ function sendEvent(event,id=current?.id,metadata={}) {
 }
 function workGrid(items){
   if(!items?.length) return `<div class="quiet">还没有记录。</div>`;
-  return items.map(x=>`<div class="mini-work"><img src="${x.cover||""}" alt="${esc(x.title)}"><span>${esc(x.title)}</span></div>`).join("");
+  return items.map(x=>`<div class="mini-work"><img src="${url(x.cover)||""}" alt="${esc(x.title)}"><span>${esc(x.title)}</span></div>`).join("");
 }
 
 async function loadRecommendation(exclude){
@@ -40,7 +60,7 @@ async function loadRecommendation(exclude){
     const d=await api("/daily-recommendation?"+q.toString());
     current=d.artwork;currentRecommendation=d.recommendation_id;currentSession=d.session_id||currentSession;
     $("#sourceChip").textContent=d.source?.name||"今日锦江";
-    $("#plateImg").src=current.cover;$("#plateImg").alt=current.title;
+    $("#plateImg").src=url(current.cover);$("#plateImg").alt=current.title;
     $("#relevanceLabel").textContent=d.relevance_label||current.theme;
     $("#workTitle").textContent=current.title;
     $("#workLead").textContent=current.theme_text||"从作品进入今天的锦江文化线索。";
@@ -53,7 +73,7 @@ async function loadRecommendation(exclude){
     $("#curateNote").textContent=d.curation_state?.votes?`已有 ${d.curation_state.votes} 次共创选择支持这件作品。你的选择也会进入酒店端。`:"你的选择会进入酒店端的共创策展候选，成为下一场文化内容的真实用户信号。";
     ["btnLike","btnFav","btnDislike"].forEach(id=>$("#"+id).classList.remove("on"));
     const detail=await api("/artworks/"+current.id+"?user_id="+encodeURIComponent(USER));
-    $("#relatedList").innerHTML=(detail.related||[]).map(r=>`<figure data-open="${r.id}"><img src="${r.cover}" alt="${esc(r.title)}"><figcaption>${esc(r.title)}</figcaption></figure>`).join("");
+    $("#relatedList").innerHTML=(detail.related||[]).map(r=>`<figure data-open="${r.id}"><img src="${url(r.cover)}" alt="${esc(r.title)}"><figcaption>${esc(r.title)}</figcaption></figure>`).join("");
     await sendEvent("impression",current.id);
   }catch(e){toast("推荐服务暂时不可用");console.error(e)}
   finally{loading=false}
@@ -77,7 +97,7 @@ $("#btnCurate").onclick=async()=>{
 async function openSheet(id){
   await sendEvent("detail",id);
   const a=await api("/artworks/"+id+"?user_id="+encodeURIComponent(USER));
-  $("#sheetImg").src=a.cover;$("#sheetImg").alt=a.title;
+  $("#sheetImg").src=url(a.cover);$("#sheetImg").alt=a.title;
   $("#sheetTheme").textContent=a.relevance_label||a.theme;$("#sheetTitle").textContent=a.title;
   $("#sheetMeta").textContent=[a.author,a.region,a.era,a.source].filter(Boolean).join(" · ");
   $("#sheetStory").textContent=a.story||a.theme_text||"";
@@ -93,8 +113,8 @@ async function loadHotelStory(){
   const d=await api("/hotel/1/story");
   $("#hotelStory").textContent=(d.hotel.history||"")+" "+(d.hotel.positioning||"");
   $("#storySections").innerHTML=(d.story_sections||[]).map((x,i)=>`<div class="story-line"><span class="eyebrow light">0${i+1}</span><b>${esc(x.title)}</b><p>${esc(x.text)}</p></div>`).join("");
-  $("#artifactGrid").innerHTML=(d.artifacts||[]).map(x=>`<div class="artifact"><img src="${x.cover}" alt="${esc(x.title)}"><div><b>${esc(x.title)}</b><span>${esc(x.code)} · ${esc(x.theme)}</span></div></div>`).join("");
-  $("#hotelGallery").innerHTML=(d.gallery||[]).map(x=>`<figure class="photo"><img loading="lazy" src="${x.file_path}" alt="${esc(x.category)}"><span>${esc(x.category)}</span></figure>`).join("");
+  $("#artifactGrid").innerHTML=(d.artifacts||[]).map(x=>`<div class="artifact"><img src="${url(x.cover)}" alt="${esc(x.title)}"><div><b>${esc(x.title)}</b><span>${esc(x.code)} · ${esc(x.theme)}</span></div></div>`).join("");
+  $("#hotelGallery").innerHTML=(d.gallery||[]).map(x=>`<figure class="photo"><img loading="lazy" src="${url(x.file_path)}" alt="${esc(x.category)}"><span>${esc(x.category)}</span></figure>`).join("");
 }
 async function loadLive(){
   const d=await api("/exhibitions");
@@ -102,7 +122,7 @@ async function loadLive(){
   $("#exhibitionList").innerHTML=d.items.map(ex=>`<section class="exhibition">
     <div class="exhibition-head"><div><span class="eyebrow">${esc(ex.theme||"锦江策展")}</span><h2>${esc(ex.title)}</h2></div><span class="exhibition-status">已发布</span></div>
     <p class="exhibition-copy">${esc(ex.description||"")}</p>
-    <div class="ex-work-grid">${(ex.works||[]).map(w=>`<div class="ex-work"><img src="${w.cover||""}" alt="${esc(w.title)}"><span>${esc(w.title)}</span></div>`).join("")}</div>
+    <div class="ex-work-grid">${(ex.works||[]).map(w=>`<div class="ex-work"><img src="${url(w.cover)||""}" alt="${esc(w.title)}"><span>${esc(w.title)}</span></div>`).join("")}</div>
     ${(ex.activities||[]).map(a=>`<div class="activity-box"><b>${esc(a.title)}</b> · ${esc(a.location||"锦江饭店")} · ${esc(a.status)}</div>`).join("")}
     ${ex.generated_from_votes?`<div class="cue" style="margin-bottom:0"><b>共创结果</b>这场展览由用户策展信号生成，并由酒店端确认发布。</div>`:""}
   </section>`).join("");
@@ -136,3 +156,22 @@ $("#demoToggle").onclick=()=>{
 };
 
 loadRecommendation();
+
+// 背景锦江酒店 logo 视差：滚动量 ×0.5，比第一层慢 50%
+// 方向与滚动相反（向下滚时 logo 向上走），叠加原本的居中偏移
+(() => {
+  const wm = document.getElementById("brandWatermark");
+  if (!wm) return;
+  let ticking = false;
+  const update = () => {
+    wm.style.transform = `translateY(calc(-50% - ${window.scrollY * 0.5}px))`;
+    ticking = false;
+  };
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      requestAnimationFrame(update);
+      ticking = true;
+    }
+  }, { passive: true });
+  update();
+})();

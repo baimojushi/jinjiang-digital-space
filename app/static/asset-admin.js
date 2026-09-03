@@ -1,6 +1,18 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-async function api(path,options={}){const r=await fetch(path,{headers:{"Content-Type":"application/json"},...options});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(typeof d.detail==="string"?d.detail:JSON.stringify(d.detail||d));return d}
+
+// API_BASE 推断：公网 /jinjiang/* 取 /jinjiang，本地 / 取空。不依赖 <base href> 解析
+const _baseEl = document.querySelector('base[href]');
+let _baseFromTag = _baseEl ? _baseEl.getAttribute('href') : '';
+if (!_baseFromTag) {
+  const m = window.location.pathname.match(/^(\/[^\/]+)(\/|$)/);
+  _baseFromTag = (m && m[1] !== '/') ? m[1] : '';
+}
+const API_BASE = _baseFromTag.replace(/\/$/, '');
+function apiPath(p){if(!p.startsWith('/'))return p;return API_BASE+p;}
+function url(p){if(!p)return p;if(/^https?:/i.test(p))return p;return API_BASE+(p.startsWith('/')?p:'/'+p);}
+
+async function api(path,options={}){const r=await fetch(apiPath(path),{headers:{"Content-Type":"application/json"},...options});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(typeof d.detail==="string"?d.detail:JSON.stringify(d.detail||d));return d}
 const rights={authorized:"已授权",pending:"待确认",internal:"仅内部",restricted:"受限",expired:"已到期",public_domain_verified:"公版已核验"};
 const review={pending:"待审核",approved:"已通过",rejected:"已驳回"};
 const publish={draft:"草稿",published:"已发布",archived:"已归档"};
@@ -23,7 +35,7 @@ function qs(){const p=new URLSearchParams({page_size:"100"});if($("#q").value)p.
 async function loadAssets(){
  const d=await api("/api/admin/assets?"+qs());
  $("#assetBody").innerHTML=d.items.map(a=>`<tr class="aa-row" data-id="${a.id}">
- <td><div class="aa-asset"><img src="${a.cover||""}"><div><b>${esc(a.title)}</b><small>${esc(a.asset_code)} · ${esc(a.author||"作者待补")}</small></div></div></td>
+ <td><div class="aa-asset"><img src="${url(a.cover)||""}"><div><b>${esc(a.title)}</b><small>${esc(a.asset_code)} · ${esc(a.author||"作者待补")}</small></div></div></td>
  <td>${esc(a.collection_name||"-")}</td>
  <td>${status(rights[a.rights_status]||a.rights_status,a.rights_status==="authorized"?"ok":a.rights_status==="pending"?"warn":"")}</td>
  <td>${status(review[a.review_status]||a.review_status,a.review_status==="approved"?"ok":"warn")} ${status(publish[a.publish_status]||a.publish_status,a.publish_status==="published"?"ok":"")}</td>
@@ -32,8 +44,8 @@ async function loadAssets(){
 }
 async function loadRights(){const d=await api("/api/admin/rights/queue");$("#rightsCount").textContent=d.count;$("#rightsQueue").innerHTML=d.items.slice(0,50).map(a=>`<div class="aa-list-item" data-id="${a.id}"><b>${esc(a.asset_code)} · ${esc(a.title)}</b><span>${esc(a.collection_name||"")}｜${esc(rights[a.rights_status]||a.rights_status)}</span></div>`).join("");document.querySelectorAll("#rightsQueue [data-id]").forEach(x=>x.onclick=()=>openAsset(+x.dataset.id))}
 async function loadQuality(){const d=await api("/api/admin/data-quality");$("#blockingCount").textContent=d.blocking+" 阻断";$("#warningCount").textContent=d.warning+" 提醒";$("#qualityList").innerHTML=d.issues.slice(0,100).map(i=>`<div class="aa-list-item"><b>${status(i.severity==="blocking"?"阻断":"提醒",i.severity==="blocking"?"block":"warn")} ${esc(i.code)}</b><span>${esc(i.message)}</span></div>`).join("")}
-async function loadSpaces(){const d=await api("/api/admin/spaces");$("#spaceGrid").innerHTML=d.items.map(s=>`<div class="aa-space" data-id="${s.id}"><img src="${s.cover||""}"><div><b>${esc(s.space_code)} · ${esc(s.name)}</b><span>${esc(s.building||"楼宇待补")}｜${esc(s.space_type||"类型待补")}｜${s.media_count}张关联图</span></div></div>`).join("");document.querySelectorAll(".aa-space").forEach(x=>x.onclick=()=>openSpace(+x.dataset.id,d.items.find(s=>s.id==+x.dataset.id)))}
-async function loadMedia(){const cat=$("#mediaCategory").value;const d=await api("/api/admin/media?page_size=120"+(cat?"&category="+encodeURIComponent(cat):""));$("#mediaGrid").innerHTML=d.items.map(m=>`<div class="aa-media"><img loading="lazy" src="${m.file_path}"><span>${esc(m.category||m.media_code)}</span></div>`).join("")}
+async function loadSpaces(){const d=await api("/api/admin/spaces");$("#spaceGrid").innerHTML=d.items.map(s=>`<div class="aa-space" data-id="${s.id}"><img src="${url(s.cover)||""}"><div><b>${esc(s.space_code)} · ${esc(s.name)}</b><span>${esc(s.building||"楼宇待补")}｜${esc(s.space_type||"类型待补")}｜${s.media_count}张关联图</span></div></div>`).join("");document.querySelectorAll(".aa-space").forEach(x=>x.onclick=()=>openSpace(+x.dataset.id,d.items.find(s=>s.id==+x.dataset.id)))}
+async function loadMedia(){const cat=$("#mediaCategory").value;const d=await api("/api/admin/media?page_size=120"+(cat?"&category="+encodeURIComponent(cat):""));$("#mediaGrid").innerHTML=d.items.map(m=>`<div class="aa-media"><img loading="lazy" src="${url(m.file_path)}"><span>${esc(m.category||m.media_code)}</span></div>`).join("")}
 async function loadBatches(){const d=await api("/api/admin/import-batches");$("#batchBody").innerHTML=d.items.map(b=>`<tr><td>${esc(b.source_name)}</td><td>${esc(b.source_type)}</td><td>${status(b.status,b.status==="success"?"ok":"warn")}</td><td>${b.total_rows}</td><td>${b.success_rows}</td><td>${b.warning_rows}</td><td>${esc(b.note||"")}</td></tr>`).join("")}
 function field(id,label,val){return `<div class="aa-field"><label>${label}</label><input id="f_${id}" value="${esc(val||"")}"></div>`}
 function options(map,current){return Object.entries(map).map(([k,v])=>`<option value="${k}" ${k===current?"selected":""}>${v}</option>`).join("")}
@@ -41,7 +53,7 @@ function options(map,current){return Object.entries(map).map(([k,v])=>`<option v
 async function openAsset(id){
  const a=await api("/api/admin/assets/"+id),gate=a.publication_gate;
  $("#assetEditor").innerHTML=`<div class="aa-editor"><div class="eyebrow">${esc(a.collection_name)} · ${esc(a.asset_code)}</div><h2>${esc(a.title)}</h2>
- ${a.cover?`<img class="aa-editor-cover" src="${a.cover}">`:""}
+ ${a.cover?`<img class="aa-editor-cover" src="${url(a.cover)}">`:""}
  <div class="aa-gate ${gate.eligible?"ok":"block"}"><b>数字公开门禁：</b>${gate.eligible?"当前满足C端公开条件":esc(gate.blocking.join("；"))}</div>
  <div class="aa-form">
  ${field("title","作品名称",a.title)}${field("author","作者",a.author)}${field("source","来源",a.source)}${field("building","楼宇/业务归属",a.building)}
@@ -63,7 +75,7 @@ async function openAsset(id){
  $("#publishAsset").onclick=async()=>{try{await api("/api/admin/assets/"+id+"/publish",{method:"POST",body:"{}"});await refreshAll();await openAsset(id)}catch(e){alert("校验失败："+e.message)}};
 }
 function openSpace(id,s){
- $("#assetEditor").innerHTML=`<div class="aa-editor"><div class="eyebrow">SPACE · ${esc(s.space_code)}</div><h2>${esc(s.name)}</h2>${s.cover?`<img class="aa-editor-cover" src="${s.cover}">`:""}
+ $("#assetEditor").innerHTML=`<div class="aa-editor"><div class="eyebrow">SPACE · ${esc(s.space_code)}</div><h2>${esc(s.name)}</h2>${s.cover?`<img class="aa-editor-cover" src="${url(s.cover)}">`:""}
  <div class="aa-gate ${s.status==="active"?"ok":"block"}"><b>空间状态：</b>${s.status==="active"?"可进入空间策展匹配":"主数据待补齐，具体Space匹配保持阻断"}</div>
  <div class="aa-form">${field("s_name","空间名称",s.name)}${field("s_building","楼宇",s.building)}${field("s_floor","楼层",s.floor)}${field("s_space_type","空间类型",s.space_type)}${field("s_function","功能",s.function)}${field("s_style","风格",s.style)}${field("s_display_type","展陈方式",s.display_type)}${field("s_wall_size","可用墙面/尺寸",s.wall_size)}${field("s_light_condition","光照条件",s.light_condition)}${field("s_visitor_access","访客权限",s.visitor_access)}
  <div class="aa-field"><label>可展陈</label><select id="f_s_display_available">${boolOptions(s.display_available)}</select></div><div class="aa-field"><label>状态</label><select id="f_s_status"><option value="needs_enrichment" ${s.status==="needs_enrichment"?"selected":""}>待补充</option><option value="active" ${s.status==="active"?"selected":""}>可使用</option></select></div></div>
@@ -76,3 +88,22 @@ async function refreshAll(){await Promise.all([loadSummary(),loadAssets(),loadRi
 $("#mediaCategory").onchange=loadMedia;$("#drawerClose").onclick=()=>$("#drawer").classList.add("hidden");
 $("#recompute").onclick=async()=>{const b=$("#recompute");b.disabled=true;try{const r=await api("/api/admin/recompute-space-matches",{method:"POST",body:"{}"});alert(r.message)}finally{b.disabled=false}};
 refreshAll();
+
+// 背景锦江酒店 logo 视差：滚动量 ×0.5，比第一层慢 50%
+// 方向与滚动相反（向下滚时 logo 向上走），叠加原本的居中偏移
+(() => {
+  const wm = document.getElementById("brandWatermark");
+  if (!wm) return;
+  let ticking = false;
+  const update = () => {
+    wm.style.transform = `translateY(calc(-50% - ${window.scrollY * 0.5}px))`;
+    ticking = false;
+  };
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      requestAnimationFrame(update);
+      ticking = true;
+    }
+  }, { passive: true });
+  update();
+})();

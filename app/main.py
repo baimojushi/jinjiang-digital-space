@@ -1,4 +1,4 @@
-"""锦江数字空间 MVP 3.2 · 文化运营数据闭环版
+"""锦江非遗数字空间 MVP 3.2 · 文化运营数据闭环版
 
 产品原则：
 1. C端只感知文化内容、推荐理由、个人选择和策展结果。
@@ -24,18 +24,44 @@ BASE = Path(__file__).resolve().parent
 STATIC = BASE / "static"
 DB = BASE / "jinjiang.db"
 
-app = FastAPI(title="锦江数字空间 MVP 3.2 · 文化运营数据闭环版", version="3.2.0")
+app = FastAPI(
+    title="锦江非遗数字空间 MVP 3.2 · 文化运营数据闭环版",
+    version="3.2.0",
+    docs_url=None,        # 禁用默认 /docs（Swagger UI 资源 /assets/* 在 Funnel 子路径下不可达）
+    redoc_url=None,       # 禁用默认 /redoc
+    openapi_url="/openapi.json",  # openapi JSON 仍可访问，路径不会被 Funnel 子路径影响
+)
 
 
 @app.middleware("http")
 async def inject_base_href(request: Request, call_next):
-    # 支持 /jinjiang 子路径部署：在页面 HTML 的 <head> 注入 <base href>
+    # 支持 /jinjiang 子路径部署：把 HTML 内的相对路径字面改写为带 /jinjiang 前缀的绝对路径
+    # 不依赖 <base href> 解析（某些 Funnel 边缘节点/中间层会丢 base），直接改字面 href
+    # 仅在 Funnel 公网入口（Host = *.ts.net）改写。本地 127.0.0.1:8000 直连不改
     response = await call_next(request)
-    if request.url.path in ("/", "/admin") and 200 <= response.status_code < 300:
+    # 强制浏览器每次重新验证 — 切换后端仓库/前端代码时避免用户端缓存旧版本
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    host = (request.headers.get("host") or "").lower()
+    is_public = host.endswith(".ts.net")
+    content_type = (response.headers.get("content-type") or "").lower()
+    is_html = "text/html" in content_type
+    if is_public and is_html and 200 <= response.status_code < 300:
         body = b""
         async for chunk in response.body_iterator:
             body += chunk
         text = body.decode("utf-8", errors="replace")
+        import re
+        # 1) 相对路径 static/... -> /jinjiang/static/...
+        # 例：href="static/styles.css" -> href="/jinjiang/static/styles.css"
+        text = re.sub(r'(href|src)="(?!/)(static/[^"]+)"', r'\1="/jinjiang/\2"', text)
+        # 2) 已是绝对路径 /static/... -> /jinjiang/static/...
+        text = re.sub(r'(href|src)="/(static/[^"]+)"', r'\1="/jinjiang/\2"', text)
+        # 3) 页面间相对跳转 admin / asset-admin / docs (admin.html -> asset-admin, asset-admin.html -> admin)
+        text = re.sub(r'(href)="(?!/)(admin|asset-admin|docs|docs/)"', r'\1="/jinjiang/\2"', text)
+        text = re.sub(r'(href)="/(admin|asset-admin|docs|docs/)"', r'\1="/jinjiang/\2"', text)
+        # 4) 注入 <base href> 保留（兼容某些浏览器/代理）
         if "<head>" in text and '<base href=' not in text:
             text = text.replace("<head>", '<head>\n<base href="/jinjiang">', 1)
         headers = {k: v for k, v in response.headers.items() if k.lower() != "content-length"}
@@ -46,6 +72,33 @@ async def inject_base_href(request: Request, call_next):
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 app.include_router(asset_admin_router)
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    # 浏览器自动请求 favicon — 子路径部署下绝对路径 /favicon.ico 会经 Funnel 走到 8090 Caddy
+    # 直接在 Jinjiang 路由 204，浏览器不再重试也不再产生 502 噪音
+    return Response(status_code=204)
+
+
+@app.get("/docs", include_in_schema=False)
+async def docs_disabled():
+    # FastAPI 默认 /docs 用 swagger-ui-dist 静态资源，路径如 /assets/entry.client-XXX.js
+    # 在 Funnel 子路径下 /assets/* 没注册，CDN 资源加载失败，渲染报错
+    # 公网禁用 /docs /redoc /openapi.json 渲染；本地可正常访问 openapi.json
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(
+        "<html><head><meta charset='utf-8'><title>锦江非遗数字空间 API 文档</title></head>"
+        "<body style='font-family:sans-serif;padding:40px;max-width:720px;margin:auto;'>"
+        "<h2>锦江非遗数字空间 API 文档</h2>"
+        "<p>公网入口出于稳定性考虑不提供 Swagger UI 渲染。请通过以下方式查看 API 文档：</p>"
+        "<ul>"
+        "<li>本地访问：<a href='http://127.0.0.1:8000/docs'>http://127.0.0.1:8000/docs</a>（localhost Swagger UI）</li>"
+        "<li>OpenAPI JSON：<a href='/openapi.json'>/openapi.json</a>（机器可读 schema）</li>"
+        "</ul>"
+        "</body></html>",
+        status_code=200,
+    )
 
 
 def _ensure_database():
