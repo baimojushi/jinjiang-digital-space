@@ -47,6 +47,12 @@ async function loadQuality(){const d=await api("/api/admin/data-quality");$("#bl
 async function loadSpaces(){const d=await api("/api/admin/spaces");$("#spaceGrid").innerHTML=d.items.map(s=>`<div class="aa-space" data-id="${s.id}"><img src="${url(s.cover)||""}"><div><b>${esc(s.space_code)} · ${esc(s.name)}</b><span>${esc(s.building||"楼宇待补")}｜${esc(s.space_type||"类型待补")}｜${s.media_count}张关联图</span></div></div>`).join("");document.querySelectorAll(".aa-space").forEach(x=>x.onclick=()=>openSpace(+x.dataset.id,d.items.find(s=>s.id==+x.dataset.id)))}
 async function loadMedia(){const cat=$("#mediaCategory").value;const d=await api("/api/admin/media?page_size=120"+(cat?"&category="+encodeURIComponent(cat):""));$("#mediaGrid").innerHTML=d.items.map(m=>`<div class="aa-media"><img loading="lazy" src="${url(m.file_path)}"><span>${esc(m.category||m.media_code)}</span></div>`).join("")}
 async function loadBatches(){const d=await api("/api/admin/import-batches");$("#batchBody").innerHTML=d.items.map(b=>`<tr><td>${esc(b.source_name)}</td><td>${esc(b.source_type)}</td><td>${status(b.status,b.status==="success"?"ok":"warn")}</td><td>${b.total_rows}</td><td>${b.success_rows}</td><td>${b.warning_rows}</td><td>${esc(b.note||"")}</td></tr>`).join("")}
+async function loadReconciliation(){
+ const d=await api("/api/admin/ai/reconciliation");
+ const c=d.counts||{};
+ $("#reconciliationSummary").textContent=`待检查 ${c.unresolved||0} · 远端存在 ${c.remote_present||0} · 远端不存在 ${c.remote_missing||0} · 检查失败 ${c.check_failed||0}`;
+ $("#reconciliationList").innerHTML=(d.items||[]).slice(0,80).map(r=>`<div class="aa-list-item"><b>${esc(r.object_type)} · ${esc(r.remote_ref)}</b><span>${esc(r.status)} · ${esc(r.reason||"")}${r.last_error?" · "+esc(r.last_error):""}</span></div>`).join("")||`<div class="aa-list-item"><span>当前没有待对账的 Molink 远端对象。</span></div>`;
+}
 function field(id,label,val){return `<div class="aa-field"><label>${label}</label><input id="f_${id}" value="${esc(val||"")}"></div>`}
 function options(map,current){return Object.entries(map).map(([k,v])=>`<option value="${k}" ${k===current?"selected":""}>${v}</option>`).join("")}
 
@@ -61,6 +67,7 @@ async function openAsset(id){
  <div class="aa-field"><label>授权状态</label><select id="f_rights_status">${options(rights,a.rights_status)}</select></div>
  <div class="aa-field"><label>审核状态</label><select id="f_review_status">${options(review,a.review_status)}</select></div>
  <div class="aa-field"><label>发布状态</label><select id="f_publish_status">${options(publish,a.publish_status)}</select></div>
+ ${a.asset_type==="artwork"?`<div class="aa-field"><label>AI 空间体验</label><select id="f_ai_space_preview"><option value="auto" ${a.metadata?.ai_space_preview===undefined?"selected":""}>自动（按类型/尺寸资格）</option><option value="false" ${a.metadata?.ai_space_preview===false?"selected":""}>运营关闭</option><option value="true" ${a.metadata?.ai_space_preview===true?"selected":""}>允许（仍受硬门禁约束）</option></select></div>`:""}
  <div class="aa-field full"><label>标签（逗号分隔）</label><input id="f_tags" value="${esc((a.tags||[]).join(","))}"></div>
  <div class="aa-field full"><label>主题说明</label><textarea id="f_theme_text">${esc(a.theme_text||"")}</textarea></div>
  <div class="aa-field full"><label>作品故事</label><textarea id="f_story">${esc(a.story||"")}</textarea></div></div>
@@ -70,6 +77,11 @@ async function openAsset(id){
   const payload={};
   ["title","author","source","building","region","era","dimensions","style","theme_text","story","rights_status","review_status","publish_status"].forEach(k=>payload[k]=$("#f_"+k)?.value??null);
   payload.tags=$("#f_tags").value.split(",").map(x=>x.trim()).filter(Boolean);
+  if(a.asset_type==="artwork"&&$("#f_ai_space_preview")){
+    const metadata={...(a.metadata||{})},v=$("#f_ai_space_preview").value;
+    if(v==="auto")delete metadata.ai_space_preview;else metadata.ai_space_preview=(v==="true");
+    payload.metadata=metadata;
+  }
   try{await api("/api/admin/assets/"+id,{method:"PUT",body:JSON.stringify(payload)});await refreshAll();await openAsset(id)}catch(e){alert("保存失败："+e.message)}
  };
  $("#publishAsset").onclick=async()=>{try{await api("/api/admin/assets/"+id+"/publish",{method:"POST",body:"{}"});await refreshAll();await openAsset(id)}catch(e){alert("校验失败："+e.message)}};
@@ -83,10 +95,11 @@ function openSpace(id,s){
  $("#drawer").classList.remove("hidden");
  $("#saveSpace").onclick=async()=>{const payload={name:$("#f_s_name").value,building:$("#f_s_building").value,floor:$("#f_s_floor").value,space_type:$("#f_s_space_type").value,function:$("#f_s_function").value,style:$("#f_s_style").value,display_type:$("#f_s_display_type").value,wall_size:$("#f_s_wall_size").value,light_condition:$("#f_s_light_condition").value,visitor_access:$("#f_s_visitor_access").value,display_available:getBool("f_s_display_available"),status:$("#f_s_status").value};try{await api("/api/admin/spaces/"+id,{method:"PUT",body:JSON.stringify(payload)});$("#drawer").classList.add("hidden");await refreshAll()}catch(e){alert("保存失败："+e.message)}};
 }
-async function refreshAll(){await Promise.all([loadSummary(),loadAssets(),loadRights(),loadQuality(),loadSpaces(),loadMedia(),loadBatches()])}
+async function refreshAll(){await Promise.all([loadSummary(),loadAssets(),loadRights(),loadQuality(),loadSpaces(),loadMedia(),loadBatches(),loadReconciliation()])}
 ["q","collection","rights","publish"].forEach(id=>$("#"+id).addEventListener(id==="q"?"input":"change",loadAssets));
 $("#mediaCategory").onchange=loadMedia;$("#drawerClose").onclick=()=>$("#drawer").classList.add("hidden");
 $("#recompute").onclick=async()=>{const b=$("#recompute");b.disabled=true;try{const r=await api("/api/admin/recompute-space-matches",{method:"POST",body:"{}"});alert(r.message)}finally{b.disabled=false}};
+$("#checkReconciliation").onclick=async()=>{const b=$("#checkReconciliation");b.disabled=true;try{const r=await api("/api/admin/ai/reconciliation/check",{method:"POST",body:"{}"});await loadReconciliation();alert(`已检查 ${r.checked||0} 条：远端存在 ${r.remote_present||0}，远端不存在 ${r.remote_missing||0}，失败 ${r.failed||0}`)}catch(e){alert("对账检查失败："+e.message)}finally{b.disabled=false}};
 refreshAll();
 
 // 背景锦江酒店 logo 视差：滚动量 ×0.5，比第一层慢 50%

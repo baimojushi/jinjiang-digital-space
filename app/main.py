@@ -10,12 +10,13 @@
 from fastapi import FastAPI, HTTPException, Query, Request, UploadFile, File, Form
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pathlib import Path
 from datetime import datetime, date, timedelta
 from collections import Counter, defaultdict
+from contextlib import closing
 from uuid import uuid4
-import json, random, math, hashlib
+import asyncio, json, random, math, hashlib
 
 from .database import connect, init_database, hotel_profile, active_themes, now
 from .asset_admin import router as asset_admin_router
@@ -116,23 +117,78 @@ _ensure_database()
 HOTEL = hotel_profile()
 THEMES = active_themes()
 
+_trace_retry_task: asyncio.Task | None = None
+
+
+async def _trace_retry_loop():
+    while True:
+        try:
+            if molink.configured():
+                await molink.flush_pending_trace_events()
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            # Retry worker must never take down the web process. Persistent failures
+            # remain visible in ai_event_outbox as pending/dead_letter rows.
+            print(f"[jinjiang-ai-outbox] retry loop error: {exc}")
+        await asyncio.sleep(30)
+
+
+@app.on_event("startup")
+async def _start_trace_retry_worker():
+    global _trace_retry_task
+    if _trace_retry_task is None or _trace_retry_task.done():
+        _trace_retry_task = asyncio.create_task(_trace_retry_loop())
+
+
+@app.on_event("shutdown")
+async def _stop_trace_retry_worker():
+    global _trace_retry_task
+    if _trace_retry_task:
+        _trace_retry_task.cancel()
+        try:
+            await _trace_retry_task
+        except asyncio.CancelledError:
+            pass
+        _trace_retry_task = None
+
 ALGORITHM_VERSION = "controlled-random-rules-v3.2"
-TOP_N = 10
+TOP_N = 6
+RECENT_SUPPRESS = 4
 EVENT_TYPES = {
     "impression","detail","reason_open","like","dislike","favorite","change",
     "curation","activity_click","exhibition_view","story_view",
     "ai_preview_start","ai_preview_view","ai_preview_commit"
+}
+ARTWORK_EVENT_TYPES = {
+    "impression","detail","reason_open","like","dislike","favorite","change","curation",
+    "ai_preview_start","ai_preview_view","ai_preview_commit",
+}
+ENTITY_EVENT_TYPES = {
+    "story_view": "hotel",
+    "exhibition_view": "exhibition",
+    "activity_click": "activity",
 }
 WEIGHTS = {"brand": .30, "region": .25, "theme": .25, "style": .20}
 
 class EventIn(BaseModel):
     user_id: str = "demo-user"
     event: str
-    artwork_id: int
+    artwork_id: int | None = None
     recommendation_id: str | None = None
     session_id: str | None = None
     source_code: str = "direct"
-    metadata: dict = {}
+    entity_type: str | None = None
+    entity_id: str | None = None
+    metadata: dict = Field(default_factory=dict)
+
+class RecommendationImpressionIn(BaseModel):
+    recommendation_id: str
+    user_id: str = "demo-user"
+    artwork_id: int
+    session_id: str
+    source_code: str = "direct"
+    metadata: dict = Field(default_factory=dict)
 
 class VoteIn(BaseModel):
     user_id: str = "demo-user"
@@ -153,6 +209,7 @@ class SeedIn(BaseModel):
     days: int = 7
 
 class PublishProposalIn(BaseModel):
+    proposal_id: str
     title: str | None = None
     period: str = "待排期"
     source_note: str = "由当前用户共创策展数据生成"
@@ -161,7 +218,7 @@ class AiTraceIn(BaseModel):
     event_type: str
     phase: str | None = None
     candidate_set_id: str | None = None
-    payload: dict = {}
+    payload: dict = Field(default_factory=dict)
 
 def _ai_space_preview_eligibility(asset: dict):
     asset_type = str(asset.get("asset_type") or "").strip()
@@ -175,8 +232,9 @@ def _ai_space_preview_eligibility(asset: dict):
         metadata = {}
     if isinstance(metadata,dict) and metadata.get("ai_space_preview") is False:
         return False, "该作品已由内容运营关闭 AI 空间体验"
-    if not molink.parse_dimensions_cm(asset.get("dimensions")):
-        return False, "作品缺少可解析的实际尺寸"
+    dims, dims_error = molink.validate_preview_dimensions_cm(asset.get("dimensions"))
+    if not dims:
+        return False, dims_error or "作品缺少可解析的实际尺寸"
     if not asset.get("cover"):
         return False, "作品缺少可用图片"
     return True, ""
@@ -259,15 +317,56 @@ def score_artwork(a, con, user_id):
     base = sum(p[k]*WEIGHTS[k] for k in WEIGHTS)
     return max(.05,min(1.20,base+p["preference"]))
 
-def ranked_pool(user_id="demo-user"):
-    con = connect()
+def ranked_pool(user_id="demo-user", con=None):
+    owned = con is None
+    con = con or connect()
     rows = [artwork_dict(r) for r in con.execute("SELECT * FROM artworks").fetchall()]
     for a in rows:
         a["theme"] = best_theme(a)
         a["_score"] = score_artwork(a,con,user_id)
-    con.close()
+    if owned:
+        con.close()
     rows.sort(key=lambda x:x["_score"],reverse=True)
     return rows
+
+
+def recommendation_candidates(con, user_id: str, session_id: str | None, exclude: int | None = None):
+    pool_full = ranked_pool(user_id, con)
+    if not pool_full:
+        return [], [], []
+    recent_rows = con.execute(
+        """
+        SELECT artwork_id FROM recommendations
+        WHERE user_id=? AND (? IS NULL OR session_id=?)
+        ORDER BY shown_at DESC,id DESC LIMIT 20
+        """,
+        (user_id, session_id, session_id),
+    ).fetchall()
+    recent = []
+    for row in recent_rows:
+        aid = int(row["artwork_id"])
+        if aid not in recent:
+            recent.append(aid)
+        if len(recent) >= RECENT_SUPPRESS:
+            break
+    suppressed = set(recent)
+    if exclude:
+        suppressed.add(int(exclude))
+
+    fresh = [a for a in pool_full if a["id"] not in suppressed]
+    pool = fresh[:TOP_N]
+    # If the public pool is very small, keep at least three candidates available,
+    # but only backfill the oldest recently seen items after exhausting fresh content.
+    target_min = min(3, len(pool_full))
+    if len(pool) < target_min:
+        for a in pool_full:
+            if exclude and a["id"] == exclude:
+                continue
+            if a not in pool:
+                pool.append(a)
+            if len(pool) >= target_min:
+                break
+    return pool_full, pool, recent
 
 def recommendation_reason(a):
     theme = a.get("theme") or best_theme(a)
@@ -355,106 +454,178 @@ def daily_recommendation(
     source: str = "direct",
     debug: bool = False,
 ):
-    pool_full = ranked_pool(user_id)
-    if not pool_full:
-        raise HTTPException(503,"当前没有可公开推荐的文化内容")
-    pool = pool_full[:TOP_N]
-    if exclude:
-        filtered = [a for a in pool if a["id"] != exclude]
-        if filtered:
-            pool = filtered
+    # GET is intentionally read-only. A recommendation becomes an exposure only
+    # after the browser confirms that the card was actually rendered/visible and
+    # POSTs /recommendations/impression.
+    sid = session_id or f"sess-{uuid4().hex[:16]}"
+    with closing(connect()) as con:
+        pool_full, pool, recent = recommendation_candidates(con,user_id,sid,exclude)
+        if not pool_full or not pool:
+            raise HTTPException(503,"当前没有可公开推荐的文化内容")
+        src = source_row(con, source)
+        weights = [max(.05,a["_score"]**3) for a in pool]
+        item = random.choices(pool,weights=weights,k=1)[0]
+        item["theme"] = best_theme(item)
+        item["reason"] = recommendation_reason(item)
+        votes = con.execute("SELECT COUNT(*) c FROM curation_votes WHERE artwork_id=? AND vote=1",(item["id"],)).fetchone()["c"]
+        seq = con.execute("SELECT COUNT(*) c FROM recommendations WHERE user_id=?",(user_id,)).fetchone()["c"] + 1
+        rec_id = f"rec-{uuid4().hex}"
 
-    weights = [max(.05,a["_score"]**3) for a in pool]
-    item = random.choices(pool,weights=weights,k=1)[0]
-    item["theme"] = best_theme(item)
-    item["reason"] = recommendation_reason(item)
-
-    con = connect()
-    sid, src = ensure_session(con,user_id,session_id,source)
-    rec_id = f"rec-{uuid4().hex}"
-    con.execute("""
-      INSERT INTO recommendations(
-        recommendation_id,user_id,session_id,source_id,hotel_id,artwork_id,
-        algorithm_version,candidate_count,selected_score,context,shown_at)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?)
-    """,(rec_id,user_id,sid,src["id"] if src else None,HOTEL["id"],item["id"],
-         ALGORITHM_VERSION,len(pool),round(item["_score"],4),
-         json.dumps({"exclude":exclude},ensure_ascii=False),now()))
-    con.commit()
-    votes = con.execute("SELECT COUNT(*) c FROM curation_votes WHERE artwork_id=? AND vote=1",(item["id"],)).fetchone()["c"]
-    seq = con.execute("SELECT COUNT(*) c FROM recommendations WHERE user_id=?",(user_id,)).fetchone()["c"]
-    con.close()
-
-    out = {
-        "date":date.today().isoformat(),
-        "recommendation_id":rec_id,
-        "session_id":sid,
-        "source":{"code":src["source_code"],"name":src["name"]} if src else {"code":"direct","name":"直接进入"},
-        "sequence_no":seq,
-        "hotel":{"id":HOTEL["id"],"name":HOTEL["name"]},
-        "artwork":item,
-        "reason":item["reason"],
-        "relevance_label":relevance_label(item),
-        "curation_state":{"votes":votes},
-        "label":{
-            "no":item.get("asset_code") or f"No.{item['id']:03d}",
-            "medium":f"{item['category']} · {item['style']}",
-            "origin":f"{item['region']} · {item['era']}",
-            "credit":f"{item.get('author') or '作者待补'} · {item['source']}",
+        out = {
+            "date":date.today().isoformat(),
+            "recommendation_id":rec_id,
+            "session_id":sid,
+            "source":{"code":src["source_code"],"name":src["name"]} if src else {"code":"direct","name":"直接进入"},
+            "sequence_no":seq,
+            "hotel":{"id":HOTEL["id"],"name":HOTEL["name"]},
+            "artwork":item,
+            "reason":item["reason"],
+            "relevance_label":relevance_label(item),
+            "curation_state":{"votes":votes},
+            "label":{
+                "no":item.get("asset_code") or f"No.{item['id']:03d}",
+                "medium":f"{item['category']} · {item['style']}",
+                "origin":f"{item['region']} · {item['era']}",
+                "credit":f"{item.get('author') or '作者待补'} · {item['source']}",
+            }
         }
-    }
-    if debug:
-        con = connect()
-        parts = score_parts(item,con,user_id)
-        total_public = con.execute("SELECT COUNT(*) c FROM artworks").fetchone()["c"]
-        con.close()
-        out["diagnostics"] = {
-            "algorithm_version":ALGORITHM_VERSION,
-            "public_pool":total_public,
-            "candidate_pool":len(pool),
-            "selected_score":round(item["_score"],4),
-            "score_parts":{k:round(v,4) for k,v in parts.items()},
-        }
-    return out
+        if debug:
+            parts = score_parts(item,con,user_id)
+            out["diagnostics"] = {
+                "algorithm_version":ALGORITHM_VERSION,
+                "public_pool":len(pool_full),
+                "candidate_pool":len(pool),
+                "recently_suppressed":recent,
+                "selected_score":round(item["_score"],4),
+                "score_parts":{k:round(v,4) for k,v in parts.items()},
+            }
+        return out
+
+
+@app.post("/recommendations/impression")
+def recommendation_impression(body:RecommendationImpressionIn):
+    with closing(connect()) as con:
+        con.execute("BEGIN IMMEDIATE")
+        try:
+            artwork = public_asset_or_404(con,body.artwork_id)
+            existing = con.execute("SELECT * FROM recommendations WHERE recommendation_id=?",(body.recommendation_id,)).fetchone()
+            if existing:
+                if existing["user_id"] != body.user_id or existing["artwork_id"] != body.artwork_id:
+                    raise HTTPException(409,"recommendation_id 已绑定其他用户或作品")
+                con.rollback()
+                return {"ok":True,"recommendation_id":body.recommendation_id,"session_id":existing["session_id"],"duplicate":True}
+
+            sid, src = ensure_session(con,body.user_id,body.session_id,body.source_code)
+            _, pool, recent = recommendation_candidates(con,body.user_id,sid,None)
+            selected_score = score_artwork(artwork,con,body.user_id)
+            ts = now()
+            con.execute("""
+              INSERT INTO recommendations(
+                recommendation_id,user_id,session_id,source_id,hotel_id,artwork_id,
+                algorithm_version,candidate_count,selected_score,context,shown_at)
+              VALUES(?,?,?,?,?,?,?,?,?,?,?)
+            """,(
+                body.recommendation_id,body.user_id,sid,src["id"] if src else None,HOTEL["id"],body.artwork_id,
+                ALGORITHM_VERSION,max(1,len(pool)),round(selected_score,4),
+                json.dumps({"recently_suppressed":recent,**(body.metadata or {})},ensure_ascii=False),ts,
+            ))
+            con.execute("""
+              INSERT INTO user_events(
+                user_id,event,artwork_id,recommendation_id,session_id,source_id,entity_type,entity_id,metadata,created_at)
+              VALUES(?,?,?,?,?,?,?,?,?,?)
+            """,(
+                body.user_id,"impression",body.artwork_id,body.recommendation_id,sid,src["id"] if src else None,
+                "artwork",str(body.artwork_id),json.dumps(body.metadata or {},ensure_ascii=False),ts,
+            ))
+            con.commit()
+            return {"ok":True,"recommendation_id":body.recommendation_id,"session_id":sid,"duplicate":False}
+        except Exception:
+            con.rollback()
+            raise
+
+
+def _validate_event_target(con, body: EventIn):
+    if body.event in ARTWORK_EVENT_TYPES:
+        if not body.artwork_id:
+            raise HTTPException(422,"该事件需要 artwork_id")
+        public_asset_or_404(con,body.artwork_id)
+        return "artwork", str(body.artwork_id)
+    expected = ENTITY_EVENT_TYPES.get(body.event)
+    if expected:
+        if body.entity_type != expected or not body.entity_id:
+            raise HTTPException(422,f"{body.event} 需要 entity_type={expected} 与 entity_id")
+        if expected == "hotel":
+            if str(body.entity_id) != str(HOTEL["id"]):
+                raise HTTPException(404,"酒店不存在")
+        elif expected == "exhibition":
+            if not con.execute("SELECT 1 FROM exhibitions WHERE id=? AND status='published'",(body.entity_id,)).fetchone():
+                raise HTTPException(404,"展览不存在或未发布")
+        elif expected == "activity":
+            if not con.execute("""
+              SELECT 1 FROM activities a JOIN exhibitions e ON e.id=a.exhibition_id
+              WHERE a.id=? AND a.status='published' AND e.status='published'
+            """,(body.entity_id,)).fetchone():
+                raise HTTPException(404,"活动不存在或未发布")
+        return expected, str(body.entity_id)
+    raise HTTPException(400,"不支持的事件类型")
+
 
 @app.post("/user-event")
 def user_event(body:EventIn):
     if body.event not in EVENT_TYPES:
         raise HTTPException(400,"不支持的事件类型")
-    con = connect()
-    public_asset_or_404(con,body.artwork_id)
-    sid, src = ensure_session(con,body.user_id,body.session_id,body.source_code)
-    if body.recommendation_id:
-        rec = con.execute("SELECT 1 FROM recommendations WHERE recommendation_id=?",(body.recommendation_id,)).fetchone()
-        if not rec:
-            con.close()
-            raise HTTPException(400,"recommendation_id 不存在")
-    con.execute("""
-      INSERT INTO user_events(
-        user_id,event,artwork_id,recommendation_id,session_id,source_id,metadata,created_at)
-      VALUES(?,?,?,?,?,?,?,?)
-    """,(body.user_id,body.event,body.artwork_id,body.recommendation_id,sid,
-         src["id"] if src else None,json.dumps(body.metadata or {},ensure_ascii=False),now()))
-    update_preferences(con,body.user_id,body.artwork_id,body.event)
-    con.commit()
-    con.close()
-    return {"ok":True,"session_id":sid}
+    if body.event == "impression":
+        raise HTTPException(409,detail={
+            "code":"IMPRESSION_ENDPOINT_REQUIRED",
+            "message":"曝光必须通过 /recommendations/impression 提交，以保证 recommendation 分母只记录真实展示。"
+        })
+    with closing(connect()) as con:
+        con.execute("BEGIN IMMEDIATE")
+        try:
+            entity_type, entity_id = _validate_event_target(con,body)
+            sid, src = ensure_session(con,body.user_id,body.session_id,body.source_code)
+            if body.recommendation_id:
+                rec = con.execute("""
+                  SELECT * FROM recommendations WHERE recommendation_id=? AND user_id=?
+                """,(body.recommendation_id,body.user_id)).fetchone()
+                if not rec:
+                    raise HTTPException(400,"recommendation_id 不存在或不属于当前用户")
+                if body.artwork_id and rec["artwork_id"] != body.artwork_id:
+                    raise HTTPException(400,"recommendation_id 与 artwork_id 不匹配")
+            con.execute("""
+              INSERT INTO user_events(
+                user_id,event,artwork_id,recommendation_id,session_id,source_id,entity_type,entity_id,metadata,created_at)
+              VALUES(?,?,?,?,?,?,?,?,?,?)
+            """,(
+                body.user_id,body.event,body.artwork_id,body.recommendation_id,sid,
+                src["id"] if src else None,entity_type,entity_id,
+                json.dumps(body.metadata or {},ensure_ascii=False),now(),
+            ))
+            if body.artwork_id:
+                update_preferences(con,body.user_id,body.artwork_id,body.event)
+            con.commit()
+            return {"ok":True,"session_id":sid}
+        except Exception:
+            con.rollback()
+            raise
 
 def _molink_http_error(exc: molink.MolinkIntegrationError):
     raise HTTPException(status_code=exc.status_code, detail={"code":exc.code,"message":str(exc)})
 
 
 def _record_ai_event_local(exp, event_name: str, metadata: dict):
-    con = connect()
-    src = source_row(con, exp["source_code"])
-    con.execute("""
-      INSERT INTO user_events(user_id,event,artwork_id,recommendation_id,session_id,source_id,metadata,created_at)
-      VALUES(?,?,?,?,?,?,?,?)
-    """,(
-        exp["user_id"],event_name,exp["artwork_id"],exp["recommendation_id"],exp["session_id"],
-        src["id"] if src else None,json.dumps(metadata or {},ensure_ascii=False),now()
-    ))
-    con.commit(); con.close()
+    with closing(connect()) as con:
+        src = source_row(con, exp["source_code"])
+        con.execute("""
+          INSERT INTO user_events(
+            user_id,event,artwork_id,recommendation_id,session_id,source_id,entity_type,entity_id,metadata,created_at)
+          VALUES(?,?,?,?,?,?,?,?,?,?)
+        """,(
+            exp["user_id"],event_name,exp["artwork_id"],exp["recommendation_id"],exp["session_id"],
+            src["id"] if src else None,"artwork",str(exp["artwork_id"]),
+            json.dumps(metadata or {},ensure_ascii=False),now()
+        ))
+        con.commit()
 
 
 @app.get("/ai/space-preview/service")
@@ -465,13 +636,14 @@ async def ai_space_preview_service():
         data = await molink.capabilities()
     except molink.MolinkIntegrationError as exc:
         return {"enabled":False,"capability":"artwork_space_preview","reason":str(exc)}
-    supported = any(
-        isinstance(x,dict) and x.get("id")=="artwork_space_preview"
-        for x in (data.get("data") or [])
-    )
+    cap = next((x for x in (data.get("data") or []) if isinstance(x,dict) and x.get("id")=="artwork_space_preview"),None)
+    supported = bool(cap)
+    constraints = (cap or {}).get("constraints") or {}
     return {
         "enabled":supported,"capability":"artwork_space_preview","provider":"Molink Platform API v1",
-        "eligibility":{"asset_type":"artwork","requires_physical_dimensions":True,"requires_public_asset":True}
+        "eligibility":{"asset_type":"artwork","requires_physical_dimensions":True,"requires_public_asset":True},
+        "constraints":constraints,
+        "protocol":data.get("protocol") or {},
     }
 
 
@@ -489,28 +661,50 @@ async def start_ai_space_preview(
 ):
     if not consent:
         raise HTTPException(422,"需要确认空间照片的数据使用说明后才能生成")
-    if not (space_image.content_type or "").startswith("image/"):
-        raise HTTPException(422,"请上传图片格式的空间照片")
+    if not molink.configured():
+        raise HTTPException(503,"AI 空间体验服务尚未配置")
+    try:
+        constraints = await molink.artwork_space_preview_constraints()
+    except molink.MolinkIntegrationError as exc:
+        _molink_http_error(exc)
+    content_type = (space_image.content_type or "").split(";")[0].strip().lower()
+    accepted_mimes = {str(x).lower() for x in constraints.get("accepted_mime_types") or []}
+    if content_type not in accepted_mimes:
+        raise HTTPException(415,detail={"code":"UNSUPPORTED_ASSET_MIME","message":"空间照片格式不在 Molink 当前支持范围","accepted_mime_types":sorted(accepted_mimes)})
     image_bytes = await space_image.read()
     if not image_bytes:
         raise HTTPException(422,"空间照片不能为空")
-    if len(image_bytes) > 18 * 1024 * 1024:
-        raise HTTPException(413,"空间照片不能超过 18MB")
+    max_bytes = int(constraints.get("max_asset_bytes") or 25 * 1024 * 1024)
+    if len(image_bytes) > max_bytes:
+        raise HTTPException(413,detail={"code":"ASSET_TOO_LARGE","message":f"空间照片不能超过 {max_bytes} bytes","max_asset_bytes":max_bytes})
 
-    con = connect()
-    artwork = ai_preview_artwork_or_error(con,artwork_id)
-    if not molink.configured():
-        con.close()
-        raise HTTPException(503,"AI 空间体验服务尚未配置")
-    sid, _ = ensure_session(con,user_id,session_id,source_code)
-    if recommendation_id:
-        rec = con.execute("""
-          SELECT * FROM recommendations WHERE recommendation_id=? AND user_id=? AND artwork_id=?
-        """,(recommendation_id,user_id,artwork_id)).fetchone()
-        if not rec:
-            con.close()
-            raise HTTPException(400,"recommendation_id 与当前用户/作品不匹配")
-    con.commit(); con.close()
+    with closing(connect()) as con:
+        con.execute("BEGIN IMMEDIATE")
+        try:
+            artwork = ai_preview_artwork_or_error(con,artwork_id)
+            dims = molink.parse_dimensions_cm(artwork.get("dimensions"))
+            min_dim = float(constraints.get("min_artwork_dimension_cm") or molink.MOLINK_ARTWORK_MIN_DIMENSION_CM)
+            max_dim = float(constraints.get("max_artwork_dimension_cm") or molink.MOLINK_ARTWORK_MAX_DIMENSION_CM)
+            if not dims or any(value < min_dim or value > max_dim for value in dims):
+                raise HTTPException(422,detail={
+                    "code":"ARTWORK_DIMENSIONS_OUT_OF_RANGE",
+                    "message":f"作品尺寸不在 Molink 当前能力范围内：单边需在 {min_dim:g}-{max_dim:g}cm",
+                    "physical_width_cm":dims[0] if dims else None,
+                    "physical_height_cm":dims[1] if dims else None,
+                    "min_each_dimension":min_dim,
+                    "max_each_dimension":max_dim,
+                })
+            sid, _ = ensure_session(con,user_id,session_id,source_code)
+            if recommendation_id:
+                rec = con.execute("""
+                  SELECT * FROM recommendations WHERE recommendation_id=? AND user_id=? AND artwork_id=?
+                """,(recommendation_id,user_id,artwork_id)).fetchone()
+                if not rec:
+                    raise HTTPException(400,"recommendation_id 与当前用户/作品不匹配")
+            con.commit()
+        except Exception:
+            con.rollback()
+            raise
 
     try:
         artwork_asset_id = await molink.ensure_artwork_asset(artwork=artwork,static_root=STATIC)
@@ -559,9 +753,9 @@ async def ai_space_preview_status(experience_id:str,user_id:str="demo-user"):
 
 
 @app.get("/ai/space-preview/{experience_id}/artifacts/{artifact_id}")
-async def ai_space_preview_artifact(experience_id:str,artifact_id:str):
+async def ai_space_preview_artifact(experience_id:str,artifact_id:str,user_id:str=Query(...)):
     exp = molink.get_experience(experience_id)
-    if not exp:
+    if not exp or exp["user_id"] != user_id:
         raise HTTPException(404,"AI 空间体验不存在")
     try:
         cached = json.loads(exp["latest_payload"] or "{}") if exp["latest_payload"] else {}
@@ -591,9 +785,9 @@ async def ai_space_preview_artifact(experience_id:str,artifact_id:str):
 
 
 @app.post("/ai/space-preview/{experience_id}/trace")
-async def ai_space_preview_trace(experience_id:str,body:AiTraceIn):
+async def ai_space_preview_trace(experience_id:str,body:AiTraceIn,user_id:str=Query(...)):
     exp = molink.get_experience(experience_id)
-    if not exp:
+    if not exp or exp["user_id"] != user_id:
         raise HTTPException(404,"AI 空间体验不存在")
     try:
         event_id = molink.queue_trace_event(
@@ -613,47 +807,42 @@ async def ai_space_preview_trace(experience_id:str,body:AiTraceIn):
 
 @app.get("/artworks/{artwork_id}")
 def artwork_detail(artwork_id:int,user_id:str="demo-user"):
-    con = connect()
-    a = public_asset_or_404(con,artwork_id)
-    a["theme"] = best_theme(a)
-    a["reason"] = recommendation_reason(a)
-    a["relevance_label"] = relevance_label(a)
-    a["label"] = {
-        "no":a.get("asset_code") or f"No.{a['id']:03d}",
-        "medium":f"{a['category']} · {a['style']}",
-        "origin":f"{a['region']} · {a['era']}",
-        "credit":f"{a.get('author') or '作者待补'} · {a['source']}",
-    }
-    candidates = [artwork_dict(r) for r in con.execute("SELECT * FROM artworks WHERE id<>?",(artwork_id,)).fetchall()]
-    for x in candidates:
-        x["theme"] = best_theme(x)
-        x["_related"] = len(set(x["tags"]) & set(a["tags"])) + (2 if x["theme"]==a["theme"] else 0)
-    candidates.sort(key=lambda x:x["_related"],reverse=True)
-    a["related"] = [{"id":x["id"],"title":x["title"],"cover":x["cover"],"theme":x["theme"]} for x in candidates[:3]]
-    con.close()
-    return a
+    with closing(connect()) as con:
+        a = public_asset_or_404(con,artwork_id)
+        a["theme"] = best_theme(a)
+        a["reason"] = recommendation_reason(a)
+        a["relevance_label"] = relevance_label(a)
+        a["label"] = {
+            "no":a.get("asset_code") or f"No.{a['id']:03d}",
+            "medium":f"{a['category']} · {a['style']}",
+            "origin":f"{a['region']} · {a['era']}",
+            "credit":f"{a.get('author') or '作者待补'} · {a['source']}",
+        }
+        candidates = [artwork_dict(r) for r in con.execute("SELECT * FROM artworks WHERE id<>?",(artwork_id,)).fetchall()]
+        for x in candidates:
+            x["theme"] = best_theme(x)
+            x["_related"] = len(set(x["tags"]) & set(a["tags"])) + (2 if x["theme"]==a["theme"] else 0)
+        candidates.sort(key=lambda x:x["_related"],reverse=True)
+        a["related"] = [{"id":x["id"],"title":x["title"],"cover":x["cover"],"theme":x["theme"]} for x in candidates[:3]]
+        return a
 
 @app.get("/artworks/{artwork_id}/placement-options")
 def artwork_placement_options(artwork_id:int):
-    con = connect()
-    asset = con.execute("SELECT * FROM culture_assets WHERE id=?",(artwork_id,)).fetchone()
-    if not asset:
-        con.close()
-        raise HTTPException(404,"作品不存在")
-    matches = con.execute("""
-      SELECT m.*,s.space_code,s.name space_name,s.building,s.status space_status,
-             s.display_available,s.cover space_cover
-      FROM asset_space_matches m JOIN spaces s ON s.id=m.space_id
-      WHERE m.asset_id=? ORDER BY m.match_score DESC LIMIT 5
-    """,(artwork_id,)).fetchall()
-    con.close()
-    ready = [dict(r) for r in matches if r["readiness"]=="ready"]
-    return {
-        "artwork_id":artwork_id,
-        "precision_status":"ready" if ready else "blocked_by_space_metadata",
-        "note":"具体空间选择仅在Space主数据和展陈条件审核完成后开放。",
-        "items":[dict(r) for r in matches],
-    }
+    with closing(connect()) as con:
+        public_asset_or_404(con,artwork_id)
+        matches = con.execute("""
+          SELECT m.*,s.space_code,s.name space_name,s.building,s.status space_status,
+                 s.display_available,s.cover space_cover
+          FROM asset_space_matches m JOIN spaces s ON s.id=m.space_id
+          WHERE m.asset_id=? ORDER BY m.match_score DESC LIMIT 5
+        """,(artwork_id,)).fetchall()
+        ready = [dict(r) for r in matches if r["readiness"]=="ready"]
+        return {
+            "artwork_id":artwork_id,
+            "precision_status":"ready" if ready else "blocked_by_space_metadata",
+            "note":"具体空间选择仅在Space主数据和展陈条件审核完成后开放。",
+            "items":[dict(r) for r in matches],
+        }
 
 @app.get("/curation-pool")
 def curation_pool():
@@ -700,34 +889,44 @@ def curation_pool():
 
 @app.post("/curation-vote")
 def curation_vote(body:VoteIn):
-    con = connect()
-    public_asset_or_404(con,body.artwork_id)
-    sid, src = ensure_session(con,body.user_id,body.session_id,body.source_code)
-    if body.space_id is not None:
-        space = con.execute("SELECT * FROM spaces WHERE id=?",(body.space_id,)).fetchone()
-        if not space:
-            con.close()
-            raise HTTPException(404,"空间不存在")
-        if space["status"]!="active" or space["display_available"]!=1:
-            con.close()
-            raise HTTPException(400,"该空间尚未通过主数据与展陈条件审核")
-    ts = now()
-    vote_cur = con.execute("""
-      INSERT INTO curation_votes(user_id,artwork_id,space_id,recommendation_id,session_id,vote,created_at)
-      VALUES(?,?,?,?,?,?,?)
-    """,(body.user_id,body.artwork_id,body.space_id,body.recommendation_id,sid,1 if body.vote>0 else 0,ts))
-    vote_id = vote_cur.lastrowid
-    con.execute("""
-      INSERT INTO user_events(user_id,event,artwork_id,recommendation_id,session_id,source_id,metadata,created_at)
-      VALUES(?,?,?,?,?,?,?,?)
-    """,(body.user_id,"curation",body.artwork_id,body.recommendation_id,sid,
-         src["id"] if src else None,json.dumps(body.metadata or {},ensure_ascii=False),ts))
-    update_preferences(con,body.user_id,body.artwork_id,"curation")
-    votes = con.execute("SELECT COUNT(*) c FROM curation_votes WHERE artwork_id=? AND vote=1",(body.artwork_id,)).fetchone()["c"]
-    total = con.execute("SELECT COUNT(DISTINCT artwork_id) c FROM curation_votes WHERE vote=1").fetchone()["c"]
-    con.commit()
-    con.close()
-    return {"ok":True,"message":"已加入锦江饭店共创策展","vote_id":vote_id,"votes":votes,"pool_total":total}
+    with closing(connect()) as con:
+        con.execute("BEGIN IMMEDIATE")
+        try:
+            public_asset_or_404(con,body.artwork_id)
+            sid, src = ensure_session(con,body.user_id,body.session_id,body.source_code)
+            if body.recommendation_id:
+                rec = con.execute("""
+                  SELECT * FROM recommendations WHERE recommendation_id=? AND user_id=? AND artwork_id=?
+                """,(body.recommendation_id,body.user_id,body.artwork_id)).fetchone()
+                if not rec:
+                    raise HTTPException(400,"recommendation_id 与当前用户/作品不匹配")
+            if body.space_id is not None:
+                space = con.execute("SELECT * FROM spaces WHERE id=?",(body.space_id,)).fetchone()
+                if not space:
+                    raise HTTPException(404,"空间不存在")
+                if space["status"]!="active" or space["display_available"]!=1:
+                    raise HTTPException(400,"该空间尚未通过主数据与展陈条件审核")
+            ts = now()
+            vote_cur = con.execute("""
+              INSERT INTO curation_votes(user_id,artwork_id,space_id,recommendation_id,session_id,vote,created_at)
+              VALUES(?,?,?,?,?,?,?)
+            """,(body.user_id,body.artwork_id,body.space_id,body.recommendation_id,sid,1 if body.vote>0 else 0,ts))
+            vote_id = vote_cur.lastrowid
+            con.execute("""
+              INSERT INTO user_events(
+                user_id,event,artwork_id,recommendation_id,session_id,source_id,entity_type,entity_id,metadata,created_at)
+              VALUES(?,?,?,?,?,?,?,?,?,?)
+            """,(body.user_id,"curation",body.artwork_id,body.recommendation_id,sid,
+                 src["id"] if src else None,"artwork",str(body.artwork_id),
+                 json.dumps(body.metadata or {},ensure_ascii=False),ts))
+            update_preferences(con,body.user_id,body.artwork_id,"curation")
+            votes = con.execute("SELECT COUNT(*) c FROM curation_votes WHERE artwork_id=? AND vote=1",(body.artwork_id,)).fetchone()["c"]
+            total = con.execute("SELECT COUNT(DISTINCT artwork_id) c FROM curation_votes WHERE vote=1").fetchone()["c"]
+            con.commit()
+            return {"ok":True,"message":"已加入锦江饭店共创策展","vote_id":vote_id,"votes":votes,"pool_total":total}
+        except Exception:
+            con.rollback()
+            raise
 
 @app.get("/hotel/{hotel_id}")
 def hotel(hotel_id:int):
@@ -746,24 +945,25 @@ def hotel(hotel_id:int):
 def hotel_story(hotel_id:int):
     if hotel_id != HOTEL.get("id",1):
         raise HTTPException(404,"酒店不存在")
-    con = connect()
-    artifacts = [artwork_dict(r) for r in con.execute("""
-      SELECT a.* FROM culture_assets a
-      WHERE a.hotel_id=? AND a.asset_type='hotel_artifact'
-      ORDER BY a.asset_code
-    """,(hotel_id,)).fetchall()]
-    photos = [dict(r) for r in con.execute("""
-      SELECT * FROM media_assets
-      WHERE hotel_id=? AND category IN ('客房','大堂公共区域','会议商务','餐厅餐饮','休闲设施')
-      ORDER BY category,id
-    """,(hotel_id,)).fetchall()]
-    # 每类取前两张，形成轻量“锦江故事”视觉入口。
-    grouped = defaultdict(list)
-    for p in photos:
-        if len(grouped[p["category"]]) < 2:
-            grouped[p["category"]].append(p)
-    gallery = [x for cat in ("大堂公共区域","客房","餐厅餐饮","会议商务","休闲设施") for x in grouped.get(cat,[])]
-    con.close()
+    with closing(connect()) as con:
+        # C-end story is public output: it must consume the same public asset gate
+        # as recommendation/detail, rather than reading draft/internal assets directly.
+        artifacts = [artwork_dict(r) for r in con.execute("""
+          SELECT * FROM artworks
+          WHERE hotel_id=? AND asset_type='hotel_artifact'
+          ORDER BY asset_code
+        """,(hotel_id,)).fetchall()]
+        photos = [dict(r) for r in con.execute("""
+          SELECT * FROM public_media_assets
+          WHERE hotel_id=? AND category IN ('客房','大堂公共区域','会议商务','餐厅餐饮','休闲设施')
+          ORDER BY category,id
+        """,(hotel_id,)).fetchall()]
+        # 每类取前两张，形成轻量“锦江故事”视觉入口。
+        grouped = defaultdict(list)
+        for p in photos:
+            if len(grouped[p["category"]]) < 2:
+                grouped[p["category"]].append(p)
+        gallery = [x for cat in ("大堂公共区域","客房","餐厅餐饮","会议商务","休闲设施") for x in grouped.get(cat,[])]
     return {
         "hotel":{k:HOTEL.get(k) for k in ("id","name","history","positioning","keywords","themes")},
         "artifacts":[{"id":a["id"],"code":a["asset_code"],"title":a["title"],"cover":a["cover"],
@@ -780,7 +980,7 @@ def _exhibition_payload(con,row):
     theme = con.execute("SELECT name FROM themes WHERE theme_code=?",(row["theme_code"],)).fetchone()
     works = [dict(x) for x in con.execute("""
       SELECT a.id,a.asset_code,a.title,a.cover,a.author,a.building,ea.sort_order
-      FROM exhibition_assets ea JOIN culture_assets a ON a.id=ea.asset_id
+      FROM exhibition_assets ea JOIN artworks a ON a.id=ea.asset_id
       WHERE ea.exhibition_id=? ORDER BY ea.sort_order,a.id
     """,(row["id"],)).fetchall()]
     acts = [dict(x) for x in con.execute("""
@@ -794,31 +994,29 @@ def _exhibition_payload(con,row):
 
 @app.get("/exhibitions")
 def exhibitions():
-    con = connect()
-    rows = con.execute("""
-      SELECT * FROM exhibitions WHERE status='published' ORDER BY COALESCE(published_at,created_at) DESC,id DESC
-    """).fetchall()
-    items = [_exhibition_payload(con,r) for r in rows]
-    con.close()
-    return {"items":items}
+    with closing(connect()) as con:
+        rows = con.execute("""
+          SELECT * FROM exhibitions WHERE status='published' ORDER BY COALESCE(published_at,created_at) DESC,id DESC
+        """).fetchall()
+        items = [_exhibition_payload(con,r) for r in rows]
+        return {"items":items}
 
 @app.post("/ai/match")
 def ai_match(body:MatchIn):
     if body.hotel_id != HOTEL["id"]:
         raise HTTPException(404,"酒店不存在")
-    con = connect()
-    a = public_asset_or_404(con,body.artwork_id)
-    a["theme"] = best_theme(a)
-    parts = score_parts(a,con,"demo-user")
-    score = score_artwork(a,con,"demo-user")
-    con.close()
-    return {
-        "hotel_id":HOTEL["id"],"artwork_id":a["id"],"theme":a["theme"],
-        "relevance":"高" if score>=.72 else "中",
-        "reasons":recommendation_reason(a),
-        "internal_diagnostics":{"score":round(score,3),"parts":{k:round(v,3) for k,v in parts.items()},
-                                "algorithm_version":ALGORITHM_VERSION},
-    }
+    with closing(connect()) as con:
+        a = public_asset_or_404(con,body.artwork_id)
+        a["theme"] = best_theme(a)
+        parts = score_parts(a,con,"demo-user")
+        score = score_artwork(a,con,"demo-user")
+        return {
+            "hotel_id":HOTEL["id"],"artwork_id":a["id"],"theme":a["theme"],
+            "relevance":"高" if score>=.72 else "中",
+            "reasons":recommendation_reason(a),
+            "internal_diagnostics":{"score":round(score,3),"parts":{k:round(v,3) for k,v in parts.items()},
+                                    "algorithm_version":ALGORITHM_VERSION},
+        }
 
 @app.get("/users/{user_id}/profile")
 def user_profile(user_id:str):
@@ -835,13 +1033,13 @@ def user_profile(user_id:str):
     theme_prefs = [p for p in prefs if p["dimension"]=="theme"][:4]
     favorites = [dict(r) for r in con.execute("""
       SELECT DISTINCT a.id,a.title,a.cover,a.asset_code
-      FROM user_events e JOIN culture_assets a ON a.id=e.artwork_id
+      FROM user_events e JOIN artworks a ON a.id=e.artwork_id
       WHERE e.user_id=? AND e.event='favorite'
       ORDER BY e.created_at DESC LIMIT 6
     """,(user_id,)).fetchall()]
     curated = [dict(r) for r in con.execute("""
       SELECT a.id,a.title,a.cover,a.asset_code,MAX(v.created_at) last_voted_at
-      FROM curation_votes v JOIN culture_assets a ON a.id=v.artwork_id
+      FROM curation_votes v JOIN artworks a ON a.id=v.artwork_id
       WHERE v.user_id=? AND v.vote=1
       GROUP BY a.id ORDER BY last_voted_at DESC LIMIT 6
     """,(user_id,)).fetchall()]
@@ -999,6 +1197,11 @@ def analytics_dashboard():
         sources.append(d)
 
     ex_status = {r["status"]:r["c"] for r in con.execute("SELECT status,COUNT(*) c FROM exhibitions GROUP BY status")}
+    public_pool = con.execute("SELECT COUNT(*) c FROM artworks").fetchone()["c"]
+    total_assets = con.execute("SELECT COUNT(*) c FROM culture_assets").fetchone()["c"]
+    outbox = {
+        r["status"]:r["c"] for r in con.execute("SELECT status,COUNT(*) c FROM ai_event_outbox GROUP BY status")
+    }
     con.close()
     return {
         "generated_at":now(),
@@ -1008,12 +1211,18 @@ def analytics_dashboard():
             "favorites":sum(1 for e in events if e["event"]=="favorite"),
             "curation_votes":len(votes),
             "curation_rate":round(len(curation_users)/base*100,1),
+            "reason_opens":sum(1 for e in events if e["event"]=="reason_open"),
+            "story_views":sum(1 for e in events if e["event"]=="story_view"),
+            "exhibition_views":sum(1 for e in events if e["event"]=="exhibition_view"),
+            "activity_clicks":sum(1 for e in events if e["event"]=="activity_click"),
         },
         "funnel":funnel,"timeline":timeline,"themes":themes_out,"top_artworks":top[:10],
         "sources":sources,"exhibitions":ex_status,
         "diagnostics":{"algorithm_version":ALGORITHM_VERSION,
-                       "public_pool":len([a for a in arts.values() if a.get("rights_status") in ("authorized","public_domain_verified")]),
-                       "internal_assets":len([a for a in arts.values() if a.get("rights_status") not in ("authorized","public_domain_verified")])}
+                       "public_pool":public_pool,
+                       "internal_assets":max(0,total_assets-public_pool),
+                       "public_pool_definition":"rights + review + publish + cover（artworks 公开视图）",
+                       "ai_trace_outbox":outbox}
     }
 
 @app.get("/recommendation-diagnostics")
@@ -1022,8 +1231,7 @@ def recommendation_diagnostics():
     rows = con.execute("""
       SELECT a.asset_code,a.title,COUNT(r.id) exposures,
              ROUND(AVG(r.selected_score),3) avg_selected_score
-      FROM culture_assets a LEFT JOIN recommendations r ON r.artwork_id=a.id
-      WHERE a.rights_status IN ('authorized','public_domain_verified')
+      FROM artworks a LEFT JOIN recommendations r ON r.artwork_id=a.id
       GROUP BY a.id ORDER BY exposures DESC,a.id
     """).fetchall()
     con.close()
@@ -1067,32 +1275,93 @@ def curation_proposal():
     return {**p,"contributors":contributors,"total_votes":total_votes,
             "status":f"{contributors} 位用户 · {total_votes} 次共创选择"}
 
-@app.post("/curation/proposal/publish")
-def publish_curation_proposal(body:PublishProposalIn):
+
+def _curation_proposal_fingerprint(p: dict) -> str:
+    basis = {
+        "theme":p.get("theme"),
+        "statement":p.get("statement"),
+        "works":[{"id":w.get("id"),"votes":w.get("votes"),"interest_score":w.get("interest_score")} for w in p.get("works",[])],
+    }
+    return hashlib.sha256(json.dumps(basis,ensure_ascii=False,sort_keys=True).encode("utf-8")).hexdigest()
+
+
+@app.post("/curation/proposal/draft")
+def create_curation_proposal_draft():
     p = build_curation_proposal()
     if not p["works"]:
         raise HTTPException(400,"当前没有足够的用户共创数据")
-    theme_code = next((t["theme_code"] for t in THEMES if t["name"]==p["theme"]),None)
-    ts = now()
-    con = connect()
-    con.execute("""
-      INSERT INTO exhibitions(title,theme_code,hotel_id,status,period,description,generated_from_votes,source_note,published_at,created_at,updated_at)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?)
-    """,(body.title or p["title"],theme_code,HOTEL["id"],"published",body.period,p["statement"],1,body.source_note,ts,ts,ts))
-    eid = con.execute("SELECT last_insert_rowid() id").fetchone()["id"]
-    for order,w in enumerate(p["works"],1):
-        con.execute("INSERT INTO exhibition_assets(exhibition_id,asset_id,sort_order) VALUES(?,?,?)",
-                    (eid,w["id"],order))
-    con.execute("""
-      INSERT INTO activities(exhibition_id,hotel_id,title,activity_type,location,status,capacity,description,created_at,updated_at)
-      VALUES(?,?,?,?,?,?,?,?,?,?)
-    """,(eid,HOTEL["id"],f"{p['theme']}·共创导览","文化导览","锦江饭店","published",40,
-         "围绕用户共创策展结果形成的配套导览活动。",ts,ts))
-    con.commit()
-    row = con.execute("SELECT * FROM exhibitions WHERE id=?",(eid,)).fetchone()
-    payload = _exhibition_payload(con,row)
-    con.close()
-    return {"ok":True,"exhibition":payload}
+    fingerprint = _curation_proposal_fingerprint(p)
+    with closing(connect()) as con:
+        con.execute("BEGIN IMMEDIATE")
+        try:
+            existing = con.execute("SELECT * FROM curation_proposals WHERE fingerprint=?",(fingerprint,)).fetchone()
+            if existing:
+                payload = json.loads(existing["payload"] or "{}")
+                con.rollback()
+                return {**payload,"proposal_id":existing["proposal_id"],"proposal_status":existing["status"],
+                        "exhibition_id":existing["exhibition_id"],"duplicate":True}
+            proposal_id = "cp_" + uuid4().hex
+            ts = now()
+            con.execute("""
+              INSERT INTO curation_proposals(proposal_id,fingerprint,status,theme,title,payload,created_at,updated_at)
+              VALUES(?,?,'draft',?,?,?,?,?)
+            """,(
+                proposal_id,fingerprint,p.get("theme"),p.get("title"),
+                json.dumps(p,ensure_ascii=False),ts,ts,
+            ))
+            con.commit()
+            return {**p,"proposal_id":proposal_id,"proposal_status":"draft","exhibition_id":None,"duplicate":False}
+        except Exception:
+            con.rollback()
+            raise
+
+@app.post("/curation/proposal/publish")
+def publish_curation_proposal(body:PublishProposalIn):
+    with closing(connect()) as con:
+        con.execute("BEGIN IMMEDIATE")
+        try:
+            proposal = con.execute("SELECT * FROM curation_proposals WHERE proposal_id=?",(body.proposal_id,)).fetchone()
+            if not proposal:
+                raise HTTPException(404,"策展草稿不存在")
+            p = json.loads(proposal["payload"] or "{}")
+            if proposal["status"] == "published" and proposal["exhibition_id"]:
+                row = con.execute("SELECT * FROM exhibitions WHERE id=?",(proposal["exhibition_id"],)).fetchone()
+                payload = _exhibition_payload(con,row) if row else None
+                con.rollback()
+                return {"ok":True,"idempotent":True,"proposal_id":body.proposal_id,"exhibition":payload}
+            if proposal["status"] != "draft":
+                raise HTTPException(409,"策展草稿当前状态不可发布")
+            if not p.get("works"):
+                raise HTTPException(400,"策展草稿没有可发布作品")
+            # The draft is the exact operator-reviewed snapshot. Re-check public
+            # eligibility at publish time in case rights changed after draft creation.
+            for work in p["works"]:
+                public_asset_or_404(con,int(work["id"]))
+            theme_code = next((t["theme_code"] for t in THEMES if t["name"]==p.get("theme")),None)
+            ts = now()
+            con.execute("""
+              INSERT INTO exhibitions(title,theme_code,hotel_id,status,period,description,generated_from_votes,source_note,published_at,created_at,updated_at)
+              VALUES(?,?,?,?,?,?,?,?,?,?,?)
+            """,(body.title or p["title"],theme_code,HOTEL["id"],"published",body.period,p["statement"],1,body.source_note,ts,ts,ts))
+            eid = con.execute("SELECT last_insert_rowid() id").fetchone()["id"]
+            for order,w in enumerate(p["works"],1):
+                con.execute("INSERT INTO exhibition_assets(exhibition_id,asset_id,sort_order) VALUES(?,?,?)",
+                            (eid,w["id"],order))
+            con.execute("""
+              INSERT INTO activities(exhibition_id,hotel_id,title,activity_type,location,status,capacity,description,created_at,updated_at)
+              VALUES(?,?,?,?,?,?,?,?,?,?)
+            """,(eid,HOTEL["id"],f"{p['theme']}·共创导览","文化导览","锦江饭店","published",40,
+                 "围绕用户共创策展结果形成的配套导览活动。",ts,ts))
+            con.execute("""
+              UPDATE curation_proposals SET status='published',exhibition_id=?,published_at=?,updated_at=?
+              WHERE proposal_id=? AND status='draft'
+            """,(eid,ts,ts,body.proposal_id))
+            con.commit()
+            row = con.execute("SELECT * FROM exhibitions WHERE id=?",(eid,)).fetchone()
+            return {"ok":True,"idempotent":False,"proposal_id":body.proposal_id,"exhibition":_exhibition_payload(con,row)}
+        except Exception:
+            con.rollback()
+            raise
 
 @app.post("/demo/seed")
 def demo_seed(body:SeedIn):
@@ -1154,12 +1423,49 @@ def demo_seed(body:SeedIn):
 
 @app.post("/demo/reset")
 def demo_reset():
-    con = connect()
-    con.execute("DELETE FROM user_preferences")
-    con.execute("DELETE FROM curation_votes")
-    con.execute("DELETE FROM user_events")
-    con.execute("DELETE FROM recommendations")
-    con.execute("DELETE FROM user_sessions")
-    con.commit()
-    con.close()
-    return {"ok":True,"message":"已清空推荐、行为、偏好与共创数据；文化资产和已发布展览保留"}
+    with closing(connect()) as con:
+        con.execute("BEGIN IMMEDIATE")
+        try:
+            ts = now()
+            reconciliation = 0
+            for exp in con.execute("SELECT * FROM ai_experiences").fetchall():
+                refs = [
+                    ("job",exp["experience_id"],exp["molink_job_id"],{"experience_id":exp["experience_id"]}),
+                    ("space_asset",exp["experience_id"],exp["molink_space_asset_id"],{"experience_id":exp["experience_id"]}),
+                ]
+                for object_type,local_ref,remote_ref,details in refs:
+                    if not remote_ref:
+                        continue
+                    con.execute("""
+                      INSERT INTO ai_reconciliation_log(object_type,local_ref,remote_ref,status,reason,details,created_at)
+                      VALUES(?,?,?,'unresolved','demo_reset',?,?)
+                    """,(object_type,local_ref,remote_ref,json.dumps(details,ensure_ascii=False),ts))
+                    reconciliation += 1
+            for link in con.execute("SELECT * FROM ai_asset_links").fetchall():
+                con.execute("""
+                  INSERT INTO ai_reconciliation_log(object_type,local_ref,remote_ref,status,reason,details,created_at)
+                  VALUES('artwork_asset',?,?,'unresolved','demo_reset',?,?)
+                """,(
+                    str(link["artwork_id"]),link["molink_asset_id"],
+                    json.dumps({"fingerprint":link["fingerprint"]},ensure_ascii=False),ts,
+                ))
+                reconciliation += 1
+
+            con.execute("DELETE FROM ai_event_outbox")
+            con.execute("DELETE FROM ai_experiences")
+            con.execute("DELETE FROM ai_asset_links")
+            con.execute("DELETE FROM curation_proposals WHERE status='draft'")
+            con.execute("DELETE FROM user_preferences")
+            con.execute("DELETE FROM curation_votes")
+            con.execute("DELETE FROM user_events")
+            con.execute("DELETE FROM recommendations")
+            con.execute("DELETE FROM user_sessions")
+            con.commit()
+            return {
+                "ok":True,
+                "reconciliation_records":reconciliation,
+                "message":"已清空消费者与 AI 本地关联数据；远端 Molink 对象已写入对账台账，文化资产和已发布展览保留",
+            }
+        except Exception:
+            con.rollback()
+            raise

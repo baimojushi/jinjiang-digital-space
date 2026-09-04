@@ -42,8 +42,8 @@ function renderProposal(p){
  currentProposal=p;
  if(!p.works?.length){$("#proposalBox").className="empty";$("#proposalBox").textContent="当前没有足够的用户共创数据。先注入演示数据或在用户端产生真实选择。";$("#btnPublish").disabled=true;return}
  $("#proposalBox").className="proposal";
- $("#proposalBox").innerHTML=`<span class="eyebrow">${esc(p.theme)}</span><h3>${esc(p.title)}</h3><p>${esc(p.statement)}</p><div class="proposal-works">${p.works.map(w=>`<figure><img src="${url(w.cover)||""}"><figcaption>${esc(w.title)} · ${w.votes}票</figcaption></figure>`).join("")}</div><p>${esc(p.status)}。发布动作会写入 Exhibition / ExhibitionAsset / Activity，并回流到用户端“正在发生”。</p>`;
- $("#btnPublish").disabled=false;
+ $("#proposalBox").innerHTML=`<span class="eyebrow">${esc(p.theme)}</span><h3>${esc(p.title)}</h3><p>${esc(p.statement)}</p><div class="proposal-works">${p.works.map(w=>`<figure><img src="${url(w.cover)||""}"><figcaption>${esc(w.title)} · ${w.votes}票</figcaption></figure>`).join("")}</div><p>${esc(p.status||"")}。草稿已冻结当前用户共创快照；只有运营确认后才会发布到用户端“正在发生”。</p>`;
+ $("#btnPublish").disabled=p.proposal_status==="published";
 }
 async function refresh(){
  const [d,pool,diag]=await Promise.all([api("/analytics/dashboard"),api("/curation-pool"),api("/recommendation-diagnostics")]);
@@ -51,8 +51,8 @@ async function refresh(){
 }
 $("#btnSeed").onclick=async()=>{const b=$("#btnSeed");b.disabled=true;try{const r=await api("/demo/seed",{method:"POST",body:JSON.stringify({users:72,days:7})});toast(r.message);await refresh()}finally{b.disabled=false}}
 $("#btnReset").onclick=async()=>{await api("/demo/reset",{method:"POST",body:"{}"});currentProposal=null;$("#proposalBox").className="empty";$("#proposalBox").textContent="行为数据已清空。文化资产和已发布展览保留。";$("#btnPublish").disabled=true;toast("行为数据已清空");await refresh()}
-$("#btnProposal").onclick=async()=>{renderProposal(await api("/curation/proposal"))}
-$("#btnPublish").onclick=async()=>{if(!currentProposal)return;const r=await api("/curation/proposal/publish",{method:"POST",body:JSON.stringify({title:currentProposal.title,period:"待排期"})});toast("展览已发布到用户端“正在发生”");$("#btnPublish").disabled=true;await refresh()}
+$("#btnProposal").onclick=async()=>{renderProposal(await api("/curation/proposal/draft",{method:"POST",body:"{}"}))}
+$("#btnPublish").onclick=async()=>{if(!currentProposal?.proposal_id)return;const r=await api("/curation/proposal/publish",{method:"POST",body:JSON.stringify({proposal_id:currentProposal.proposal_id,title:currentProposal.title,period:"待排期"})});toast(r.idempotent?"该策展草稿已经发布，无需重复创建":"展览已发布到用户端“正在发生”");$("#btnPublish").disabled=true;currentProposal.proposal_status="published";await refresh()}
 refresh();
 
 // 背景锦江酒店 logo 视差：滚动量 ×0.5，比第一层慢 50%

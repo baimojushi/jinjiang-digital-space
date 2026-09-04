@@ -8,6 +8,7 @@ from .database import (
     connect, audit, now, publication_gate,
     VALID_RIGHTS, VALID_REVIEW, VALID_PUBLISH
 )
+from . import molink_integration as molink
 
 router = APIRouter()
 STATIC = Path(__file__).resolve().parent / "static"
@@ -27,6 +28,7 @@ class AssetPatch(BaseModel):
     publish_status: str | None = None
     building: str | None = None
     tags: list[str] | None = None
+    metadata: dict | None = None
 
 class SpacePatch(BaseModel):
     name: str | None = None
@@ -163,12 +165,12 @@ def update_asset(asset_id: int, body: AssetPatch):
         if not gate["eligible"]:
             con.close(); raise HTTPException(400,{"message":"未通过发布门禁","blocking":gate["blocking"]})
     allowed={"title","source","author","region","era","dimensions","style","theme_text","story",
-             "rights_status","review_status","publish_status","building","tags"}
+             "rights_status","review_status","publish_status","building","tags","metadata"}
     sets=[]; vals=[]
     for k,v in changes.items():
         if k not in allowed: continue
         sets.append(f"{k}=?")
-        if k=="tags":
+        if k in ("tags","metadata"):
             v=json.dumps(v,ensure_ascii=False)
         vals.append(v)
     if sets:
@@ -211,6 +213,14 @@ def data_quality():
             issues.append({"severity":"warning","entity":"asset","id":d["id"],"code":d["asset_code"],"field":"source","message":"缺作品来源"})
         if d["asset_type"]=="artwork" and not d["dimensions"]:
             issues.append({"severity":"warning","entity":"asset","id":d["id"],"code":d["asset_code"],"field":"dimensions","message":"缺作品尺寸，影响线下展陈适配"})
+        if d["asset_type"]=="artwork" and d["dimensions"]:
+            dims, dims_error = molink.validate_preview_dimensions_cm(d["dimensions"])
+            if not dims:
+                issues.append({
+                    "severity":"warning","entity":"asset","id":d["id"],"code":d["asset_code"],
+                    "field":"dimensions","impact":"ai_space_preview",
+                    "message":f"AI 空间体验已阻断：{dims_error or '作品尺寸不合理'}"
+                })
         if not d["cover"]:
             issues.append({"severity":"blocking","entity":"asset","id":d["id"],"code":d["asset_code"],"field":"cover","message":"缺封面媒体"})
     for r in con.execute("SELECT * FROM spaces ORDER BY id"):
@@ -226,6 +236,39 @@ def data_quality():
     return {"issues":issues,"count":len(issues),
             "blocking":sum(1 for x in issues if x["severity"]=="blocking"),
             "warning":sum(1 for x in issues if x["severity"]=="warning")}
+
+
+@router.get("/api/admin/ai/reconciliation")
+def ai_reconciliation(status: str | None = None):
+    con=connect()
+    if status:
+        rows=con.execute("SELECT * FROM ai_reconciliation_log WHERE status=? ORDER BY id DESC",(status,)).fetchall()
+    else:
+        rows=con.execute("SELECT * FROM ai_reconciliation_log ORDER BY id DESC LIMIT 500").fetchall()
+    counts={r["status"]:r["c"] for r in con.execute("SELECT status,COUNT(*) c FROM ai_reconciliation_log GROUP BY status")}
+    con.close()
+    return {"items":[_json_row(r) for r in rows],"counts":counts}
+
+
+@router.post("/api/admin/ai/reconciliation/check")
+async def check_ai_reconciliation(limit:int=100):
+    if not molink.configured():
+        raise HTTPException(503,"Molink Platform API 未配置")
+    try:
+        return await molink.reconcile_remote_references(limit=max(1,min(limit,500)))
+    except molink.MolinkIntegrationError as exc:
+        raise HTTPException(exc.status_code,detail={"code":exc.code,"message":str(exc)})
+
+
+@router.post("/api/admin/ai/reconciliation/{row_id}/resolve")
+def resolve_ai_reconciliation(row_id:int):
+    con=connect()
+    row=con.execute("SELECT * FROM ai_reconciliation_log WHERE id=?",(row_id,)).fetchone()
+    if not row:
+        con.close(); raise HTTPException(404,"对账记录不存在")
+    con.execute("UPDATE ai_reconciliation_log SET status='resolved',resolved_at=? WHERE id=?",(now(),row_id))
+    con.commit(); con.close()
+    return {"ok":True}
 
 @router.get("/api/admin/spaces")
 def list_spaces():

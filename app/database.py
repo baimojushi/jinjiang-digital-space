@@ -15,9 +15,12 @@ def now():
     return datetime.now().isoformat(timespec="seconds")
 
 def connect():
-    con = sqlite3.connect(DB)
+    # FastAPI request workers and the AI trace retry worker share this database.
+    # Wait briefly on lock contention instead of failing immediately.
+    con = sqlite3.connect(DB, timeout=10.0)
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA foreign_keys=ON")
+    con.execute("PRAGMA busy_timeout=10000")
     return con
 
 def _load(name):
@@ -34,6 +37,10 @@ def _ensure_column(con, table, column, ddl):
 
 def init_database():
     con = connect()
+    # WAL is database-wide; establish it during initialization rather than on
+    # every request connection.
+    con.execute("PRAGMA journal_mode=WAL")
+    con.execute("PRAGMA synchronous=NORMAL")
     cur = con.cursor()
 
     # 兼容旧版：artworks 物理表保留为 legacy，新的 artworks 是面向C端的公开视图。
@@ -176,6 +183,8 @@ def init_database():
       recommendation_id TEXT,
       session_id TEXT,
       source_id INTEGER,
+      entity_type TEXT,
+      entity_id TEXT,
       metadata TEXT NOT NULL DEFAULT '{}',
       created_at TEXT
     );
@@ -199,6 +208,20 @@ def init_database():
       session_id TEXT,
       vote INTEGER DEFAULT 1,
       created_at TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS curation_proposals(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      proposal_id TEXT NOT NULL UNIQUE,
+      fingerprint TEXT NOT NULL UNIQUE,
+      status TEXT NOT NULL DEFAULT 'draft',
+      theme TEXT,
+      title TEXT,
+      payload TEXT NOT NULL DEFAULT '{}',
+      exhibition_id INTEGER,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      published_at TEXT
     );
 
     CREATE TABLE IF NOT EXISTS exhibitions(
@@ -328,9 +351,24 @@ def init_database():
       status TEXT NOT NULL DEFAULT 'pending',
       attempts INTEGER NOT NULL DEFAULT 0,
       last_error TEXT,
+      next_attempt_at TEXT,
       created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
       UNIQUE(experience_id, sequence),
       FOREIGN KEY(experience_id) REFERENCES ai_experiences(experience_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS ai_reconciliation_log(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      object_type TEXT NOT NULL,
+      local_ref TEXT,
+      remote_ref TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'unresolved',
+      reason TEXT NOT NULL,
+      details TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT NOT NULL,
+      checked_at TEXT,
+      last_error TEXT,
+      resolved_at TEXT
     );
 
     CREATE INDEX IF NOT EXISTS idx_assets_status ON culture_assets(rights_status, review_status, publish_status);
@@ -345,8 +383,17 @@ def init_database():
     CREATE INDEX IF NOT EXISTS idx_votes_artwork ON curation_votes(artwork_id);
     CREATE INDEX IF NOT EXISTS idx_ai_exp_user ON ai_experiences(user_id, created_at);
     CREATE INDEX IF NOT EXISTS idx_ai_exp_artwork ON ai_experiences(artwork_id, created_at);
-    CREATE INDEX IF NOT EXISTS idx_ai_outbox_status ON ai_event_outbox(status, created_at);
+    CREATE INDEX IF NOT EXISTS idx_reconciliation_status ON ai_reconciliation_log(status, created_at);
     """)
+
+    # Existing demo databases are migrated in-place.
+    _ensure_column(con, "user_events", "entity_type", "TEXT")
+    _ensure_column(con, "user_events", "entity_id", "TEXT")
+    _ensure_column(con, "ai_event_outbox", "next_attempt_at", "TEXT")
+    _ensure_column(con, "ai_reconciliation_log", "checked_at", "TEXT")
+    _ensure_column(con, "ai_reconciliation_log", "last_error", "TEXT")
+    con.execute("CREATE INDEX IF NOT EXISTS idx_ai_outbox_status ON ai_event_outbox(status, next_attempt_at, created_at)")
+    con.execute("CREATE INDEX IF NOT EXISTS idx_events_entity ON user_events(entity_type, entity_id, created_at)")
 
     seed_master_data(con)
     seed_sources(con)
@@ -478,6 +525,8 @@ def seed_sources(con):
 def rebuild_public_view(con):
     if _object_type(con, "artworks") == "view":
         con.execute("DROP VIEW artworks")
+    if _object_type(con, "public_media_assets") == "view":
+        con.execute("DROP VIEW public_media_assets")
     con.execute("""
       CREATE VIEW artworks AS
       SELECT
@@ -487,13 +536,18 @@ def rebuild_public_view(con):
         a.tags AS tags,COALESCE(a.story,a.theme_text,'') AS story,COALESCE(a.source,'业务数据库') AS source,
         CASE a.rights_status WHEN 'authorized' THEN '已授权'
           WHEN 'public_domain_verified' THEN '公版已核验' ELSE a.rights_status END AS authorization,
-        a.cover,a.asset_code,a.author,a.collection_id,a.building,a.theme_text,
-        a.rights_status,a.review_status,a.publish_status,a.dimensions
+        a.cover,a.asset_code,a.author,a.collection_id,a.hotel_id,a.building,a.theme_text,
+        a.rights_status,a.review_status,a.publish_status,a.dimensions,a.metadata
       FROM culture_assets a
       WHERE a.rights_status IN ('authorized','public_domain_verified')
         AND a.review_status='approved'
         AND a.publish_status='published'
         AND a.cover IS NOT NULL
+    """)
+    con.execute("""
+      CREATE VIEW public_media_assets AS
+      SELECT * FROM media_assets
+      WHERE rights_status IN ('authorized','public_domain_verified')
     """)
 
 def seed_exhibition(con):

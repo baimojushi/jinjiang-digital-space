@@ -78,6 +78,15 @@
   </section>
 
   <section class="aa-panel">
+    <div class="aa-panel-head">
+      <div><div class="eyebrow">AI REMOTE RECONCILIATION</div><h2>Molink 远端对账</h2><p>演示重置会先保留远端 Job / Asset 引用。这里用于确认远端对象仍存在、已经不存在，或检查失败。</p></div>
+      <button class="aa-btn" id="checkReconciliation">检查远端状态</button>
+    </div>
+    <div id="reconciliationSummary" class="aa-count"></div>
+    <div id="reconciliationList" class="aa-list"></div>
+  </section>
+
+  <section class="aa-panel">
     <div class="eyebrow">IMPORT TRACE</div><h2>已接入业务数据</h2>
     <div class="aa-table-wrap"><table class="aa-table"><thead><tr><th>来源</th><th>类型</th><th>状态</th><th>总数</th><th>成功</th><th>提醒</th><th>说明</th></tr></thead><tbody id="batchBody"></tbody></table></div>
   </section>

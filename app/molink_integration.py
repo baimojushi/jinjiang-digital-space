@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from contextlib import closing
 from pathlib import Path
 from typing import Any
-from urllib.parse import urljoin
+from urllib.parse import urljoin, quote
 import hashlib
 import json
 import mimetypes
 import os
 import re
+import time
+from datetime import datetime, timedelta
 from uuid import uuid4
 
 import httpx
@@ -24,6 +27,15 @@ MOLINK_CONSENT_REF = os.getenv("MOLINK_CONSENT_REF", "jinjiang_ai_space_preview_
 MOLINK_USER_HASH_SALT = os.getenv("MOLINK_USER_HASH_SALT", "jinjiang-molink-v1").strip()
 JINJIANG_PUBLIC_BASE_URL = os.getenv("JINJIANG_PUBLIC_BASE_URL", "").strip().rstrip("/")
 MOLINK_TIMEOUT_SECONDS = float(os.getenv("MOLINK_TIMEOUT_SECONDS", "45"))
+MOLINK_TRACE_MAX_ATTEMPTS = max(1, int(os.getenv("MOLINK_TRACE_MAX_ATTEMPTS", "10")))
+MOLINK_TRACE_RETRY_BASE_SECONDS = max(5, int(os.getenv("MOLINK_TRACE_RETRY_BASE_SECONDS", "15")))
+MOLINK_ARTWORK_MIN_DIMENSION_CM = max(1.0, float(os.getenv("MOLINK_ARTWORK_MIN_DIMENSION_CM", "5")))
+MOLINK_ARTWORK_MAX_DIMENSION_CM = max(
+    MOLINK_ARTWORK_MIN_DIMENSION_CM,
+    float(os.getenv("MOLINK_ARTWORK_MAX_DIMENSION_CM", "500")),
+)
+
+_CAPABILITY_CACHE: dict[str, Any] = {"at": 0.0, "payload": None}
 
 TRACE_EVENT_TYPES = {
     "candidate_set.exposed",
@@ -57,6 +69,14 @@ def configured() -> bool:
     return bool(MOLINK_PLATFORM_TOKEN)
 
 
+def parse_json(value: Any, fallback: Any):
+    try:
+        parsed = json.loads(value) if isinstance(value, str) else value
+        return parsed if parsed is not None else fallback
+    except Exception:
+        return fallback
+
+
 def _headers(extra: dict[str, str] | None = None) -> dict[str, str]:
     if not MOLINK_PLATFORM_TOKEN:
         raise MolinkIntegrationError(
@@ -80,11 +100,12 @@ async def _request_json(method: str, path: str, *, json_body: dict | None = None
     if content_type:
         req_headers["Content-Type"] = content_type
     timeout = httpx.Timeout(MOLINK_TIMEOUT_SECONDS)
+    target = path if str(path).startswith(("http://", "https://")) else MOLINK_BASE_URL + path
     async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
         try:
             response = await client.request(
                 method,
-                MOLINK_BASE_URL + path,
+                target,
                 headers=req_headers,
                 json=json_body,
                 content=content,
@@ -112,7 +133,30 @@ async def _request_json(method: str, path: str, *, json_body: dict | None = None
 
 
 async def capabilities() -> dict[str, Any]:
-    return await _request_json("GET", "/v1/capabilities")
+    now_monotonic = time.monotonic()
+    cached = _CAPABILITY_CACHE.get("payload")
+    if cached and now_monotonic - float(_CAPABILITY_CACHE.get("at") or 0) < 60:
+        return cached
+    payload = await _request_json("GET", "/v1/capabilities")
+    _CAPABILITY_CACHE["at"] = now_monotonic
+    _CAPABILITY_CACHE["payload"] = payload
+    return payload
+
+
+async def artwork_space_preview_constraints() -> dict[str, Any]:
+    payload = await capabilities()
+    item = next(
+        (x for x in (payload.get("data") or []) if isinstance(x, dict) and x.get("id") == "artwork_space_preview"),
+        {},
+    )
+    constraints = item.get("constraints") if isinstance(item.get("constraints"), dict) else {}
+    dims = constraints.get("artwork_physical_dimensions_cm") if isinstance(constraints.get("artwork_physical_dimensions_cm"), dict) else {}
+    return {
+        "max_asset_bytes": int(constraints.get("max_asset_bytes") or 25 * 1024 * 1024),
+        "accepted_mime_types": list(constraints.get("accepted_mime_types") or ["image/jpeg", "image/png", "image/webp"]),
+        "min_artwork_dimension_cm": float(dims.get("min_each_dimension") or MOLINK_ARTWORK_MIN_DIMENSION_CM),
+        "max_artwork_dimension_cm": float(dims.get("max_each_dimension") or MOLINK_ARTWORK_MAX_DIMENSION_CM),
+    }
 
 
 def opaque_user_id(user_id: str) -> str:
@@ -141,6 +185,25 @@ def parse_dimensions_cm(text: str | None) -> tuple[float, float] | None:
         width *= 100.0
         height *= 100.0
     return width, height
+
+
+def validate_preview_dimensions_cm(text: str | None) -> tuple[tuple[float, float] | None, str | None]:
+    raw = str(text or "").strip()
+    if any(marker in raw for marker in ("?", "？", "待确认", "不确定", "待核")):
+        return None, "作品尺寸仍含待确认标记，暂不能进入 AI 空间体验"
+    dims = parse_dimensions_cm(raw)
+    if not dims:
+        return None, "作品缺少可解析的实际尺寸"
+    width_cm, height_cm = dims
+    if any(
+        value < MOLINK_ARTWORK_MIN_DIMENSION_CM or value > MOLINK_ARTWORK_MAX_DIMENSION_CM
+        for value in (width_cm, height_cm)
+    ):
+        return None, (
+            f"作品尺寸超出 AI 空间体验支持范围：单边需在 "
+            f"{MOLINK_ARTWORK_MIN_DIMENSION_CM:g}-{MOLINK_ARTWORK_MAX_DIMENSION_CM:g}cm"
+        )
+    return dims, None
 
 
 def _asset_cache_row(con, artwork_id: int, fingerprint: str):
@@ -214,13 +277,43 @@ async def _create_upload_asset(*, kind: str, content: bytes, content_type: str,
     asset_id = created.get("asset_id")
     if not asset_id:
         raise MolinkIntegrationError("Molink 未返回 asset_id", code="INVALID_MOLINK_RESPONSE")
-    await _request_json(
-        "PUT",
-        f"/v1/assets/{asset_id}/content",
-        content=content,
-        content_type=content_type,
-    )
-    return await _request_json("POST", f"/v1/assets/{asset_id}/complete", json_body={})
+    upload = created.get("upload") if isinstance(created.get("upload"), dict) else None
+    if not upload or not upload.get("url"):
+        raise MolinkIntegrationError(
+            "Molink 未返回权威 upload.url",
+            code="INVALID_MOLINK_UPLOAD_CONTRACT",
+        )
+
+    upload_url = str(upload["url"])
+    target = upload_url if upload_url.startswith(("http://", "https://")) else urljoin(MOLINK_BASE_URL + "/", upload_url.lstrip("/"))
+    upload_headers = {"Content-Type": content_type}
+    if upload.get("requires_authorization", True):
+        upload_headers.update(_headers())
+    timeout = httpx.Timeout(MOLINK_TIMEOUT_SECONDS)
+    async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+        try:
+            response = await client.request(str(upload.get("method") or "PUT").upper(), target, headers=upload_headers, content=content)
+        except httpx.HTTPError as exc:
+            raise MolinkIntegrationError(f"Molink 资产上传失败：{exc}") from exc
+    if response.status_code >= 400:
+        message = None
+        code = None
+        try:
+            payload = response.json()
+            err = payload.get("error") if isinstance(payload, dict) else None
+            if isinstance(err, dict):
+                message = err.get("message")
+                code = err.get("code")
+        except Exception:
+            pass
+        raise MolinkIntegrationError(
+            message or f"Molink 资产上传返回 HTTP {response.status_code}",
+            status_code=response.status_code,
+            code=code or "MOLINK_ASSET_UPLOAD_FAILED",
+        )
+
+    complete_url = str(upload.get("complete_url") or f"/v1/assets/{asset_id}/complete")
+    return await _request_json("POST", complete_url, json_body={})
 
 
 async def ensure_artwork_asset(*, artwork: dict[str, Any], static_root: Path) -> str:
@@ -245,12 +338,12 @@ async def ensure_artwork_asset(*, artwork: dict[str, Any], static_root: Path) ->
     else:
         con.close()
 
-    dims = parse_dimensions_cm(artwork.get("dimensions"))
+    dims, dims_error = validate_preview_dimensions_cm(artwork.get("dimensions"))
     if not dims:
         raise MolinkIntegrationError(
-            "当前作品缺少可解析的实际尺寸，暂不能进入空间预览",
+            dims_error or "当前作品缺少可解析的实际尺寸，暂不能进入空间预览",
             status_code=422,
-            code="MISSING_ARTWORK_DIMENSIONS",
+            code="INVALID_ARTWORK_DIMENSIONS",
         )
     width_cm, height_cm = dims
     result = await _create_upload_asset(
@@ -431,45 +524,59 @@ def _next_sequence(con, experience_id: str) -> int:
     return int(row["n"])
 
 
+def _retry_at(attempts: int) -> str:
+    delay = min(3600, MOLINK_TRACE_RETRY_BASE_SECONDS * (2 ** min(max(0, attempts - 1), 8)))
+    return (datetime.now() + timedelta(seconds=delay)).isoformat(timespec="seconds")
+
+
 def queue_trace_event(*, experience_id: str, event_type: str, phase: str | None,
                       payload: dict[str, Any], candidate_set_id: str | None = None) -> str:
     if event_type not in TRACE_EVENT_TYPES:
         raise MolinkIntegrationError("不支持的 Decision Trace 事件", status_code=422, code="UNSUPPORTED_TRACE_EVENT")
     con = connect()
-    exp = con.execute("SELECT * FROM ai_experiences WHERE experience_id=?", (experience_id,)).fetchone()
-    if not exp:
-        con.close()
-        raise MolinkIntegrationError("AI 体验不存在", status_code=404, code="AI_EXPERIENCE_NOT_FOUND")
-    event_id = "jj_evt_" + uuid4().hex
-    sequence = _next_sequence(con, experience_id)
-    event = {
-        "event_id": event_id,
-        "occurred_at": now(),
-        "decision_episode_id": exp["decision_episode_id"],
-        "job_id": exp["molink_job_id"],
-        "candidate_set_id": candidate_set_id or exp["candidate_set_id"],
-        "sequence": sequence,
-        "phase": phase,
-        "external_session_id": exp["session_id"],
-        "actor": {"external_user_id": opaque_user_id(exp["user_id"]), "role": "consumer"},
-        "event_type": event_type,
-        "payload": payload or {},
-    }
-    con.execute(
-        """
-        INSERT INTO ai_event_outbox(event_id,experience_id,sequence,event_type,payload,status,attempts,created_at,updated_at)
-        VALUES(?,?,?,?,?,'pending',0,?,?)
-        """,
-        (event_id,experience_id,sequence,event_type,json.dumps(event,ensure_ascii=False),now(),now()),
-    )
-    if event_type == "decision.committed" and payload.get("candidate_id"):
+    try:
+        # MAX(sequence)+1 and INSERT must be one serialized write transaction;
+        # otherwise simultaneous trace requests can collide on UNIQUE(experience_id, sequence).
+        con.execute("BEGIN IMMEDIATE")
+        exp = con.execute("SELECT * FROM ai_experiences WHERE experience_id=?", (experience_id,)).fetchone()
+        if not exp:
+            raise MolinkIntegrationError("AI 体验不存在", status_code=404, code="AI_EXPERIENCE_NOT_FOUND")
+        event_id = "jj_evt_" + uuid4().hex
+        sequence = _next_sequence(con, experience_id)
+        ts = now()
+        event = {
+            "event_id": event_id,
+            "occurred_at": ts,
+            "decision_episode_id": exp["decision_episode_id"],
+            "job_id": exp["molink_job_id"],
+            "candidate_set_id": candidate_set_id or exp["candidate_set_id"],
+            "sequence": sequence,
+            "phase": phase,
+            "external_session_id": exp["session_id"],
+            "actor": {"external_user_id": opaque_user_id(exp["user_id"]), "role": "consumer"},
+            "event_type": event_type,
+            "payload": payload or {},
+        }
         con.execute(
-            "UPDATE ai_experiences SET selected_candidate_id=?,updated_at=? WHERE experience_id=?",
-            (payload.get("candidate_id"),now(),experience_id),
+            """
+            INSERT INTO ai_event_outbox(
+              event_id,experience_id,sequence,event_type,payload,status,attempts,last_error,next_attempt_at,created_at,updated_at)
+            VALUES(?,?,?,?,?,'pending',0,NULL,?,?,?)
+            """,
+            (event_id,experience_id,sequence,event_type,json.dumps(event,ensure_ascii=False),ts,ts,ts),
         )
-    con.commit()
-    con.close()
-    return event_id
+        if event_type == "decision.committed" and payload.get("candidate_id"):
+            con.execute(
+                "UPDATE ai_experiences SET selected_candidate_id=?,updated_at=? WHERE experience_id=?",
+                (payload.get("candidate_id"),ts,experience_id),
+            )
+        con.commit()
+        return event_id
+    except Exception:
+        con.rollback()
+        raise
+    finally:
+        con.close()
 
 
 async def flush_trace_events(experience_id: str, limit: int = 50) -> dict[str, int]:
@@ -477,10 +584,11 @@ async def flush_trace_events(experience_id: str, limit: int = 50) -> dict[str, i
     rows = con.execute(
         """
         SELECT * FROM ai_event_outbox
-        WHERE experience_id=? AND status='pending'
+        WHERE experience_id=? AND status='pending' AND attempts < ?
+          AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
         ORDER BY sequence,id LIMIT ?
         """,
-        (experience_id, limit),
+        (experience_id, MOLINK_TRACE_MAX_ATTEMPTS, now(), limit),
     ).fetchall()
     con.close()
     if not rows:
@@ -498,38 +606,169 @@ async def flush_trace_events(experience_id: str, limit: int = 50) -> dict[str, i
         )
     except MolinkIntegrationError as exc:
         con = connect()
-        ids = [r["event_id"] for r in rows]
-        q = ",".join("?" for _ in ids)
-        con.execute(
-            f"UPDATE ai_event_outbox SET attempts=attempts+1,last_error=?,updated_at=? WHERE event_id IN ({q})",
-            (str(exc),now(),*ids),
-        )
+        for row in rows:
+            attempts = int(row["attempts"] or 0) + 1
+            status = "dead_letter" if attempts >= MOLINK_TRACE_MAX_ATTEMPTS else "pending"
+            con.execute(
+                """UPDATE ai_event_outbox
+                   SET status=?,attempts=?,last_error=?,next_attempt_at=?,updated_at=?
+                   WHERE event_id=?""",
+                (status,attempts,str(exc),None if status=="dead_letter" else _retry_at(attempts),now(),row["event_id"]),
+            )
         con.commit(); con.close()
         return {"sent": 0, "pending": len(rows)}
 
-    rejected = {x.get("event_id") for x in result.get("rejected", []) if isinstance(x, dict)}
+    rejected_rows = [x for x in (result.get("rejected") or []) if isinstance(x, dict)]
+    rejected = {x.get("event_id"): x for x in rejected_rows if x.get("event_id")}
+    duplicate_rows = result.get("duplicates") or []
+    if not isinstance(duplicate_rows, list):
+        duplicate_rows = []
+    duplicate_ids = {
+        str(x.get("event_id"))
+        for x in duplicate_rows if isinstance(x, dict) and x.get("event_id")
+    }
+    accepted_rows = result.get("accepted_event_ids") or []
+    accepted_ids = {str(x) for x in accepted_rows} if isinstance(accepted_rows, list) else set()
     con = connect()
     sent = 0
     for row in rows:
-        if row["event_id"] in rejected:
-            msg = next((x.get("message") for x in result.get("rejected", []) if x.get("event_id") == row["event_id"]), "rejected")
+        event_id = str(row["event_id"])
+        rejection = rejected.get(event_id)
+        if rejection:
+            attempts = int(row["attempts"] or 0) + 1
+            retryable = bool(rejection.get("retryable")) and attempts < MOLINK_TRACE_MAX_ATTEMPTS
+            status = "pending" if retryable else ("dead_letter" if rejection.get("retryable") else "rejected")
             con.execute(
-                "UPDATE ai_event_outbox SET status='rejected',attempts=attempts+1,last_error=?,updated_at=? WHERE event_id=?",
-                (msg,now(),row["event_id"]),
+                """UPDATE ai_event_outbox SET status=?,attempts=?,last_error=?,next_attempt_at=?,updated_at=?
+                   WHERE event_id=?""",
+                (
+                    status, attempts,
+                    f"{rejection.get('code') or 'EVENT_REJECTED'}: {rejection.get('message') or 'rejected'}",
+                    _retry_at(attempts) if retryable else None,
+                    now(), event_id,
+                ),
             )
-        else:
+        elif event_id in accepted_ids or event_id in duplicate_ids:
+            # accepted events and DUPLICATE_EVENT are both successful local delivery:
+            # duplicate means Molink already persisted the same event_id.
             con.execute(
-                "UPDATE ai_event_outbox SET status='sent',attempts=attempts+1,last_error=NULL,updated_at=? WHERE event_id=?",
-                (now(),row["event_id"]),
+                """UPDATE ai_event_outbox SET status='sent',attempts=attempts+1,last_error=NULL,
+                   next_attempt_at=NULL,updated_at=? WHERE event_id=?""",
+                (now(),event_id),
             )
             sent += 1
+        else:
+            # A 2xx batch response is not enough. Every event needs an explicit
+            # accepted/duplicate/rejected acknowledgement or it remains retryable.
+            attempts = int(row["attempts"] or 0) + 1
+            status = "dead_letter" if attempts >= MOLINK_TRACE_MAX_ATTEMPTS else "pending"
+            con.execute(
+                """UPDATE ai_event_outbox SET status=?,attempts=?,last_error='MISSING_EVENT_ACK',
+                   next_attempt_at=?,updated_at=? WHERE event_id=?""",
+                (status,attempts,None if status=="dead_letter" else _retry_at(attempts),now(),event_id),
+            )
     con.commit()
     pending = con.execute("SELECT COUNT(*) c FROM ai_event_outbox WHERE experience_id=? AND status='pending'", (experience_id,)).fetchone()["c"]
     con.close()
     return {"sent": sent, "pending": pending}
 
 
+async def flush_pending_trace_events(limit_experiences: int = 20) -> dict[str, int]:
+    con = connect()
+    rows = con.execute(
+        """
+        SELECT DISTINCT experience_id
+        FROM ai_event_outbox
+        WHERE status='pending' AND attempts < ?
+          AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
+        ORDER BY created_at LIMIT ?
+        """,
+        (MOLINK_TRACE_MAX_ATTEMPTS, now(), limit_experiences),
+    ).fetchall()
+    con.close()
+    sent = 0
+    pending = 0
+    for row in rows:
+        result = await flush_trace_events(row["experience_id"])
+        sent += int(result.get("sent") or 0)
+        pending += int(result.get("pending") or 0)
+    return {"experiences": len(rows), "sent": sent, "pending": pending}
+
+
+async def reconcile_remote_references(limit: int = 100) -> dict[str, int]:
+    """Probe remote Molink objects left behind by demo resets.
+
+    Molink v1 currently exposes read APIs but no destructive asset/job delete API.
+    Reconciliation therefore records whether each remote reference still exists,
+    so operators can distinguish confirmed remote orphans from already-absent
+    objects instead of silently dropping the association.
+    """
+    with closing(connect()) as con:
+        rows = con.execute(
+            """
+            SELECT * FROM ai_reconciliation_log
+            WHERE status IN ('unresolved','check_failed','remote_present')
+            ORDER BY id LIMIT ?
+            """,
+            (max(1, int(limit)),),
+        ).fetchall()
+    checked = present = missing = failed = 0
+    for row in rows:
+        object_type = str(row["object_type"] or "")
+        remote_ref = str(row["remote_ref"] or "")
+        if object_type == "job":
+            path = f"/v1/jobs/{quote(remote_ref, safe='')}"
+        elif object_type in {"space_asset", "artwork_asset", "asset"}:
+            path = f"/v1/assets/{quote(remote_ref, safe='')}"
+        else:
+            status, err = "check_failed", f"unsupported object_type: {object_type}"
+            failed += 1
+            with closing(connect()) as con:
+                con.execute(
+                    "UPDATE ai_reconciliation_log SET status=?,checked_at=?,last_error=? WHERE id=?",
+                    (status, now(), err, row["id"]),
+                ); con.commit()
+            continue
+        try:
+            payload = await _request_json("GET", path)
+            details = parse_json(row["details"], {})
+            details["remote_probe"] = {
+                "checked_at": now(),
+                "status": payload.get("status") or payload.get("execution_status"),
+                "outcome": payload.get("outcome"),
+            }
+            with closing(connect()) as con:
+                con.execute(
+                    """UPDATE ai_reconciliation_log
+                       SET status='remote_present',checked_at=?,last_error=NULL,details=?
+                       WHERE id=?""",
+                    (now(), json.dumps(details, ensure_ascii=False), row["id"]),
+                ); con.commit()
+            present += 1
+        except MolinkIntegrationError as exc:
+            if exc.status_code == 404:
+                with closing(connect()) as con:
+                    con.execute(
+                        """UPDATE ai_reconciliation_log
+                           SET status='remote_missing',checked_at=?,last_error=NULL,resolved_at=?
+                           WHERE id=?""",
+                        (now(), now(), row["id"]),
+                    ); con.commit()
+                missing += 1
+            else:
+                with closing(connect()) as con:
+                    con.execute(
+                        "UPDATE ai_reconciliation_log SET status='check_failed',checked_at=?,last_error=? WHERE id=?",
+                        (now(), str(exc), row["id"]),
+                    ); con.commit()
+                failed += 1
+        checked += 1
+    return {"checked": checked, "remote_present": present, "remote_missing": missing, "failed": failed}
+
+
 def public_job_for_jinjiang(experience_id: str, job: dict[str, Any]) -> dict[str, Any]:
+    exp = get_experience(experience_id)
+    user_q = quote(str(exp["user_id"]), safe="") if exp else ""
     result = job.get("result") if isinstance(job.get("result"), dict) else None
     candidates_out: list[dict[str, Any]] = []
     if result:
@@ -542,7 +781,7 @@ def public_job_for_jinjiang(experience_id: str, job: dict[str, Any]) -> dict[str
                         "type": art.get("type"),
                         "role": art.get("role"),
                         "production_usable": bool(art.get("production_usable")),
-                        "url": f"/ai/space-preview/{experience_id}/artifacts/{art['artifact_id']}",
+                        "url": f"/ai/space-preview/{experience_id}/artifacts/{art['artifact_id']}?user_id={user_q}",
                     })
             candidates_out.append({
                 "candidate_id": candidate.get("candidate_id"),

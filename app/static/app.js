@@ -35,8 +35,11 @@ const aiState = {
   serviceEnabled:false, file:null, fileUrl:null, intentCode:"harmonize",
   intentLabel:"希望作品自然融入空间", experienceId:null, artworkId:null,
   candidateSetId:null, candidates:[], status:"idle", pollTimer:null,
-  traced:new Set(), resultViewed:false, selectedCandidateId:null
+  traced:new Set(), resultViewed:false, selectedCandidateId:null,
+  maxAssetBytes:25*1024*1024, acceptedMimeTypes:["image/jpeg","image/png","image/webp"]
 };
+const recommendationImpressions=new Set();
+const reasonOpens=new Set();
 
 async function api(path, options={}) {
   const r = await fetch(apiPath(path),{headers:{"Content-Type":"application/json"},...options});
@@ -62,12 +65,56 @@ function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt
 function toast(msg){const el=$("#toast");el.textContent=msg;el.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("on"),1800)}
 // 图片 URL — 后端给的是 /static/... 绝对路径，浏览器会绕过 <base> 落到 Funnel 根，必须加 API_BASE 前缀
 function url(p){if(!p)return p;if(/^https?:/i.test(p))return p;return API_BASE+(p.startsWith('/')?p:'/'+p);}
-function sendEvent(event,id=current?.id,metadata={}) {
-  if(!id) return Promise.resolve();
+function currentRecommendationSnapshot(){
+  if(!current?.id||!currentRecommendation)return null;
+  return {
+    recommendationId:currentRecommendation, artworkId:current.id,
+    sessionId:currentSession, sourceCode:SOURCE
+  };
+}
+async function commitRecommendationImpression(snapshot=currentRecommendationSnapshot()){
+  if(!snapshot?.artworkId||!snapshot.recommendationId||recommendationImpressions.has(snapshot.recommendationId))return;
+  await api("/recommendations/impression",{method:"POST",body:JSON.stringify({
+    recommendation_id:snapshot.recommendationId,user_id:USER,artwork_id:snapshot.artworkId,
+    session_id:snapshot.sessionId,source_code:snapshot.sourceCode||SOURCE,metadata:{surface:"today.hero"}
+  })});
+  recommendationImpressions.add(snapshot.recommendationId);
+}
+async function sendArtworkEventSnapshot(event,snapshot,metadata={}){
+  if(!snapshot?.artworkId)return;
+  if(snapshot.recommendationId)await commitRecommendationImpression(snapshot).catch(()=>{});
   return api("/user-event",{method:"POST",body:JSON.stringify({
-    user_id:USER,event,artwork_id:id,recommendation_id:currentRecommendation,
-    session_id:currentSession,source_code:SOURCE,metadata
+    user_id:USER,event,artwork_id:snapshot.artworkId,recommendation_id:snapshot.recommendationId||null,
+    session_id:snapshot.sessionId||currentSession,source_code:snapshot.sourceCode||SOURCE,metadata
   })}).catch(()=>{});
+}
+async function sendEvent(event,id=current?.id,metadata={}) {
+  if(!id)return;
+  const snapshot=(current?.id===id)?currentRecommendationSnapshot():{
+    recommendationId:null,artworkId:id,sessionId:currentSession,sourceCode:SOURCE
+  };
+  return sendArtworkEventSnapshot(event,snapshot,metadata);
+}
+function sendTelemetry(event,entityType,entityId,metadata={}){
+  return api("/user-event",{method:"POST",body:JSON.stringify({
+    user_id:USER,event,artwork_id:null,recommendation_id:null,session_id:currentSession,
+    source_code:SOURCE,entity_type:entityType,entity_id:String(entityId),metadata
+  })}).catch(()=>{});
+}
+function observeRecommendationEngagement(){
+  const snapshot=currentRecommendationSnapshot();
+  if(!snapshot)return;
+  const recId=snapshot.recommendationId;
+  const hero=$("#plate"),reason=$("#reasonCard");
+  const onHero=()=>commitRecommendationImpression(snapshot).catch(()=>{});
+  const onReason=()=>{
+    if(reasonOpens.has(recId))return;
+    reasonOpens.add(recId);
+    sendArtworkEventSnapshot("reason_open",snapshot,{surface:"today.reason"});
+  };
+  if(!("IntersectionObserver" in window)){onHero();onReason();return}
+  const io=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting||entry.intersectionRatio<.45)continue;if(entry.target===hero)onHero();if(entry.target===reason)onReason();io.unobserve(entry.target)}},{threshold:[.45]});
+  if(hero)io.observe(hero);if(reason)io.observe(reason);
 }
 function workGrid(items){
   if(!items?.length) return `<div class="quiet">还没有记录。</div>`;
@@ -97,7 +144,7 @@ async function loadRecommendation(exclude){
     const detail=await api("/artworks/"+current.id+"?user_id="+encodeURIComponent(USER));
     $("#relatedList").innerHTML=(detail.related||[]).map(r=>`<figure data-open="${r.id}"><img src="${url(r.cover)}" alt="${esc(r.title)}"><figcaption>${esc(r.title)}</figcaption></figure>`).join("");
     syncAiForCurrentArtwork();
-    await sendEvent("impression",current.id);
+    observeRecommendationEngagement();
   }catch(e){toast("推荐服务暂时不可用");console.error(e)}
   finally{loading=false}
 }
@@ -165,6 +212,9 @@ async function loadAiService(){
   try{
     const s=await api("/ai/space-preview/service");
     aiState.serviceEnabled=!!s.enabled;
+    const c=s.constraints||{};
+    aiState.maxAssetBytes=Number(c.max_asset_bytes)||25*1024*1024;
+    aiState.acceptedMimeTypes=Array.isArray(c.accepted_mime_types)&&c.accepted_mime_types.length?c.accepted_mime_types.map(x=>String(x).toLowerCase()):["image/jpeg","image/png","image/webp"];
     $("#aiUnavailable").classList.toggle("hidden",!!s.enabled);
     if(!s.enabled)$("#aiUnavailable").textContent=s.reason||"AI 空间体验当前暂不可用。";
   }catch(e){aiState.serviceEnabled=false;$("#aiUnavailable").classList.remove("hidden");$("#aiUnavailable").textContent="AI 空间体验当前暂不可用。"}
@@ -193,7 +243,7 @@ async function traceAI(eventType,payload={},phase="post_preview",candidateSetId=
   const key=eventType+":"+(payload.candidate_id||payload.outcome_type||payload.presentation_id||"")+":"+(candidateSetId||"");
   if(["candidate_set.exposed","preview.viewed","candidate.selected","decision.committed","outcome.recorded"].includes(eventType)&&aiState.traced.has(key))return;
   try{
-    await api(`/ai/space-preview/${encodeURIComponent(aiState.experienceId)}/trace`,{method:"POST",body:JSON.stringify({event_type:eventType,phase,candidate_set_id:candidateSetId,payload})});
+    await api(`/ai/space-preview/${encodeURIComponent(aiState.experienceId)}/trace?user_id=${encodeURIComponent(USER)}`,{method:"POST",body:JSON.stringify({event_type:eventType,phase,candidate_set_id:candidateSetId,payload})});
     aiState.traced.add(key);
     if(eventType==="preview.viewed")aiState.resultViewed=true;
   }catch(e){console.warn("AI trace queued/failed",e)}
@@ -277,8 +327,9 @@ async function startAiExperience(){
 }
 
 $("#aiSpaceInput").addEventListener("change",e=>{
-  const file=e.target.files?.[0];if(!file)return;if(!file.type.startsWith("image/")){toast("请选择图片文件");return}
-  if(file.size>18*1024*1024){toast("空间照片不能超过 18MB");e.target.value="";return}
+  const file=e.target.files?.[0];if(!file)return;const type=String(file.type||"").toLowerCase();
+  if(!aiState.acceptedMimeTypes.includes(type)){toast("当前支持："+aiState.acceptedMimeTypes.join(" / "));e.target.value="";return}
+  if(file.size>aiState.maxAssetBytes){toast(`空间照片不能超过 ${(aiState.maxAssetBytes/1024/1024).toFixed(0)}MB`);e.target.value="";return}
   if(aiState.fileUrl)URL.revokeObjectURL(aiState.fileUrl);aiState.file=file;aiState.fileUrl=URL.createObjectURL(file);$("#aiSpacePreview").src=aiState.fileUrl;$("#aiSpacePreviewWrap").classList.remove("hidden");$(".ai-upload").classList.add("hidden");aiUpdateStartEnabled();
 });
 $("#aiChangeSpace").onclick=()=>{$("#aiSpaceInput").click()};
@@ -300,20 +351,29 @@ async function loadHotelStory(){
   const d=await api("/hotel/1/story");
   $("#hotelStory").textContent=(d.hotel.history||"")+" "+(d.hotel.positioning||"");
   $("#storySections").innerHTML=(d.story_sections||[]).map((x,i)=>`<div class="story-line"><span class="eyebrow light">0${i+1}</span><b>${esc(x.title)}</b><p>${esc(x.text)}</p></div>`).join("");
-  $("#artifactGrid").innerHTML=(d.artifacts||[]).map(x=>`<div class="artifact"><img src="${url(x.cover)}" alt="${esc(x.title)}"><div><b>${esc(x.title)}</b><span>${esc(x.code)} · ${esc(x.theme)}</span></div></div>`).join("");
-  $("#hotelGallery").innerHTML=(d.gallery||[]).map(x=>`<figure class="photo"><img loading="lazy" src="${url(x.file_path)}" alt="${esc(x.category)}"><span>${esc(x.category)}</span></figure>`).join("");
+  const artifacts=(d.artifacts||[]);
+  const gallery=(d.gallery||[]);
+  $("#artifactGrid").innerHTML=artifacts.length?artifacts.map(x=>`<div class="artifact"><img src="${url(x.cover)}" alt="${esc(x.title)}"><div><b>${esc(x.title)}</b><span>${esc(x.code)} · ${esc(x.theme)}</span></div></div>`).join(""):`<div class="quiet">暂无已通过公开授权门禁的酒店文化物件。</div>`;
+  $("#hotelGallery").innerHTML=gallery.length?gallery.map(x=>`<figure class="photo"><img loading="lazy" src="${url(x.file_path)}" alt="${esc(x.category)}"><span>${esc(x.category)}</span></figure>`).join(""):`<div class="quiet">暂无已通过公开授权门禁的酒店空间图片。</div>`;
+  await sendTelemetry("story_view","hotel",d.hotel?.id||1,{surface:"story.tab"});
 }
 async function loadLive(){
   const d=await api("/exhibitions");
   if(!d.items?.length){$("#exhibitionList").innerHTML=`<section class="paper-card"><p class="story">酒店还没有发布展览。用户共创数据会先进入酒店后台，由运营人员确认后发布到这里。</p></section>`;return}
-  $("#exhibitionList").innerHTML=d.items.map(ex=>`<section class="exhibition">
+  $("#exhibitionList").innerHTML=d.items.map(ex=>`<section class="exhibition" data-exhibition-id="${esc(ex.id)}">
     <div class="exhibition-head"><div><span class="eyebrow">${esc(ex.theme||"锦江策展")}</span><h2>${esc(ex.title)}</h2></div><span class="exhibition-status">已发布</span></div>
     <p class="exhibition-copy">${esc(ex.description||"")}</p>
     <div class="ex-work-grid">${(ex.works||[]).map(w=>`<div class="ex-work"><img src="${url(w.cover)||""}" alt="${esc(w.title)}"><span>${esc(w.title)}</span></div>`).join("")}</div>
-    ${(ex.activities||[]).map(a=>`<div class="activity-box"><b>${esc(a.title)}</b> · ${esc(a.location||"锦江饭店")} · ${esc(a.status)}</div>`).join("")}
+    ${(ex.activities||[]).map(a=>`<button type="button" class="activity-box" data-activity-id="${esc(a.id)}"><b>${esc(a.title)}</b> · ${esc(a.location||"锦江饭店")} · ${esc(a.status)}</button>`).join("")}
     ${ex.generated_from_votes?`<div class="cue" style="margin-bottom:0"><b>共创结果</b>这场展览由用户策展信号生成，并由酒店端确认发布。</div>`:""}
   </section>`).join("");
+  const cards=$$("#exhibitionList [data-exhibition-id]");
+  if("IntersectionObserver" in window){
+    const io=new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting&&entry.intersectionRatio>=.4){sendTelemetry("exhibition_view","exhibition",entry.target.dataset.exhibitionId,{surface:"live.tab"});io.unobserve(entry.target)}}},{threshold:[.4]});
+    cards.forEach(x=>io.observe(x));
+  }else cards.forEach(x=>sendTelemetry("exhibition_view","exhibition",x.dataset.exhibitionId,{surface:"live.tab"}));
 }
+$("#exhibitionList").addEventListener("click",e=>{const b=e.target.closest("[data-activity-id]");if(!b)return;sendTelemetry("activity_click","activity",b.dataset.activityId,{surface:"live.activity"});toast("已记录你对这个活动的兴趣")});
 async function loadMe(){
   const p=await api("/users/"+encodeURIComponent(USER)+"/profile");
   const s=p.stats||{};
