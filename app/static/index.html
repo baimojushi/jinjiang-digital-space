@@ -5,9 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>锦江非遗数字空间</title>
 <meta name="description" content="每天从一件文化作品进入锦江饭店，并参与决定下一场展览。">
+<meta name="theme-color" content="#4A2F1D">
+<meta name="format-detection" content="telephone=no">
+<meta property="og:type" content="website">
+<meta property="og:title" content="锦江非遗数字空间">
+<meta property="og:description" content="每天从一件文化作品进入锦江饭店，并参与决定下一场展览。">
+<meta property="og:image" content="static/assets/jinjiang-hotels-logo.svg">
+<link rel="icon" href="static/assets/jinjiang-hotels-logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="static/assets/jinjiang-hotels-logo.svg">
+<link rel="stylesheet" href="static/tokens.css">
 <link rel="stylesheet" href="static/styles.css">
+<link rel="stylesheet" href="static/ui-fixes.css">
 </head>
 <body>
+<a class="skip-link" href="#mainContent">跳到主要内容</a>
 <div class="brand-watermark" id="brandWatermark" aria-hidden="true">
   <img src="static/assets/jinjiang-hotels-logo.svg" alt="">
 </div>
@@ -26,10 +37,11 @@
     </div>
   </header>
 
-  <main id="view-today">
+  <main id="mainContent">
+  <section id="view-today" class="view-panel">
     <section class="hero-card" id="plate">
       <div class="hero-image-wrap">
-        <img class="hero-image" id="plateImg" alt="">
+        <img class="hero-image" id="plateImg" alt="" decoding="async" fetchpriority="high">
         <div class="hero-corner">今日一件</div>
       </div>
       <div class="hero-copy">
@@ -102,7 +114,7 @@
 
       <div id="aiIdle">
         <div class="ai-current-work">
-          <img id="aiArtworkThumb" alt="">
+          <img id="aiArtworkThumb" alt="" loading="lazy">
           <div><span class="quiet">当前作品</span><b id="aiArtworkTitle">—</b><small id="aiArtworkSize">—</small></div>
         </div>
         <label class="ai-upload" for="aiSpaceInput">
@@ -157,16 +169,16 @@
 
     <section class="gateway-grid">
       <button class="gateway" data-go="space">
-        <span class="gateway-no">01</span><b>锦江故事</b><p>建筑、历史、文化物件与饭店生活。</p>
+        <span class="gateway-no">01</span><b>锦江故事</b><span class="gateway-desc">建筑、历史、文化物件与饭店生活。</span>
       </button>
       <button class="gateway" data-go="live">
-        <span class="gateway-no">02</span><b>正在发生</b><p>看看用户选择如何变成真实展览与活动。</p>
+        <span class="gateway-no">02</span><b>正在发生</b><span class="gateway-desc">看看用户选择如何变成真实展览与活动。</span>
       </button>
     </section>
     <div class="spacer"></div>
-  </main>
+  </section>
 
-  <main id="view-space" class="hidden">
+    <section id="view-space" class="view-panel hidden">
     <section class="page-intro">
       <span class="eyebrow">锦江故事</span>
       <h1>一座饭店，<br>也是一段上海城市文化</h1>
@@ -190,9 +202,9 @@
       <div class="photo-grid" id="hotelGallery"></div>
     </section>
     <div class="spacer"></div>
-  </main>
+  </section>
 
-  <main id="view-live" class="hidden">
+    <section id="view-live" class="view-panel hidden">
     <section class="page-intro">
       <span class="eyebrow">正在发生</span>
       <h1>从一次选择，<br>到一场真实的展览</h1>
@@ -200,9 +212,9 @@
     </section>
     <div id="exhibitionList"></div>
     <div class="spacer"></div>
-  </main>
+  </section>
 
-  <main id="view-me" class="hidden">
+    <section id="view-me" class="view-panel hidden">
     <section class="page-intro">
       <span class="eyebrow">我的文化偏好</span>
       <h1>你的每一次选择，<br>都留下了自己的文化轨迹</h1>
@@ -230,6 +242,7 @@
       <div id="myContributions" class="contribution-list"></div>
     </section>
     <div class="spacer"></div>
+  </section>
   </main>
 
   <nav class="nav">
@@ -245,7 +258,7 @@
 <div class="sheet hidden" id="sheet">
   <div class="sheet-inner">
     <div class="sheet-head"><span class="eyebrow">作品详情</span><button id="sheetClose">×</button></div>
-    <img class="sheet-image" id="sheetImg" alt="">
+    <img class="sheet-image" id="sheetImg" alt="" decoding="async">
     <div class="sheet-copy">
       <span class="eyebrow" id="sheetTheme"></span>
       <h2 id="sheetTitle"></h2>
@@ -257,6 +270,8 @@
   </div>
 </div>
 
+<script src="static/ui-kit.js"></script>
 <script src="static/app.js"></script>
+<script src="static/app-enhance.js"></script>
 </body>
 </html>

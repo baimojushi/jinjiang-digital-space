@@ -1,0 +1,395 @@
+/* ============================================================
+   锦江非遗数字空间 · UI 修复覆盖层
+   在 styles.css / admin.css / asset-admin.css 之后加载。
+   每一节都标注修复的具体缺陷，便于逐条回归。
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   01 文档级：横向溢出、字体栈、色彩方案
+   缺陷：.brand-watermark 用 width:100vw，桌面端滚动条宽度导致水平滚动条；
+        styles.css 未设置 overflow-x（只有 admin-body 设了）。
+   ------------------------------------------------------------ */
+html,body{overflow-x:hidden;}
+body{font-family:var(--font-sans);}
+h1,h2,h3,.wordmark,.seal-mark,.head h1,.aa-head h1,.panel h2,.aa-panel h2,
+.proposal h3,.aa-editor h2,.gateway b,.story-line b,.ai-current-work b{font-family:var(--font-serif);}
+.stat b,.kpi b,.aa-kpi b,.score,.reason-list li:before,.gateway-no,
+.ai-progress-head span,.aa-count{font-family:var(--font-num);font-variant-numeric:tabular-nums;}
+
+.brand-watermark{width:min(100%,720px);left:0;right:0;}
+
+/* ------------------------------------------------------------
+   02 深色玻璃对比度
+   缺陷：--glass-bg-dark 原为 rgba(74,47,29,.30)，在 #F7F2E9 纸底上
+        合成 #C3B7AC。导航未选中态 1.21:1、顶栏副标题 1.52:1、
+        共创卡正文 1.35:1、toast 1.96:1，均远低于 WCAG AA 4.5:1。
+   修复：tokens.css 将 alpha 提到 .86，此处同步文字色梯度。
+   ------------------------------------------------------------ */
+.topbar{
+  background:linear-gradient(180deg,var(--topbar-bg) 0%,var(--glass-bg-dark) 100%);
+  padding-top:calc(14px + var(--safe-top));
+}
+.wordmark{color:var(--on-dark-title);}
+.top-sub{color:var(--on-dark-dim);}
+
+.curate-card,.story-line,.nav,.toast{color:var(--on-dark-body);}
+.curate-card h2,.story-line b{color:var(--on-dark-title);}
+.curate-card p,.story-line p{color:var(--on-dark-body);}
+.eyebrow.light{color:#FBD9C7;}
+.toast{color:var(--on-dark-title);}
+.nav button{color:var(--on-dark-dim);}
+.nav button span{opacity:1;color:var(--on-dark-dim);}
+.head-actions .primary,.inline-actions .primary,.aa-btn{color:var(--on-dark-title);}
+.seal-mark{color:var(--on-dark-title);border-color:rgba(255,255,255,.42);}
+.photo span{background:rgba(48,30,18,.88);color:#FFF6EC;font-size:10px;}
+.aa-media span{background:rgba(48,30,18,.88);font-size:10px;}
+
+/* 浅底小字对比 */
+.quiet,.meta-line,.ai-current-work small,.ai-upload small{color:var(--inkbrown);}
+.aa-kpi i{color:var(--inkbrown);}          /* 原 #929892，2.64:1，且是唯一的冷灰 */
+.exhibition-status,.ai-risk{color:var(--cinnabar-ink);}
+
+/* ------------------------------------------------------------
+   03 backdrop-filter 性能
+   缺陷：三份样式表共 60+ 处 backdrop-filter，其中大量落在
+        .pill / .aa-media / .diag-row / .candidate 等高频重复元素上。
+        每个都会生成独立合成层并对背景重采样；叠加 fixed 视差水印后，
+        滚动时所有层每帧重新栅格化，中低端安卓与 Safari 明显掉帧。
+   修复：小而重复的元素改为不透明填充，玻璃效果只保留在
+        顶栏 / 导航 / 主卡片 / 抽屉 / 遮罩 这些大面板上。
+   ------------------------------------------------------------ */
+.pill,.preference,.activity-box,.ex-work,.related figure,.mini-work,.artifact,
+.aa-media,.aa-list-item,.aa-status,.aa-badge,.diag-chip,.diag-row,.candidate,
+.work img,.proposal-works figure,.mini-seal,.hero-corner,.ai-text-btn,
+.ai-intent,.ai-candidate,.ai-reject-reasons button,.exhibition-status,
+.aa-filters input,.aa-filters select,.aa-panel select,
+.aa-editor input,.aa-editor select,.aa-editor textarea,
+table,th,.track,.bar,.aa-table,.aa-table th{
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  background-color:var(--glass-bg-solid);
+}
+.mini-seal,.hero-corner{background-color:#FCF8F1;}
+.aa-status.ok{background-color:#E7F2EA;}
+.aa-status.warn{background-color:#FBF0DC;}
+.aa-status.block{background-color:#FBE6E7;}
+.aa-badge.blocking{background-color:#FBE6E7;}
+.aa-badge.warning{background-color:#FBF0DC;}
+.aa-gate.ok{background-color:#E7F2EA;}
+.aa-gate.block{background-color:#FBE6E7;}
+.aa-gate{backdrop-filter:none;-webkit-backdrop-filter:none;}
+.track,.bar{background-color:#EADFD2;}
+.ai-intent.on{background-color:#F7DACD;}
+.fb.on{background-color:#F7DACD;}
+
+/* 保留玻璃的大面板：统一模糊半径，避免 30 种不同数值 */
+.topbar,.nav,.toast,.sheet-inner,.sheet-head,.aa-drawer-card,.hero-card,
+.paper-card,.curate-card,.story-line,.gateway,.exhibition,.stat,
+.panel,.kpi,.aa-panel,.aa-kpi,.empty{
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+}
+.topbar,.nav,.toast,.curate-card,.story-line{
+  backdrop-filter:var(--glass-blur-dark);-webkit-backdrop-filter:var(--glass-blur-dark);
+}
+/* 无 backdrop-filter 支持时的回退（Firefox 默认关闭该特性） */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .paper-card,.hero-card,.gateway,.exhibition,.stat,.panel,.kpi,.aa-panel,.aa-kpi,
+  .sheet-inner,.aa-drawer-card{background-color:#FBF8F3;}
+  .topbar,.nav,.toast,.curate-card,.story-line{background-color:#5B4231;}
+}
+
+/* ------------------------------------------------------------
+   04 键盘可达性
+   缺陷：全站零 :focus-visible 样式，键盘用户看不到焦点位置；
+        .ai-upload 内的 input 用 display:none，整个上传控件无法聚焦。
+   ------------------------------------------------------------ */
+:where(button,a,input,select,textarea,summary,[tabindex]):focus-visible{
+  outline:none;box-shadow:var(--focus-ring);border-radius:10px;
+}
+.nav button:focus-visible,.fb:focus-visible,.ai-intent:focus-visible{border-radius:14px;}
+.ai-upload input{
+  display:block;position:absolute;width:1px;height:1px;
+  opacity:0;pointer-events:none;
+}
+.ai-upload{position:relative;cursor:pointer;}
+.ai-upload:focus-within{border-color:var(--cinnabar);box-shadow:var(--focus-ring);}
+.ai-upload.is-dragover{border-color:var(--cinnabar);background:rgba(248,198,181,.28);}
+.aa-row:focus-visible{outline:2px solid var(--cinnabar);outline-offset:-2px;}
+
+/* 跳转到主内容 */
+.skip-link{
+  position:absolute;left:12px;top:-60px;z-index:100;
+  background:var(--wood);color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;
+  transition:top .16s ease;
+}
+.skip-link:focus{top:calc(8px + var(--safe-top));}
+
+/* ------------------------------------------------------------
+   05 触控目标
+   缺陷：.ai-intent≈30px、.ai-reject-reasons button≈24px、
+        .nav button≈40px、同意勾选框≈13px，均低于 44px 建议值。
+   ------------------------------------------------------------ */
+.ai-intent,.ai-text-btn,.ai-reject-reasons button,.source-chip,.ghost-btn,
+.head-actions button,.head-actions a,.inline-actions button,.aa-btn,.tag{
+  min-height:var(--tap);display:inline-flex;align-items:center;justify-content:center;
+}
+.ai-reject-reasons button{font-size:11px;padding:0 12px;}
+.ai-intent{font-size:12px;padding:0 14px;}
+.nav button{min-height:52px;}
+.fb{min-height:64px;}
+.ai-consent{align-items:center;min-height:var(--tap);font-size:12px;line-height:1.7;}
+.ai-consent input{width:20px;height:20px;margin-top:0;flex:0 0 20px;}
+.sheet-head button{width:var(--tap);height:var(--tap);border-radius:50%;}
+
+/* ------------------------------------------------------------
+   06 安全区与固定层遮挡
+   缺陷：viewport-fit=cover 已开启但顶栏无 safe-area-inset-top；
+        .spacer 固定 105px 未加底部安全区，末条内容被导航压住；
+        .toast bottom:90px 在 iPhone 上与导航重叠。
+   ------------------------------------------------------------ */
+.nav{bottom:max(12px,var(--safe-bottom));}
+.spacer{height:calc(var(--nav-height) + 34px + var(--safe-bottom));}
+.toast{bottom:calc(var(--nav-height) + 30px + var(--safe-bottom));}
+.sheet{padding-top:calc(40px + var(--safe-top));}
+.sheet-inner{padding-bottom:calc(30px + var(--safe-bottom));}
+
+/* ------------------------------------------------------------
+   07 顶栏窄屏溢出
+   缺陷：320px 宽度下「锦江非遗数字空间」(151px) + 渠道 chip + 演示按钮
+        合计约 323px，超出容器，chip 文字折行。
+   ------------------------------------------------------------ */
+.topbar{gap:10px;}
+.topbar-brand{min-width:0;flex:1 1 auto;}
+.topbar-brand>div{min-width:0;}
+.wordmark,.top-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.topbar-right{flex:0 0 auto;}
+.source-chip{max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+@media(max-width:400px){
+  .wordmark{font-size:17px;letter-spacing:.04em;}
+  .top-sub{display:none;}
+  .source-chip{max-width:6em;}
+}
+
+/* ------------------------------------------------------------
+   08 图片：缺失兜底、CLS、LCP
+   缺陷：app/static/assets/ 不在仓库内（.gitignore 排除了 *.jpg/*.svg 等），
+        克隆后全部图片 404；代码中没有任何 onerror 兜底，页面显示碎图标。
+        另外 url() 返回 undefined 时会渲染 src="undefined"，
+        `src="${url(x.cover)||""}"` 会把当前 HTML 页面当图片下载。
+   修复：JS 侧补 onerror（见 ui-kit.js），此处提供占位视觉与骨架屏。
+   ------------------------------------------------------------ */
+img{max-width:100%;}
+img[data-img-missing="1"]{
+  visibility:hidden;
+}
+.img-fallback{
+  position:relative;background:
+    repeating-linear-gradient(135deg,#EFE6D9 0 8px,#E8DECF 8px 16px);
+}
+.img-fallback::after{
+  content:attr(data-fallback-label);
+  position:absolute;inset:0;display:grid;place-items:center;
+  color:var(--inkbrown);font-size:11px;letter-spacing:.08em;text-align:center;padding:8px;
+}
+.hero-image-wrap.img-fallback::after{font-size:13px;}
+/* 独立大图（详情弹层主图、资产编辑封面、AI 预览图）自身画占位 */
+img.img-fallback-self{
+  visibility:visible;min-height:180px;object-fit:cover;
+  content-visibility:auto;
+}
+/* 装饰性 logo / 水印缺失时静默隐藏，不出现碎图标也不占位 */
+.brand-watermark img[data-img-missing="1"],
+.topbar-logo[data-img-missing="1"],
+.head-logo[data-img-missing="1"]{display:none;}
+
+.is-loading .hero-image,.is-loading .sheet-image{
+  background:linear-gradient(100deg,#EFE6D9 30%,#F6EFE4 50%,#EFE6D9 70%) 0 0/300% 100%;
+  animation:jj-shimmer 1.2s linear infinite;
+}
+@keyframes jj-shimmer{to{background-position:-300% 0;}}
+
+.hero-image{height:min(58vh,500px);}
+.related img,.mini-work img,.artifact img,.ex-work img,.proposal-works img,
+.aa-media img,.candidate img,.work img,.aa-asset img{background:#EFE6D9;}
+
+/* ------------------------------------------------------------
+   09 照片墙：多列布局的阅读顺序与布局抖动
+   缺陷：.photo-grid{columns:3} 让视觉顺序变成「先列后行」，
+        与后端按 category 分组的 DOM 顺序不一致；
+        且 <img height:auto> + loading=lazy 在图片解码后重排整列，产生 CLS。
+   ------------------------------------------------------------ */
+.photo-grid{
+  columns:auto;column-gap:normal;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+}
+.photo{margin:0;}
+.photo img{aspect-ratio:4/3;height:100%;object-fit:cover;}
+@media(max-width:620px){.photo-grid{grid-template-columns:repeat(2,1fr);}}
+
+/* ------------------------------------------------------------
+   10 详情弹层与抽屉
+   缺陷：只有 .hidden 切换，无过渡；背景可滚动（滚动链）；
+        无 Esc 关闭；无 role/aria；无焦点管理。
+   ------------------------------------------------------------ */
+.sheet{transition:opacity .22s ease;opacity:1;}
+.sheet.hidden{display:flex!important;opacity:0;pointer-events:none;visibility:hidden;}
+.sheet-inner{
+  transform:translateY(0);transition:transform .26s cubic-bezier(.2,.8,.3,1);
+  overscroll-behavior:contain;
+}
+.sheet.hidden .sheet-inner{transform:translateY(4%);}
+.aa-drawer{transition:opacity .2s ease;opacity:1;}
+.aa-drawer.hidden{display:flex!important;opacity:0;pointer-events:none;visibility:hidden;}
+.aa-drawer-card{transform:translateX(0);transition:transform .24s cubic-bezier(.2,.8,.3,1);overscroll-behavior:contain;}
+.aa-drawer.hidden .aa-drawer-card{transform:translateX(4%);}
+body.jj-lock{overflow:hidden;}
+.aa-drawer-card .close{
+  position:sticky;top:0;float:right;width:var(--tap);height:var(--tap);
+  border:0;border-radius:50%;background:var(--glass-bg-solid);
+  color:var(--wood);font-size:22px;cursor:pointer;z-index:2;
+}
+
+/* ------------------------------------------------------------
+   11 表单控件（后台）
+   缺陷：input/select 字号 12px，iOS Safari 聚焦时会自动放大页面；
+        深色系统主题下 select 的 UA 背景为深色而文字为深棕，几乎不可读。
+   ------------------------------------------------------------ */
+.aa-filters input,.aa-filters select,.aa-panel select,
+.aa-editor input,.aa-editor select,.aa-editor textarea{
+  font-size:16px;color:var(--text);color-scheme:light;min-height:var(--tap);
+}
+@media(min-width:820px){
+  .aa-filters input,.aa-filters select,.aa-panel select,
+  .aa-editor input,.aa-editor select,.aa-editor textarea{font-size:13px;}
+}
+.aa-filters input{width:min(230px,100%);}
+.aa-field label{font-size:12px;color:var(--muted);}
+
+/* ------------------------------------------------------------
+   12 表格
+   缺陷：min-width:760px 的表格在移动端横向滚动但没有任何可滚动提示。
+   ------------------------------------------------------------ */
+.table-wrap,.aa-table-wrap{position:relative;-webkit-overflow-scrolling:touch;}
+.table-wrap[data-scrollable="1"]::after,.aa-table-wrap[data-scrollable="1"]::after{
+  content:"";position:absolute;top:0;right:0;bottom:0;width:28px;pointer-events:none;
+  background:linear-gradient(90deg,rgba(247,242,233,0),rgba(247,242,233,.92));
+  border-radius:0 14px 14px 0;
+}
+/* 公开门禁列的阻断原因原本被塞进一个胶囊里，长文本撑破表格 */
+.aa-gate-list{display:flex;flex-wrap:wrap;gap:4px;}
+.aa-gate-list .aa-status{white-space:nowrap;}
+
+/* ------------------------------------------------------------
+   13 状态与空态
+   缺陷：漏斗/主题/渠道/内容表在无数据时渲染成空白块，没有任何说明；
+        接口失败时整页保持空白且无提示。
+   ------------------------------------------------------------ */
+.jj-empty,.jj-error{
+  padding:22px;border-radius:14px;font-size:13px;line-height:1.7;
+  border:1px dashed rgba(139,125,107,.38);color:var(--muted);
+  background:var(--glass-bg-solid);
+}
+.jj-error{border-style:solid;border-color:rgba(184,74,51,.35);color:#7A2E1D;background:#FBE9E4;}
+.jj-error button{
+  margin-left:10px;border:1px solid rgba(184,74,51,.4);background:#fff;
+  color:var(--cinnabar-ink);border-radius:999px;padding:6px 12px;font-size:12px;min-height:36px;
+}
+.jj-hint{display:block;margin-top:8px;font-size:12px;color:var(--inkbrown);}
+button[data-busy="1"]{opacity:.6;cursor:progress;}
+button[data-busy="1"]::after{
+  content:"";display:inline-block;width:11px;height:11px;margin-left:8px;
+  border:2px solid currentColor;border-right-color:transparent;border-radius:50%;
+  animation:jj-spin .7s linear infinite;vertical-align:-1px;
+}
+@keyframes jj-spin{to{transform:rotate(360deg);}}
+
+/* ------------------------------------------------------------
+   14 排版细节
+   缺陷：.sheet-copy h2 / .exhibition h2 无移动端字号覆盖，
+        320px 屏上 29px 标题挤成三行；
+        .reason-list 序号 content:"0" counter() 在第 10 条会渲染成 "010"。
+   ------------------------------------------------------------ */
+.reason-list li:before{content:counter(reason,decimal-leading-zero);}
+.story,.lead,.exhibition-copy{max-width:66ch;}
+@media(max-width:620px){
+  .sheet-copy h2{font-size:23px;}
+  .exhibition h2{font-size:21px;}
+  .curate-card h2{font-size:21px;}
+  .head h1,.aa-head h1{font-size:27px;}
+  .feedback{grid-template-columns:repeat(4,1fr);}
+  .fb b{font-size:10px;}
+}
+@media(max-width:380px){
+  .feedback{grid-template-columns:repeat(2,1fr);}
+  .related,.mini-work-grid,.ex-work-grid{grid-template-columns:repeat(2,1fr);}
+}
+
+/* ------------------------------------------------------------
+   15 动效与偏好
+   缺陷：视差水印、hover 位移、进度条过渡均无 prefers-reduced-motion 保护。
+   ------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important;scroll-behavior:auto!important;
+  }
+  .brand-watermark{transform:translateY(-50%)!important;}
+  .gateway:hover,.fb:hover,.aa-space:hover{transform:none;}
+}
+
+/* ------------------------------------------------------------
+   16 语义标签修正带来的样式补齐
+   （index.html 由四个 <main> 改为一个 <main> + 四个 tabpanel）
+   ------------------------------------------------------------ */
+.view-panel[hidden]{display:none!important;}
+.nav[role="tablist"] button[aria-selected="true"]{
+  background:rgba(253,251,247,.92);color:var(--wood);
+}
+
+/* 打印时去掉玻璃与固定层，保证运营可以直接打印后台报表 */
+@media print{
+  .topbar,.nav,.toast,.brand-watermark,.head-actions,.aa-links,.skip-link{display:none!important;}
+  .panel,.aa-panel,.kpi,.aa-kpi,.paper-card{
+    background:#fff!important;box-shadow:none!important;border:1px solid #DDD!important;
+    backdrop-filter:none!important;-webkit-backdrop-filter:none!important;break-inside:avoid;
+  }
+  body::before{display:none;}
+}
+
+/* ------------------------------------------------------------
+   17 HTML 合法性带来的样式补齐
+   缺陷：<button class="gateway"> 里放了 <p>，button 的内容模型只允许
+        phrasing content，<p> 属于非法嵌套，部分读屏会跳过或读乱。
+        改为 <span class="gateway-desc"> 后在此还原原有视觉。
+   ------------------------------------------------------------ */
+.gateway .gateway-desc{
+  display:block;color:var(--furniture);font-size:12px;line-height:1.6;margin:8px 0 0;
+}
+/* toast 的错误态：只用颜色区分不够，补一条左侧标识 */
+.toast.is-error{
+  background:rgba(120,38,22,.92);
+  box-shadow:var(--glass-shadow-dark),inset 3px 0 0 #F0A18C;
+}
+
+/* ------------------------------------------------------------
+   18 资产维护台脱钩 styles.css
+   缺陷：asset-admin.html 同时引入 styles.css 与 asset-admin.css。
+        styles.css 里 .shell/.nav/.hero-card/.sheet 等约 100 条规则
+        在该页完全不生效，却带来 .eyebrow/.hidden/.quiet/.brand-watermark
+        四组同名选择器冲突，asset-admin.css 只好用 !important 反压。
+   修复：改为只引入 asset-admin.css，这里补上它实际依赖的两组基础样式。
+   ------------------------------------------------------------ */
+.asset-admin .eyebrow{
+  display:block;font-size:11px;font-weight:700;letter-spacing:.15em;
+  margin-bottom:6px;color:var(--cinnabar);
+}
+body.admin-body .toast{
+  position:fixed;z-index:60;left:50%;bottom:calc(24px + var(--safe-bottom));
+  transform:translate(-50%,10px);
+  background:var(--glass-bg-dark);border:var(--glass-border-dark);
+  color:var(--on-dark-title);padding:11px 15px;border-radius:999px;font-size:13px;
+  opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;
+  box-shadow:var(--glass-shadow-dark);max-width:min(560px,calc(100% - 32px));
+}
+body.admin-body .toast.on{opacity:1;transform:translate(-50%,0);}
+/* asset-admin.css 里这几条 !important 是为压过 styles.css 而加的，
+   脱钩后已无必要；保留声明只为兼容尚未替换 HTML 的部署。 */

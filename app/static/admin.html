@@ -4,16 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>锦江非遗数字空间｜文化运营后台</title>
+<meta name="theme-color" content="#4A2F1D">
+<link rel="icon" href="static/assets/jinjiang-hotels-logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="static/tokens.css">
 <link rel="stylesheet" href="static/admin.css">
+<link rel="stylesheet" href="static/ui-fixes.css">
 </head>
 <body>
+<a class="skip-link" href="#kpis">跳到主要内容</a>
 <div class="brand-watermark" id="brandWatermark" aria-hidden="true">
   <img src="static/assets/jinjiang-hotels-logo.svg" alt="">
 </div>
 <div class="admin">
   <header class="head">
     <div class="head-brand">
-      <img class="head-logo" src="static/assets/jinjiang-hotels-logo.svg" alt="">
+      <img class="head-logo" src="static/assets/jinjiang-hotels-logo.svg" alt="" width="24" height="24">
       <div>
         <span class="eyebrow">JINJIANG CULTURE OPERATIONS</span>
         <h1>文化运营后台</h1>
@@ -24,11 +29,11 @@
       <button id="btnSeed">注入演示数据</button>
       <button id="btnReset">清空行为数据</button>
       <a href="asset-admin">数字资产维护</a>
-      <a href="." target="_blank" class="primary">打开用户端 ↗</a>
+      <a href="." target="_blank" rel="noopener" class="primary">打开用户端</a>
     </div>
   </header>
 
-  <section class="kpis" id="kpis"></section>
+  <section class="kpis" id="kpis" aria-label="核心指标" tabindex="-1"></section>
 
   <div class="grid-2">
     <section class="panel">
@@ -88,6 +93,8 @@
   </section>
 </div>
 <div id="toast" class="toast"></div>
+<script src="static/ui-kit.js"></script>
 <script src="static/admin.js"></script>
+<script src="static/admin-enhance.js"></script>
 </body>
 </html>

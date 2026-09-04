@@ -1,0 +1,74 @@
+/* ============================================================
+   锦江非遗数字空间 · 统一设计令牌（唯一来源）
+   替代 styles.css / admin.css / asset-admin.css 中三份漂移的 :root
+   加载顺序：tokens.css → 原有 css → ui-fixes.css
+   ============================================================ */
+
+:root{
+  color-scheme: light;
+
+  /* ---- 基础色（保持原有品牌取值） ---- */
+  --paper:#F7F2E9;
+  --card:#FDFBF7;
+  --wood:#4A2F1D;
+  --cinnabar:#B84A33;
+  --peach:#F8C6B5;
+  --furniture:#7A5C44;
+  --silk:#DFD4C1;
+  --text:#3C2B20;
+
+  /* ---- 对比度修正：原 --inkbrown #8B7D6B 在纸底上仅 3.59:1，不满足 WCAG AA ---- */
+  --inkbrown:#6E6154;          /* 5.47:1 —— 用于 .quiet / .meta-line / small */
+  --cinnabar-ink:#9E3A24;      /* 6.59:1 —— 用于 9~10px 的朱红小字 */
+
+  /* ---- 别名：收敛 --red / --accent / --muted / --line / --soft 的历史命名 ---- */
+  --red:var(--cinnabar);
+  --accent:var(--cinnabar);
+  --muted:var(--furniture);
+  --line:var(--silk);
+  --soft:#F2E8DC;
+
+  /* ---- 深色玻璃：原 alpha .30 在浅纸底上合成为 #C3B7AC，
+         导航文字对比仅 1.21:1。提升到 .86 后合成 #624A3A，正文 6.35:1 ---- */
+  --glass-bg-dark:rgba(74,47,29,.86);
+  --glass-bg-dark-strong:rgba(74,47,29,.92);
+  --topbar-bg:rgba(74,47,29,.90);
+
+  /* 深色玻璃上的文字梯度 */
+  --on-dark-title:#FFF9F2;     /* 7.85:1 */
+  --on-dark-body:#EFE0D2;      /* 6.35:1 */
+  --on-dark-dim:#D8C6B6;       /* 4.95:1 */
+
+  /* ---- 浅色玻璃：原 alpha .22 几乎不产生卡片边界，且让正文压在纸纹上 ---- */
+  --glass-bg:rgba(253,251,247,.62);
+  --glass-bg-solid:#FBF8F3;    /* 小元素改用不透明填充，省掉 backdrop 采样 */
+
+  --glass-border:1px solid rgba(255,255,255,.72);
+  --glass-border-dark:1px solid rgba(255,255,255,.20);
+  --glass-shadow:0 8px 28px rgba(74,47,29,.10),inset 0 1px 0 rgba(255,255,255,.65);
+  --glass-shadow-dark:0 8px 28px rgba(35,20,10,.28),inset 0 1px 0 rgba(255,255,255,.14);
+
+  /* backdrop-filter 只保留在大面板上，见 ui-fixes.css */
+  --glass-blur:blur(10px) saturate(150%);
+  --glass-blur-dark:blur(12px) saturate(130%);
+
+  --shadow:0 12px 40px rgba(74,47,29,.08);
+  --radius:22px;
+
+  /* ---- 字体栈：补齐 Windows / Android 回退，避免落到 Times New Roman ---- */
+  --font-sans:system-ui,-apple-system,"PingFang SC","HarmonyOS Sans SC",
+              "Microsoft YaHei","Noto Sans CJK SC","Source Han Sans SC",sans-serif;
+  --font-serif:"Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC",
+               "Times New Roman",SimSun,serif;
+  --font-num:"SF Mono",Georgia,"Times New Roman",serif;
+
+  /* ---- 安全区 ---- */
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  --nav-height:62px;
+
+  /* ---- 触控最小尺寸 ---- */
+  --tap:44px;
+
+  --focus-ring:0 0 0 2px var(--paper),0 0 0 4px var(--cinnabar);
+}
