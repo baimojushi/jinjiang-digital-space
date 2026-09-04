@@ -108,3 +108,31 @@ Exhibition / Activity
 - `docs/MVP32_REFACTOR_REPORT.md`
 - `docs/DATABASE_ASSET_MODEL.md`
 - `docs/DIGITAL_ASSET_IMPORT_SPEC.md`
+
+## Molink Platform API v1｜AI 空间体验
+
+本版本可通过服务端代理接入生产 `https://www.molink.art` 的 `artwork_space_preview` 能力。浏览器始终只访问锦江 FastAPI，`MOLINK_PLATFORM_TOKEN` 不下发到前端。
+
+```bash
+MOLINK_BASE_URL=https://www.molink.art
+MOLINK_PLATFORM_TOKEN=<jinjiang platform token>
+MOLINK_DATA_SCOPE=platform_learning
+MOLINK_CONSENT_REF=jinjiang_ai_space_preview_v1
+MOLINK_USER_HASH_SALT=<random private salt>
+
+# 当作品二进制不随 Git 仓库部署时，用于从锦江公网入口读取 /static/... 作品图。
+# 子路径部署示例：https://your-host.ts.net/jinjiang
+JINJIANG_PUBLIC_BASE_URL=https://your-host.ts.net/jinjiang
+```
+
+新增锦江侧接口：
+
+- `GET /ai/space-preview/service`
+- `POST /ai/space-preview`（multipart，上传用户空间图）
+- `GET /ai/space-preview/{experience_id}`
+- `GET /ai/space-preview/{experience_id}/artifacts/{artifact_id}`
+- `POST /ai/space-preview/{experience_id}/trace`
+
+锦江数据库只保存 Molink 任务关联、候选集关联和 Decision Trace outbox；用户上传的空间照片不会写入锦江数据库。作品资产会按文件 SHA256 复用 Molink Asset ID。
+
+详见 `docs/MOLINK_PLATFORM_INTEGRATION.md`。

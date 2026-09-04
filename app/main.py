@@ -7,7 +7,7 @@
 4. 数字资产维护是后台基础设施，不作为用户端主叙事。
 """
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, UploadFile, File, Form
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -15,10 +15,11 @@ from pathlib import Path
 from datetime import datetime, date, timedelta
 from collections import Counter, defaultdict
 from uuid import uuid4
-import json, random, math
+import json, random, math, hashlib
 
 from .database import connect, init_database, hotel_profile, active_themes, now
 from .asset_admin import router as asset_admin_router
+from . import molink_integration as molink
 
 BASE = Path(__file__).resolve().parent
 STATIC = BASE / "static"
@@ -119,7 +120,8 @@ ALGORITHM_VERSION = "controlled-random-rules-v3.2"
 TOP_N = 10
 EVENT_TYPES = {
     "impression","detail","reason_open","like","dislike","favorite","change",
-    "curation","activity_click","exhibition_view","story_view"
+    "curation","activity_click","exhibition_view","story_view",
+    "ai_preview_start","ai_preview_view","ai_preview_commit"
 }
 WEIGHTS = {"brand": .30, "region": .25, "theme": .25, "style": .20}
 
@@ -140,6 +142,7 @@ class VoteIn(BaseModel):
     session_id: str | None = None
     source_code: str = "direct"
     space_id: int | None = None
+    metadata: dict = {}
 
 class MatchIn(BaseModel):
     hotel_id: int = 1
@@ -154,12 +157,40 @@ class PublishProposalIn(BaseModel):
     period: str = "待排期"
     source_note: str = "由当前用户共创策展数据生成"
 
+class AiTraceIn(BaseModel):
+    event_type: str
+    phase: str | None = None
+    candidate_set_id: str | None = None
+    payload: dict = {}
+
+def _ai_space_preview_eligibility(asset: dict):
+    asset_type = str(asset.get("asset_type") or "").strip()
+    if asset_type != "artwork":
+        return False, "仅画作类文化资产支持 AI 空间挂靠体验"
+    try:
+        metadata = asset.get("metadata") or {}
+        if isinstance(metadata,str):
+            metadata = json.loads(metadata or "{}")
+    except Exception:
+        metadata = {}
+    if isinstance(metadata,dict) and metadata.get("ai_space_preview") is False:
+        return False, "该作品已由内容运营关闭 AI 空间体验"
+    if not molink.parse_dimensions_cm(asset.get("dimensions")):
+        return False, "作品缺少可解析的实际尺寸"
+    if not asset.get("cover"):
+        return False, "作品缺少可用图片"
+    return True, ""
+
 def artwork_dict(row):
     d = dict(row)
     try:
         d["tags"] = json.loads(d.get("tags") or "[]")
     except Exception:
         d["tags"] = []
+    enabled, reason = _ai_space_preview_eligibility(d)
+    d["capabilities"] = {"ai_space_preview": enabled}
+    if reason:
+        d["capability_reasons"] = {"ai_space_preview": reason}
     return d
 
 def source_row(con, source_code):
@@ -286,6 +317,24 @@ def public_asset_or_404(con, artwork_id):
         raise HTTPException(404,"作品不存在或当前不可公开")
     return artwork_dict(row)
 
+def ai_preview_artwork_or_error(con, artwork_id):
+    row = con.execute("SELECT * FROM culture_assets WHERE id=?",(artwork_id,)).fetchone()
+    if not row:
+        raise HTTPException(404,detail={"code":"ASSET_NOT_FOUND","message":"文化资产不存在"})
+    asset = artwork_dict(row)
+    if asset.get("asset_type") != "artwork":
+        raise HTTPException(422,detail={
+            "code":"ASSET_TYPE_NOT_SUPPORTED",
+            "message":"AI 空间挂靠仅支持画作类文化资产",
+            "asset_type":asset.get("asset_type")
+        })
+    if asset.get("rights_status") not in ("authorized","public_domain_verified") or asset.get("review_status") != "approved" or asset.get("publish_status") != "published" or not asset.get("cover"):
+        raise HTTPException(404,detail={"code":"ASSET_NOT_PUBLIC","message":"作品不存在或当前不可公开"})
+    eligible, reason = _ai_space_preview_eligibility(asset)
+    if not eligible:
+        raise HTTPException(422,detail={"code":"ASSET_NOT_ELIGIBLE_FOR_SPACE_PREVIEW","message":reason})
+    return asset
+
 @app.get("/")
 def home():
     return FileResponse(STATIC/"index.html")
@@ -391,6 +440,176 @@ def user_event(body:EventIn):
     con.close()
     return {"ok":True,"session_id":sid}
 
+def _molink_http_error(exc: molink.MolinkIntegrationError):
+    raise HTTPException(status_code=exc.status_code, detail={"code":exc.code,"message":str(exc)})
+
+
+def _record_ai_event_local(exp, event_name: str, metadata: dict):
+    con = connect()
+    src = source_row(con, exp["source_code"])
+    con.execute("""
+      INSERT INTO user_events(user_id,event,artwork_id,recommendation_id,session_id,source_id,metadata,created_at)
+      VALUES(?,?,?,?,?,?,?,?)
+    """,(
+        exp["user_id"],event_name,exp["artwork_id"],exp["recommendation_id"],exp["session_id"],
+        src["id"] if src else None,json.dumps(metadata or {},ensure_ascii=False),now()
+    ))
+    con.commit(); con.close()
+
+
+@app.get("/ai/space-preview/service")
+async def ai_space_preview_service():
+    if not molink.configured():
+        return {"enabled":False,"capability":"artwork_space_preview","reason":"MOLINK_PLATFORM_TOKEN 未配置"}
+    try:
+        data = await molink.capabilities()
+    except molink.MolinkIntegrationError as exc:
+        return {"enabled":False,"capability":"artwork_space_preview","reason":str(exc)}
+    supported = any(
+        isinstance(x,dict) and x.get("id")=="artwork_space_preview"
+        for x in (data.get("data") or [])
+    )
+    return {
+        "enabled":supported,"capability":"artwork_space_preview","provider":"Molink Platform API v1",
+        "eligibility":{"asset_type":"artwork","requires_physical_dimensions":True,"requires_public_asset":True}
+    }
+
+
+@app.post("/ai/space-preview")
+async def start_ai_space_preview(
+    artwork_id: int = Form(...),
+    user_id: str = Form("demo-user"),
+    session_id: str = Form(...),
+    recommendation_id: str | None = Form(None),
+    source_code: str = Form("direct"),
+    intent_code: str = Form("harmonize"),
+    intent_label: str = Form("希望作品自然融入空间"),
+    consent: bool = Form(...),
+    space_image: UploadFile = File(...),
+):
+    if not consent:
+        raise HTTPException(422,"需要确认空间照片的数据使用说明后才能生成")
+    if not molink.configured():
+        raise HTTPException(503,"AI 空间体验服务尚未配置")
+    if not (space_image.content_type or "").startswith("image/"):
+        raise HTTPException(422,"请上传图片格式的空间照片")
+    image_bytes = await space_image.read()
+    if not image_bytes:
+        raise HTTPException(422,"空间照片不能为空")
+    if len(image_bytes) > 18 * 1024 * 1024:
+        raise HTTPException(413,"空间照片不能超过 18MB")
+
+    con = connect()
+    artwork = ai_preview_artwork_or_error(con,artwork_id)
+    sid, _ = ensure_session(con,user_id,session_id,source_code)
+    if recommendation_id:
+        rec = con.execute("""
+          SELECT * FROM recommendations WHERE recommendation_id=? AND user_id=? AND artwork_id=?
+        """,(recommendation_id,user_id,artwork_id)).fetchone()
+        if not rec:
+            con.close()
+            raise HTTPException(400,"recommendation_id 与当前用户/作品不匹配")
+    con.commit(); con.close()
+
+    try:
+        artwork_asset_id = await molink.ensure_artwork_asset(artwork=artwork,static_root=STATIC)
+        space_asset_id = await molink.create_space_asset(
+            content=image_bytes,content_type=space_image.content_type or "image/jpeg",user_id=user_id
+        )
+        idem = "jinjiang:" + hashlib.sha256(
+            f"{sid}:{artwork_id}:{space_asset_id}".encode("utf-8")
+        ).hexdigest()[:40]
+        job = await molink.create_job(
+            artwork_asset_id=artwork_asset_id,space_asset_id=space_asset_id,user_id=user_id,
+            session_id=sid,source_code=source_code,recommendation_id=recommendation_id,
+            intent_code=intent_code,intent_label=intent_label,idempotency_key=idem,
+        )
+        experience_id = molink.create_experience(
+            user_id=user_id,session_id=sid,recommendation_id=recommendation_id,artwork_id=artwork_id,
+            source_code=source_code,intent_code=intent_code,intent_label=intent_label,
+            artwork_asset_id=artwork_asset_id,space_asset_id=space_asset_id,job=job,
+        )
+        exp = molink.get_experience(experience_id)
+        _record_ai_event_local(exp,"ai_preview_start",{"experience_id":experience_id,"intent":intent_code})
+        return {
+            "experience_id":experience_id,
+            "status":job.get("execution_status") or "queued",
+            "progress":job.get("progress") or {"stage":"queued","message":"任务已进入处理队列"},
+        }
+    except molink.MolinkIntegrationError as exc:
+        _molink_http_error(exc)
+
+
+@app.get("/ai/space-preview/{experience_id}")
+async def ai_space_preview_status(experience_id:str,user_id:str="demo-user"):
+    exp = molink.get_experience(experience_id)
+    if not exp or exp["user_id"] != user_id:
+        raise HTTPException(404,"AI 空间体验不存在")
+    try:
+        job = await molink.get_job(exp["molink_job_id"])
+        molink.update_experience_from_job(experience_id,job)
+        await molink.flush_trace_events(experience_id)
+        payload = molink.public_job_for_jinjiang(experience_id,job)
+        refreshed = molink.get_experience(experience_id)
+        payload["selected_candidate_id"] = refreshed["selected_candidate_id"] if refreshed else None
+        return payload
+    except molink.MolinkIntegrationError as exc:
+        _molink_http_error(exc)
+
+
+@app.get("/ai/space-preview/{experience_id}/artifacts/{artifact_id}")
+async def ai_space_preview_artifact(experience_id:str,artifact_id:str):
+    exp = molink.get_experience(experience_id)
+    if not exp:
+        raise HTTPException(404,"AI 空间体验不存在")
+    try:
+        cached = json.loads(exp["latest_payload"] or "{}") if exp["latest_payload"] else {}
+        job = cached if isinstance(cached,dict) else {}
+        allowed = {
+            art.get("artifact_id")
+            for cand in ((job.get("result") or {}).get("candidates") or [])
+            for art in (cand.get("artifacts") or [])
+            if isinstance(art,dict)
+        }
+        if artifact_id not in allowed:
+            job = await molink.get_job(exp["molink_job_id"])
+            molink.update_experience_from_job(experience_id,job)
+            allowed = {
+                art.get("artifact_id")
+                for cand in ((job.get("result") or {}).get("candidates") or [])
+                for art in (cand.get("artifacts") or [])
+                if isinstance(art,dict)
+            }
+        if artifact_id not in allowed:
+            raise HTTPException(404,"产物不存在或不属于当前 AI 体验")
+        result = await molink.get_artifact(artifact_id)
+        return Response(content=result.content,media_type=result.content_type,
+                        headers={"Cache-Control":"private, no-store"})
+    except molink.MolinkIntegrationError as exc:
+        _molink_http_error(exc)
+
+
+@app.post("/ai/space-preview/{experience_id}/trace")
+async def ai_space_preview_trace(experience_id:str,body:AiTraceIn):
+    exp = molink.get_experience(experience_id)
+    if not exp:
+        raise HTTPException(404,"AI 空间体验不存在")
+    try:
+        event_id = molink.queue_trace_event(
+            experience_id=experience_id,event_type=body.event_type,phase=body.phase,
+            payload=body.payload or {},candidate_set_id=body.candidate_set_id,
+        )
+        delivery = await molink.flush_trace_events(experience_id)
+    except molink.MolinkIntegrationError as exc:
+        _molink_http_error(exc)
+
+    if body.event_type == "preview.viewed":
+        _record_ai_event_local(exp,"ai_preview_view",{"experience_id":experience_id})
+    elif body.event_type == "decision.committed":
+        _record_ai_event_local(exp,"ai_preview_commit",{"experience_id":experience_id,**(body.payload or {})})
+    return {"ok":True,"event_id":event_id,"delivery":delivery}
+
+
 @app.get("/artworks/{artwork_id}")
 def artwork_detail(artwork_id:int,user_id:str="demo-user"):
     con = connect()
@@ -492,21 +711,22 @@ def curation_vote(body:VoteIn):
             con.close()
             raise HTTPException(400,"该空间尚未通过主数据与展陈条件审核")
     ts = now()
-    con.execute("""
+    vote_cur = con.execute("""
       INSERT INTO curation_votes(user_id,artwork_id,space_id,recommendation_id,session_id,vote,created_at)
       VALUES(?,?,?,?,?,?,?)
     """,(body.user_id,body.artwork_id,body.space_id,body.recommendation_id,sid,1 if body.vote>0 else 0,ts))
+    vote_id = vote_cur.lastrowid
     con.execute("""
       INSERT INTO user_events(user_id,event,artwork_id,recommendation_id,session_id,source_id,metadata,created_at)
       VALUES(?,?,?,?,?,?,?,?)
     """,(body.user_id,"curation",body.artwork_id,body.recommendation_id,sid,
-         src["id"] if src else None,"{}",ts))
+         src["id"] if src else None,json.dumps(body.metadata or {},ensure_ascii=False),ts))
     update_preferences(con,body.user_id,body.artwork_id,"curation")
     votes = con.execute("SELECT COUNT(*) c FROM curation_votes WHERE artwork_id=? AND vote=1",(body.artwork_id,)).fetchone()["c"]
     total = con.execute("SELECT COUNT(DISTINCT artwork_id) c FROM curation_votes WHERE vote=1").fetchone()["c"]
     con.commit()
     con.close()
-    return {"ok":True,"message":"已加入锦江饭店共创策展","votes":votes,"pool_total":total}
+    return {"ok":True,"message":"已加入锦江饭店共创策展","vote_id":vote_id,"votes":votes,"pool_total":total}
 
 @app.get("/hotel/{hotel_id}")
 def hotel(hotel_id:int):
@@ -638,7 +858,8 @@ def user_profile(user_id:str):
     return {
         "user_id":user_id,
         "stats":{"recommendations":recs,"likes":ev.get("like",0),"favorites":ev.get("favorite",0),
-                 "curation_votes":votes,"changes":ev.get("change",0),"details":ev.get("detail",0)},
+                 "curation_votes":votes,"changes":ev.get("change",0),"details":ev.get("detail",0),
+                 "ai_previews":ev.get("ai_preview_view",0),"ai_commits":ev.get("ai_preview_commit",0)},
         "theme_preferences":theme_prefs,
         "preferences":prefs,
         "favorite_items":favorites,

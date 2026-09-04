@@ -50,7 +50,7 @@
     <section class="paper-card">
       <div class="section-head">
         <div><span class="eyebrow">推荐理由</span><h2>为什么今天遇见它</h2></div>
-        <span class="mini-seal">AI</span>
+        <span class="mini-seal">荐</span>
       </div>
       <ol class="reason-list" id="reasonList"></ol>
     </section>
@@ -89,6 +89,65 @@
       <div class="section-head"><div><span class="eyebrow">作品故事</span><h2>再多看一会儿</h2></div></div>
       <p class="story" id="workStory">—</p>
       <div class="pills" id="workTags"></div>
+    </section>
+
+    <section class="paper-card ai-space-card" id="aiSpaceCard">
+      <div class="section-head">
+        <div><span class="eyebrow">AI 空间体验</span><h2>把这件作品放进你的空间看看</h2></div>
+        <span class="mini-seal ai-live-seal">AI</span>
+      </div>
+      <p class="ai-intro">上传一张你的真实空间照片，让 AI 结合作品真实尺寸、墙面关系与空间结构生成可视化预览。</p>
+
+      <div id="aiUnavailable" class="ai-service-note hidden">AI 空间体验当前暂不可用。</div>
+
+      <div id="aiIdle">
+        <div class="ai-current-work">
+          <img id="aiArtworkThumb" alt="">
+          <div><span class="quiet">当前作品</span><b id="aiArtworkTitle">—</b><small id="aiArtworkSize">—</small></div>
+        </div>
+        <label class="ai-upload" for="aiSpaceInput">
+          <input id="aiSpaceInput" type="file" accept="image/*">
+          <span class="ai-upload-plus">＋</span>
+          <b>上传空间照片</b>
+          <small>客厅、书房、卧室或其他你想放置作品的空间</small>
+        </label>
+        <div id="aiSpacePreviewWrap" class="ai-space-preview hidden">
+          <img id="aiSpacePreview" alt="你的空间照片预览">
+          <button type="button" class="ai-text-btn" id="aiChangeSpace">重新选择</button>
+        </div>
+
+        <div class="ai-intent-group">
+          <span class="quiet">这次更希望：</span>
+          <div class="ai-intents" id="aiIntentList">
+            <button type="button" class="ai-intent on" data-intent="harmonize" data-label="希望作品自然融入空间">自然融入</button>
+            <button type="button" class="ai-intent" data-intent="focus" data-label="希望作品成为空间视觉焦点">成为焦点</button>
+            <button type="button" class="ai-intent" data-intent="contrast" data-label="希望作品与空间形成一些视觉张力">形成张力</button>
+          </div>
+        </div>
+
+        <label class="ai-consent">
+          <input type="checkbox" id="aiConsent">
+          <span>我同意将这张空间照片用于本次 AI 生成，并按当前平台授权范围用于服务优化；不会因此自动进入跨平台共享训练。</span>
+        </label>
+        <button class="primary-btn ai-start-btn" id="aiStart" disabled>开始生成空间效果</button>
+        <p class="quiet ai-privacy">空间照片不会写入锦江业务数据库；系统仅保存本次 AI 任务关联信息与必要的用户判断轨迹。</p>
+      </div>
+
+      <div id="aiProcessing" class="hidden">
+        <div class="ai-progress-head"><b id="aiProgressTitle">AI 正在理解你的空间</b><span id="aiProgressPct">0%</span></div>
+        <div class="ai-progress-track"><i id="aiProgressBar"></i></div>
+        <p class="ai-progress-message" id="aiProgressMessage">任务已进入处理队列</p>
+        <button type="button" class="ai-text-btn" id="aiProcessingClose">你可以继续浏览，稍后再回来查看</button>
+      </div>
+
+      <div id="aiResult" class="hidden">
+        <div class="ai-result-head">
+          <div><span class="eyebrow">生成结果</span><h3 id="aiResultTitle">看看作品与空间的关系</h3></div>
+          <button type="button" class="ai-text-btn" id="aiRestart">换一张空间照片</button>
+        </div>
+        <div id="aiCandidateGrid" class="ai-candidate-grid"></div>
+        <div id="aiNoSolution" class="ai-service-note hidden"></div>
+      </div>
     </section>
 
     <section class="paper-card">

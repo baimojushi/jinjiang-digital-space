@@ -284,6 +284,55 @@ def init_database():
       created_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS ai_asset_links(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      artwork_id INTEGER NOT NULL,
+      molink_asset_id TEXT NOT NULL,
+      fingerprint TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'ready',
+      created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+      UNIQUE(artwork_id, fingerprint),
+      FOREIGN KEY(artwork_id) REFERENCES culture_assets(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS ai_experiences(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      experience_id TEXT NOT NULL UNIQUE,
+      user_id TEXT NOT NULL,
+      session_id TEXT NOT NULL,
+      recommendation_id TEXT,
+      artwork_id INTEGER NOT NULL,
+      source_code TEXT NOT NULL DEFAULT 'direct',
+      intent_code TEXT,
+      intent_label TEXT,
+      molink_artwork_asset_id TEXT NOT NULL,
+      molink_space_asset_id TEXT NOT NULL,
+      molink_job_id TEXT NOT NULL UNIQUE,
+      decision_episode_id TEXT NOT NULL,
+      candidate_set_id TEXT,
+      selected_candidate_id TEXT,
+      execution_status TEXT NOT NULL DEFAULT 'queued',
+      outcome_code TEXT,
+      latest_payload TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+      FOREIGN KEY(artwork_id) REFERENCES culture_assets(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS ai_event_outbox(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_id TEXT NOT NULL UNIQUE,
+      experience_id TEXT NOT NULL,
+      sequence INTEGER NOT NULL,
+      event_type TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      attempts INTEGER NOT NULL DEFAULT 0,
+      last_error TEXT,
+      created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+      UNIQUE(experience_id, sequence),
+      FOREIGN KEY(experience_id) REFERENCES ai_experiences(experience_id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_assets_status ON culture_assets(rights_status, review_status, publish_status);
     CREATE INDEX IF NOT EXISTS idx_assets_collection ON culture_assets(collection_id);
     CREATE INDEX IF NOT EXISTS idx_media_asset ON media_assets(asset_id);
@@ -294,6 +343,9 @@ def init_database():
     CREATE INDEX IF NOT EXISTS idx_rec_user ON recommendations(user_id, shown_at);
     CREATE INDEX IF NOT EXISTS idx_rec_source ON recommendations(source_id, shown_at);
     CREATE INDEX IF NOT EXISTS idx_votes_artwork ON curation_votes(artwork_id);
+    CREATE INDEX IF NOT EXISTS idx_ai_exp_user ON ai_experiences(user_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_ai_exp_artwork ON ai_experiences(artwork_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_ai_outbox_status ON ai_event_outbox(status, created_at);
     """)
 
     seed_master_data(con)
@@ -429,7 +481,7 @@ def rebuild_public_view(con):
     con.execute("""
       CREATE VIEW artworks AS
       SELECT
-        a.id,a.title,
+        a.id,a.title,a.asset_type,
         CASE a.asset_type WHEN 'hotel_artifact' THEN '酒店文化物件' ELSE '文化艺术作品' END AS category,
         COALESCE(a.region,'') AS region,COALESCE(a.era,'') AS era,COALESCE(a.style,'') AS style,
         a.tags AS tags,COALESCE(a.story,a.theme_text,'') AS story,COALESCE(a.source,'业务数据库') AS source,
