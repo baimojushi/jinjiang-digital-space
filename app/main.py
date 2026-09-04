@@ -489,8 +489,6 @@ async def start_ai_space_preview(
 ):
     if not consent:
         raise HTTPException(422,"需要确认空间照片的数据使用说明后才能生成")
-    if not molink.configured():
-        raise HTTPException(503,"AI 空间体验服务尚未配置")
     if not (space_image.content_type or "").startswith("image/"):
         raise HTTPException(422,"请上传图片格式的空间照片")
     image_bytes = await space_image.read()
@@ -501,6 +499,9 @@ async def start_ai_space_preview(
 
     con = connect()
     artwork = ai_preview_artwork_or_error(con,artwork_id)
+    if not molink.configured():
+        con.close()
+        raise HTTPException(503,"AI 空间体验服务尚未配置")
     sid, _ = ensure_session(con,user_id,session_id,source_code)
     if recommendation_id:
         rec = con.execute("""
